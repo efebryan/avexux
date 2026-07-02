@@ -23,7 +23,7 @@ import { Switch } from "@/components/ui/switch";
 const adminLoginSchema = z.object({
   adminId: z.string().min(1, { message: "Admin ID is required." }),
   password: z.string().min(1, { message: "Password is required." }),
-  hardware2FA: z.boolean().default(true),
+  hardware2FA: z.boolean(),
 });
 
 type AdminLoginFormValues = z.infer<typeof adminLoginSchema>;
