@@ -5,8 +5,8 @@ export function Header() {
   return (
     <div className="w-full flex items-center justify-between gap-4">
       {/* Greeting */}
-      <h1 className="text-lg md:text-xl font-bold text-gray-900 flex items-center gap-1.5 md:gap-2">
-        Good Morning, Bryan <span className="text-lg md:text-xl">👋</span>
+      <h1 className="text-sm sm:text-base md:text-xl font-bold text-gray-900 flex items-center gap-1 md:gap-2 min-w-0">
+        <span className="truncate">Good Morning, Bryan</span> <span className="text-base md:text-xl shrink-0">👋</span>
       </h1>
 
       {/* Right Actions */}
