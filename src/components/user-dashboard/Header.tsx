@@ -1,21 +1,13 @@
-import { Search, Bell, HelpCircle } from "lucide-react";
-import { Input } from "@/components/ui/input";
+import { Bell } from "lucide-react";
 import Image from "next/image";
 
 export function Header() {
   return (
     <div className="w-full flex items-center justify-between gap-4">
-      {/* Search Bar */}
-      <div className="relative w-full max-w-md">
-        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-          <Search className="h-5 w-5 text-gray-400" />
-        </div>
-        <Input 
-          type="text" 
-          placeholder="Search tasks or activities.." 
-          className="pl-10 py-5 bg-white border-none rounded-full shadow-sm text-sm placeholder:text-gray-400 focus-visible:ring-1 focus-visible:ring-gray-200 w-full"
-        />
-      </div>
+      {/* Greeting */}
+      <h1 className="text-lg md:text-xl font-bold text-gray-900 flex items-center gap-1.5 md:gap-2">
+        Good Morning, Bryan <span className="text-lg md:text-xl">👋</span>
+      </h1>
 
       {/* Right Actions */}
       <div className="flex items-center gap-4 lg:gap-6 shrink-0">
@@ -24,9 +16,6 @@ export function Header() {
           <button className="relative p-2 hover:bg-gray-100 rounded-full transition-colors">
             <Bell className="w-5 h-5" />
             <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border border-[#f8fafc]"></span>
-          </button>
-          <button className="p-2 hover:bg-gray-100 rounded-full transition-colors">
-            <HelpCircle className="w-5 h-5" />
           </button>
         </div>
 

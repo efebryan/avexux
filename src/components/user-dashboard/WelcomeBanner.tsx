@@ -5,10 +5,7 @@ export function WelcomeBanner() {
   return (
     <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900 mb-1 flex items-center gap-2">
-          Good Morning, Bryan <span className="text-2xl">👋</span>
-        </h1>
-        <p className="text-gray-600 text-sm md:text-base">
+        <p className="text-gray-600 text-base md:text-lg">
           You've reached <span className="font-semibold text-gray-800">85%</span> of your daily goal. Keep going!
         </p>
       </div>
