@@ -56,10 +56,19 @@ export default function UserDashboardLayout({
 
         {/* Scrollable Content */}
         <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 relative">
-          <div className="mx-auto max-w-7xl">
+          <div className="mx-auto max-w-7xl w-full pb-4">
             {children}
           </div>
         </main>
+
+        {/* Fixed Footer */}
+        <footer className="shrink-0 py-3 px-4 md:px-6 border-t border-gray-200 bg-[#f8fafc] text-xs text-gray-400 flex flex-col sm:flex-row justify-between items-center gap-2 z-10">
+          <p>&copy; {new Date().getFullYear()} Arvexus. All rights reserved.</p>
+          <div className="flex gap-4 font-medium">
+            <a href="/faq" className="hover:text-gray-600 transition-colors">Help Center</a>
+            <a href="/contact" className="hover:text-gray-600 transition-colors">Contact Support</a>
+          </div>
+        </footer>
       </div>
     </div>
   );

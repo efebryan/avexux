@@ -10,7 +10,7 @@ export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState("profile");
 
   const tabs = [
-    { id: "profile", label: "Profile Details", icon: User },
+    { id: "profile", label: "Profile Management", icon: User },
     { id: "security", label: "Security", icon: Shield },
     { id: "notifications", label: "Notifications", icon: Bell },
   ];

@@ -8,7 +8,7 @@ export function ProfileSettings() {
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div>
-        <h2 className="text-xl font-bold text-gray-900 mb-1">Profile Details</h2>
+        <h2 className="text-xl font-bold text-gray-900 mb-1">Profile Management</h2>
         <p className="text-sm text-gray-500">Update your personal information and profile picture.</p>
       </div>
 
@@ -36,12 +36,12 @@ export function ProfileSettings() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="space-y-2">
-          <Label htmlFor="firstName">First Name</Label>
-          <Input id="firstName" defaultValue="Bryan" className="rounded-xl h-11" />
+          <Label htmlFor="name">Full Name</Label>
+          <Input id="name" defaultValue="Bryan Smith" className="rounded-xl h-11" />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="lastName">Last Name</Label>
-          <Input id="lastName" defaultValue="Smith" className="rounded-xl h-11" />
+          <Label htmlFor="username">Username</Label>
+          <Input id="username" defaultValue="bryansmith123" className="rounded-xl h-11" />
         </div>
         <div className="space-y-2">
           <Label htmlFor="email">Email Address</Label>
@@ -50,6 +50,10 @@ export function ProfileSettings() {
         <div className="space-y-2">
           <Label htmlFor="phone">Phone Number</Label>
           <Input id="phone" type="tel" defaultValue="+234 800 000 0000" className="rounded-xl h-11" />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="country">Country</Label>
+          <Input id="country" defaultValue="Nigeria" className="rounded-xl h-11" />
         </div>
       </div>
 

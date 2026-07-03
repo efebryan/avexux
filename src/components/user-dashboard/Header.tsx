@@ -1,5 +1,5 @@
-import { Bell } from "lucide-react";
 import Image from "next/image";
+import { NotificationDropdown } from "@/components/user-dashboard/NotificationDropdown";
 
 export function Header() {
   return (
@@ -11,12 +11,8 @@ export function Header() {
 
       {/* Right Actions */}
       <div className="flex items-center gap-4 lg:gap-6 shrink-0">
-        {/* Icons */}
-        <div className="flex items-center gap-3 text-gray-600">
-          <button className="relative p-2 hover:bg-gray-100 rounded-full transition-colors">
-            <Bell className="w-5 h-5" />
-            <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border border-[#f8fafc]"></span>
-          </button>
+        <div className="flex items-center gap-3 text-gray-600 z-50">
+          <NotificationDropdown />
         </div>
 
         {/* Separator */}

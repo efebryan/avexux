@@ -10,7 +10,8 @@ import {
   Settings, 
   HelpCircle,
   Leaf,
-  ListTodo
+  ListTodo,
+  Gift
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -19,6 +20,7 @@ const navItems = [
   { name: "Task Center", href: "/user/tasks", icon: ClipboardList },
   { name: "My Tasks", href: "/user/my-tasks", icon: ListTodo },
   { name: "Wallet", href: "/user/wallet", icon: Wallet },
+  { name: "Rewards Store", href: "/user/rewards", icon: Gift },
   { name: "Referrals", href: "/user/referrals", icon: Users },
 ];
 
