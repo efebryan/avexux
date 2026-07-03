@@ -19,12 +19,6 @@ export function Header() {
 
       {/* Right Actions */}
       <div className="flex items-center gap-4 lg:gap-6 shrink-0">
-        {/* Balance Chip */}
-        <div className="hidden sm:flex items-center bg-[#ade5bb]/40 text-[#0f8538] font-bold px-4 py-2 rounded-full gap-2 border border-[#ade5bb]">
-          <WalletIcon className="w-4 h-4" />
-          <span>₦2,450.00</span>
-        </div>
-
         {/* Icons */}
         <div className="flex items-center gap-3 text-gray-600">
           <button className="relative p-2 hover:bg-gray-100 rounded-full transition-colors">
@@ -55,26 +49,5 @@ export function Header() {
         </div>
       </div>
     </div>
-  );
-}
-
-function WalletIcon(props: React.SVGProps<SVGSVGElement>) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4" />
-      <path d="M3 5v14a2 2 0 0 0 2 2h16v-5" />
-      <path d="M18 12a2 2 0 0 0 0 4h4v-4Z" />
-    </svg>
   );
 }
