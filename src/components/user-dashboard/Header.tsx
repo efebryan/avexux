@@ -1,4 +1,3 @@
-import Image from "next/image";
 import { NotificationDropdown } from "@/components/user-dashboard/NotificationDropdown";
 
 export function Header() {

@@ -1,6 +1,7 @@
 import { Clock } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 const filters = ["All Tasks", "Website Visit", "Survey", "AI Training", "App Testing", "Video Review"];
 
@@ -36,7 +37,7 @@ export function AvailableOpportunities() {
     <div className="mb-8">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-xl font-bold text-gray-900">Available Opportunities</h2>
-        <button className="text-[#0f8538] font-bold text-sm hover:underline">View All</button>
+        <Link href="/user/tasks" className="text-[#0f8538] font-bold text-sm hover:underline">View All</Link>
       </div>
 
       {/* Filter Chips */}

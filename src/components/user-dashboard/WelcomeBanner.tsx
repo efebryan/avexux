@@ -1,4 +1,3 @@
-import { Button } from "@/components/ui/button";
 import { Share2, Compass } from "lucide-react";
 import Link from "next/link";
 
