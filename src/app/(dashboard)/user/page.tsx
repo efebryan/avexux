@@ -5,7 +5,6 @@ import { AvailableOpportunities } from "@/components/user-dashboard/AvailableOpp
 import { ActiveTasksTable } from "@/components/user-dashboard/ActiveTasksTable";
 import { WeeklyGoal } from "@/components/user-dashboard/WeeklyGoal";
 import { RecentAchievements } from "@/components/user-dashboard/RecentAchievements";
-import { SystemUpdates } from "@/components/user-dashboard/SystemUpdates";
 
 export default function UserDashboard() {
   return (
@@ -23,7 +22,6 @@ export default function UserDashboard() {
       <div className="w-full xl:w-[320px] 2xl:w-[360px] shrink-0">
         <WeeklyGoal />
         <RecentAchievements />
-        <SystemUpdates />
       </div>
     </div>
   );

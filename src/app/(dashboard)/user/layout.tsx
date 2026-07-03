@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { usePathname } from "next/navigation";
 import { Sidebar } from "@/components/user-dashboard/Sidebar";
 import { Header } from "@/components/user-dashboard/Header";
 import { Menu, X } from "lucide-react";
@@ -11,9 +12,15 @@ export default function UserDashboardLayout({
   children: React.ReactNode;
 }) {
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  const pathname = usePathname();
+
+  // Close sidebar on route change on mobile
+  useEffect(() => {
+    setIsMobileSidebarOpen(false);
+  }, [pathname]);
 
   return (
-    <div className="flex h-screen w-full bg-[#f8fafc] overflow-hidden relative">
+    <div className="flex h-[100dvh] w-full bg-[#f8fafc] overflow-hidden relative">
       {/* Mobile Sidebar Overlay */}
       {isMobileSidebarOpen && (
         <div 
@@ -62,12 +69,8 @@ export default function UserDashboardLayout({
         </main>
 
         {/* Fixed Footer */}
-        <footer className="shrink-0 py-3 px-4 md:px-6 border-t border-gray-200 bg-[#f8fafc] text-xs text-gray-400 flex flex-col sm:flex-row justify-between items-center gap-2 z-10">
+        <footer className="shrink-0 py-3 px-4 md:px-6 border-t border-gray-200 bg-[#f8fafc] text-xs text-gray-400 flex justify-center items-center z-10">
           <p>&copy; {new Date().getFullYear()} Arvexus. All rights reserved.</p>
-          <div className="flex gap-4 font-medium">
-            <a href="/faq" className="hover:text-gray-600 transition-colors">Help Center</a>
-            <a href="/contact" className="hover:text-gray-600 transition-colors">Contact Support</a>
-          </div>
         </footer>
       </div>
     </div>
