@@ -9,13 +9,15 @@ import {
   Users, 
   Settings, 
   HelpCircle,
-  Leaf
+  Leaf,
+  ListTodo
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const navItems = [
   { name: "Dashboard", href: "/user", icon: LayoutDashboard },
-  { name: "Available Tasks", href: "/user/tasks", icon: ClipboardList },
+  { name: "Task Center", href: "/user/tasks", icon: ClipboardList },
+  { name: "My Tasks", href: "/user/my-tasks", icon: ListTodo },
   { name: "Wallet", href: "/user/wallet", icon: Wallet },
   { name: "Referrals", href: "/user/referrals", icon: Users },
 ];
