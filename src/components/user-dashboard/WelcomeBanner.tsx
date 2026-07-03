@@ -12,18 +12,20 @@ export function WelcomeBanner() {
       </div>
 
       <div className="flex items-center gap-3">
-        <Button asChild className="bg-[#0f8538] hover:bg-[#0c6b2c] text-white rounded-xl shadow-md px-6 py-6 font-semibold flex items-center gap-2 transition-all hover:-translate-y-0.5">
-          <Link href="/user/tasks">
-            <Compass className="w-5 h-5" />
-            Browse Tasks
-          </Link>
-        </Button>
-        <Button asChild className="bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-xl px-6 py-6 font-semibold flex items-center gap-2 transition-all hover:-translate-y-0.5">
-          <Link href="/user/referrals">
-            <Share2 className="w-5 h-5" />
-            Invite Friends
-          </Link>
-        </Button>
+        <Link 
+          href="/user/tasks" 
+          className="bg-[#0f8538] hover:bg-[#0c6b2c] text-white rounded-xl shadow-md px-6 py-6 font-semibold flex items-center justify-center gap-2 transition-all hover:-translate-y-0.5"
+        >
+          <Compass className="w-5 h-5" />
+          Browse Tasks
+        </Link>
+        <Link 
+          href="/user/referrals" 
+          className="bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-xl px-6 py-6 font-semibold flex items-center justify-center gap-2 transition-all hover:-translate-y-0.5"
+        >
+          <Share2 className="w-5 h-5" />
+          Invite Friends
+        </Link>
       </div>
     </div>
   );
