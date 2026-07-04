@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 
 export function WeeklyGoal() {
   return (
-    <Card className="p-3.5 border border-gray-100 shadow-sm rounded-xl mb-6">
+    <Card className="p-3.5 border border-gray-100 shadow-sm rounded-xl mb-4">
       <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Weekly Goal</h3>
       
       {/* Circular Progress (Mocked) */}

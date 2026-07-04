@@ -11,7 +11,7 @@ export function QuickActions() {
   };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-8">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
       {/* Explore New Tasks */}
       <Link 
         href="/user/tasks"

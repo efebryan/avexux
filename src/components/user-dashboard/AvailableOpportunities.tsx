@@ -34,7 +34,7 @@ const opportunities = [
 
 export function AvailableOpportunities() {
   return (
-    <div className="mb-8">
+    <div className="mb-4">
       <div className="flex items-center justify-between mb-3">
         <h2 className="text-lg font-bold text-gray-900">Available Opportunities</h2>
         <Link href="/user/tasks" className="text-[#0f8538] font-bold text-xs hover:underline">View All</Link>

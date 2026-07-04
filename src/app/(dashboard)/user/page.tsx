@@ -8,7 +8,7 @@ import { RecentAchievements } from "@/components/user-dashboard/RecentAchievemen
 
 export default function UserDashboard() {
   return (
-    <div className="flex flex-col xl:flex-row gap-8">
+    <div className="flex flex-col xl:flex-row gap-4">
       {/* Left/Main Column */}
       <div className="flex-1 min-w-0">
         <WelcomeBanner />

@@ -3,7 +3,7 @@ import { Card } from "@/components/ui/card";
 
 export function DashboardStats() {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 mb-8">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 mb-4">
       {/* Wallet Balance */}
       <Card className="p-2.5 border border-gray-100 shadow-sm rounded-lg flex flex-col justify-between">
         <div className="flex justify-between items-start mb-1.5">

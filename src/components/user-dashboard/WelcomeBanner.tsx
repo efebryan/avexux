@@ -3,7 +3,7 @@ import Link from "next/link";
 
 export function WelcomeBanner() {
   return (
-    <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
+    <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-4">
       <div>
         <p className="text-gray-600 text-base md:text-lg">
           You've reached{" "}
