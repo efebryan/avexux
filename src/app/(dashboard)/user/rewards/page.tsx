@@ -8,12 +8,12 @@ import { Gift, Zap, Smartphone, Shirt, CreditCard } from "lucide-react";
 import { toast } from "sonner";
 
 const mockInventory: RewardItem[] = [
-  { id: "r1", title: "₦1,000 Cash Bonus", description: "Instantly add ₦1,000 to your withdrawable wallet balance.", category: "Cash Bonuses", cost: 1000, icon: <CreditCard className="w-8 h-8 text-[#0f8538]" /> },
-  { id: "r2", title: "₦5,000 Amazon Gift Card", description: "Receive a digital Amazon gift card code via email within 24 hours.", category: "Gift Cards", cost: 5500, icon: <Gift className="w-8 h-8 text-yellow-500" /> },
-  { id: "r3", title: "1 Month Premium Status", description: "Unlock premium tasks, priority support, and 0% withdrawal fees for 30 days.", category: "Premium Features", cost: 3000, icon: <Zap className="w-8 h-8 text-blue-500" /> },
-  { id: "r4", title: "Arvexus T-Shirt", description: "Exclusive branded merchandise shipped directly to your address.", category: "Merchandise", cost: 8000, icon: <Shirt className="w-8 h-8 text-purple-500" /> },
-  { id: "r5", title: "500 Platform Credits", description: "Use credits to boost your own tasks if you ever switch to an Advertiser account.", category: "Platform Credits", cost: 500, icon: <Smartphone className="w-8 h-8 text-gray-700" /> },
-  { id: "r6", title: "₦10,000 Cash Bonus", description: "Instantly add ₦10,000 to your withdrawable wallet balance.", category: "Cash Bonuses", cost: 10000, icon: <CreditCard className="w-8 h-8 text-[#0f8538]" /> },
+  { id: "r1", title: "₦1,000 Cash Bonus", description: "Instantly add ₦1,000 to your withdrawable wallet balance.", category: "Cash Bonuses", cost: 1000, icon: <CreditCard className="w-5 h-5 text-[#0f8538]" /> },
+  { id: "r2", title: "₦5,000 Amazon Gift Card", description: "Receive a digital Amazon gift card code via email within 24 hours.", category: "Gift Cards", cost: 5500, icon: <Gift className="w-5 h-5 text-yellow-500" /> },
+  { id: "r3", title: "1 Month Premium Status", description: "Unlock premium tasks, priority support, and 0% withdrawal fees for 30 days.", category: "Premium Features", cost: 3000, icon: <Zap className="w-5 h-5 text-blue-500" /> },
+  { id: "r4", title: "Arvexus T-Shirt", description: "Exclusive branded merchandise shipped directly to your address.", category: "Merchandise", cost: 8000, icon: <Shirt className="w-5 h-5 text-purple-500" /> },
+  { id: "r5", title: "500 Platform Credits", description: "Use credits to boost your own tasks if you ever switch to an Advertiser account.", category: "Platform Credits", cost: 500, icon: <Smartphone className="w-5 h-5 text-gray-700" /> },
+  { id: "r6", title: "₦10,000 Cash Bonus", description: "Instantly add ₦10,000 to your withdrawable wallet balance.", category: "Cash Bonuses", cost: 10000, icon: <CreditCard className="w-5 h-5 text-[#0f8538]" /> },
 ];
 
 const categories = ["All", "Cash Bonuses", "Gift Cards", "Premium Features", "Merchandise", "Platform Credits"];
@@ -60,7 +60,7 @@ export default function RewardsStorePage() {
         />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-in fade-in duration-500 mt-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 animate-in fade-in duration-500 mt-8">
         {filteredInventory.length > 0 ? (
           filteredInventory.map(item => (
             <RewardCard 

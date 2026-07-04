@@ -35,17 +35,17 @@ const opportunities = [
 export function AvailableOpportunities() {
   return (
     <div className="mb-8">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-bold text-gray-900">Available Opportunities</h2>
-        <Link href="/user/tasks" className="text-[#0f8538] font-bold text-sm hover:underline">View All</Link>
+      <div className="flex items-center justify-between mb-3">
+        <h2 className="text-lg font-bold text-gray-900">Available Opportunities</h2>
+        <Link href="/user/tasks" className="text-[#0f8538] font-bold text-xs hover:underline">View All</Link>
       </div>
 
       {/* Filter Chips */}
-      <div className="flex items-center gap-3 overflow-x-auto pb-2 mb-4 scrollbar-hide">
+      <div className="flex items-center gap-2 overflow-x-auto pb-1.5 mb-3 scrollbar-hide">
         {filters.map((filter, index) => (
           <button
             key={filter}
-            className={`whitespace-nowrap px-5 py-2 rounded-full text-sm font-semibold transition-colors ${
+            className={`whitespace-nowrap px-4 py-1.5 rounded-full text-xs font-semibold transition-colors ${
               index === 0
                 ? "bg-[#0f8538] text-white"
                 : "bg-gray-200 text-gray-700 hover:bg-gray-300"
@@ -57,26 +57,26 @@ export function AvailableOpportunities() {
       </div>
 
       {/* Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
         {opportunities.map((task, i) => (
-          <Card key={i} className="p-5 border border-gray-100 shadow-sm rounded-2xl flex flex-col justify-between hover:border-[#0f8538]/30 transition-colors">
+          <Card key={i} className="p-3.5 border border-gray-100 shadow-sm rounded-xl flex flex-col justify-between hover:border-[#0f8538]/30 transition-colors">
             <div>
-              <div className="flex items-center justify-between mb-4">
-                <span className={`text-[10px] font-bold px-2 py-1 uppercase rounded-md tracking-wider ${task.typeColor}`}>
+              <div className="flex items-center justify-between mb-2.5">
+                <span className={`text-[9px] font-bold px-1.5 py-0.5 uppercase rounded tracking-wider ${task.typeColor}`}>
                   {task.type}
                 </span>
-                <span className="font-bold text-[#0f8538]">{task.reward}</span>
+                <span className="font-bold text-sm text-[#0f8538]">{task.reward}</span>
               </div>
-              <h3 className="font-bold text-gray-900 mb-2 leading-tight text-[17px]">{task.title}</h3>
-              <p className="text-sm text-gray-500 line-clamp-2">{task.desc}</p>
+              <h3 className="font-bold text-gray-900 mb-1 leading-tight text-sm">{task.title}</h3>
+              <p className="text-xs text-gray-500 line-clamp-2">{task.desc}</p>
             </div>
             
-            <div className="flex items-center justify-between mt-6 pt-4 border-t border-gray-100">
-              <div className="flex items-center gap-1.5 text-gray-500 text-sm font-medium">
-                <Clock className="w-4 h-4" />
+            <div className="flex items-center justify-between mt-4 pt-3 border-t border-gray-100">
+              <div className="flex items-center gap-1 text-gray-500 text-xs font-medium">
+                <Clock className="w-3.5 h-3.5" />
                 {task.time}
               </div>
-              <Button variant="outline" className="rounded-xl border-[#0f8538] text-[#0f8538] hover:bg-[#0f8538] hover:text-white transition-colors font-bold px-5 h-9">
+              <Button variant="outline" className="rounded-lg border-[#0f8538] text-[#0f8538] hover:bg-[#0f8538] hover:text-white transition-colors font-bold px-3.5 h-8 text-xs">
                 Accept Task
               </Button>
             </div>

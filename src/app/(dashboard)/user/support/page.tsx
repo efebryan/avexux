@@ -1,4 +1,3 @@
-import { HelpCards } from "@/components/user-dashboard/support/HelpCards";
 import { FAQAccordion } from "@/components/user-dashboard/support/FAQAccordion";
 import { ContactForm } from "@/components/user-dashboard/support/ContactForm";
 
@@ -10,9 +9,7 @@ export default function SupportPage() {
         <p className="text-gray-500 text-lg">Browse our resources below or send us a message directly. We're here to support your growth.</p>
       </div>
 
-      <HelpCards />
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-12">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-6">
         <FAQAccordion />
         <ContactForm />
       </div>

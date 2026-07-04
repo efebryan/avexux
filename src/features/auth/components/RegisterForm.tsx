@@ -162,16 +162,16 @@ export function RegisterForm() {
             control={form.control}
             name="acceptTerms"
             render={({ field }) => (
-              <FormItem className="flex flex-row items-start space-x-2 space-y-0 py-1.5">
+              <FormItem className="flex flex-row items-center space-x-2 space-y-0 py-1.5">
                 <FormControl>
                   <Checkbox
                     checked={field.value}
                     onCheckedChange={field.onChange}
                     disabled={isLoading}
-                    className="border-gray-300 data-[state=checked]:bg-[#2faf2f] data-[state=checked]:border-[#2faf2f] mt-0.5"
+                    className="border-gray-300 data-[state=checked]:bg-[#2faf2f] data-[state=checked]:border-[#2faf2f]"
                   />
                 </FormControl>
-                <div className="space-y-0.5 leading-tight">
+                <div className="leading-none">
                   <FormLabel className="text-[11px] font-medium text-gray-600">
                     I agree to the <Link href="/terms" className="text-[#006e0d] font-bold hover:underline">Terms of Service</Link> and <Link href="/privacy" className="text-[#006e0d] font-bold hover:underline">Privacy Policy</Link>.
                   </FormLabel>

@@ -170,7 +170,7 @@ export default function TaskCenterPage() {
         categories={categories}
       />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-in fade-in duration-500">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 animate-in fade-in duration-500">
         {filteredTasks.length > 0 ? (
           filteredTasks.map(task => (
             <TaskCard key={task.id} task={task} onClick={handleTaskClick} />

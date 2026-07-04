@@ -18,59 +18,59 @@ export function BalanceCards({
   onWithdrawClick
 }: BalanceCardsProps) {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 mb-8">
       {/* Available Balance (Featured) */}
-      <Card className="p-6 rounded-3xl border-0 shadow-lg bg-[#0f8538] text-white flex flex-col justify-between relative overflow-hidden group">
-        <div className="absolute top-0 right-0 p-4 opacity-10">
-          <Wallet className="w-24 h-24" />
+      <Card className="p-3.5 rounded-xl border-0 shadow-md bg-[#0f8538] text-white flex flex-col justify-between relative overflow-hidden group">
+        <div className="absolute top-0 right-0 p-3 opacity-10">
+          <Wallet className="w-16 h-16" />
         </div>
         <div className="relative z-10">
-          <div className="flex items-center gap-2 mb-2">
-            <Wallet className="w-5 h-5 text-green-200" />
-            <h3 className="text-green-100 font-medium text-sm">Available Balance</h3>
+          <div className="flex items-center gap-1.5 mb-1.5">
+            <Wallet className="w-4 h-4 text-green-200" />
+            <h3 className="text-green-100 font-medium text-xs">Available Balance</h3>
           </div>
-          <p className="text-3xl font-bold mb-6">₦{availableBalance.toLocaleString()}</p>
+          <p className="text-xl font-bold mb-3">₦{availableBalance.toLocaleString()}</p>
         </div>
         <Button 
           onClick={onWithdrawClick}
-          className="relative z-10 w-full bg-white text-[#0f8538] hover:bg-green-50 rounded-xl font-bold h-11 flex items-center justify-between px-4 group-hover:shadow-md transition-all"
+          className="relative z-10 w-full bg-white text-[#0f8538] hover:bg-green-50 rounded-lg font-bold h-8 text-xs flex items-center justify-between px-3 group-hover:shadow transition-all"
         >
           Withdraw Funds
-          <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+          <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
         </Button>
       </Card>
 
       {/* Pending Balance */}
-      <Card className="p-6 rounded-3xl border border-gray-100 shadow-sm hover:border-yellow-200 transition-colors flex flex-col justify-center">
-        <div className="flex items-center gap-3 mb-3">
-          <div className="w-10 h-10 rounded-full bg-yellow-50 flex items-center justify-center">
-            <Clock className="w-5 h-5 text-yellow-600" />
+      <Card className="p-3.5 rounded-xl border border-gray-100 shadow-sm hover:border-yellow-200 transition-colors flex flex-col justify-center">
+        <div className="flex items-center gap-2 mb-2">
+          <div className="w-8 h-8 rounded-full bg-yellow-50 flex items-center justify-center">
+            <Clock className="w-4 h-4 text-yellow-600" />
           </div>
-          <h3 className="text-gray-500 font-medium text-sm">Pending Balance</h3>
+          <h3 className="text-gray-500 font-medium text-xs">Pending Balance</h3>
         </div>
-        <p className="text-2xl font-bold text-gray-900">₦{pendingBalance.toLocaleString()}</p>
+        <p className="text-lg font-bold text-gray-900">₦{pendingBalance.toLocaleString()}</p>
       </Card>
 
       {/* Bonus Earnings */}
-      <Card className="p-6 rounded-3xl border border-gray-100 shadow-sm hover:border-purple-200 transition-colors flex flex-col justify-center">
-        <div className="flex items-center gap-3 mb-3">
-          <div className="w-10 h-10 rounded-full bg-purple-50 flex items-center justify-center">
-            <Gift className="w-5 h-5 text-purple-600" />
+      <Card className="p-3.5 rounded-xl border border-gray-100 shadow-sm hover:border-purple-200 transition-colors flex flex-col justify-center">
+        <div className="flex items-center gap-2 mb-2">
+          <div className="w-8 h-8 rounded-full bg-purple-50 flex items-center justify-center">
+            <Gift className="w-4 h-4 text-purple-600" />
           </div>
-          <h3 className="text-gray-500 font-medium text-sm">Bonus Earnings</h3>
+          <h3 className="text-gray-500 font-medium text-xs">Bonus Earnings</h3>
         </div>
-        <p className="text-2xl font-bold text-gray-900">₦{bonusEarnings.toLocaleString()}</p>
+        <p className="text-lg font-bold text-gray-900">₦{bonusEarnings.toLocaleString()}</p>
       </Card>
 
       {/* Referral Earnings */}
-      <Card className="p-6 rounded-3xl border border-gray-100 shadow-sm hover:border-blue-200 transition-colors flex flex-col justify-center">
-        <div className="flex items-center gap-3 mb-3">
-          <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center">
-            <Users className="w-5 h-5 text-blue-600" />
+      <Card className="p-3.5 rounded-xl border border-gray-100 shadow-sm hover:border-blue-200 transition-colors flex flex-col justify-center">
+        <div className="flex items-center gap-2 mb-2">
+          <div className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center">
+            <Users className="w-4 h-4 text-blue-600" />
           </div>
-          <h3 className="text-gray-500 font-medium text-sm">Referral Earnings</h3>
+          <h3 className="text-gray-500 font-medium text-xs">Referral Earnings</h3>
         </div>
-        <p className="text-2xl font-bold text-gray-900">₦{referralEarnings.toLocaleString()}</p>
+        <p className="text-lg font-bold text-gray-900">₦{referralEarnings.toLocaleString()}</p>
       </Card>
     </div>
   );

@@ -22,32 +22,32 @@ export function TaskCard({ task, onClick }: TaskCardProps) {
   return (
     <Card 
       onClick={() => onClick(task)}
-      className="p-5 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md hover:border-[#0f8538]/30 transition-all cursor-pointer group flex flex-col"
+      className="p-3.5 rounded-xl border border-gray-100 shadow-sm hover:shadow-md hover:border-[#0f8538]/30 transition-all cursor-pointer group flex flex-col"
     >
-      <div className="flex justify-between items-start mb-4">
-        <span className={`px-2.5 py-1 rounded-md text-xs font-bold ${getStatusColor(task.status)}`}>
+      <div className="flex justify-between items-start mb-2.5">
+        <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider ${getStatusColor(task.status)}`}>
           {task.status}
         </span>
-        <span className="font-bold text-[#0f8538] bg-[#ade5bb]/20 px-3 py-1 rounded-lg">
+        <span className="font-bold text-xs text-[#0f8538] bg-[#ade5bb]/20 px-2 py-0.5 rounded">
           ₦{task.reward.toLocaleString()}
         </span>
       </div>
       
-      <h3 className="font-bold text-gray-900 text-lg mb-2 group-hover:text-[#0f8538] transition-colors line-clamp-2">
+      <h3 className="font-bold text-gray-900 text-sm mb-1 group-hover:text-[#0f8538] transition-colors line-clamp-2">
         {task.title}
       </h3>
       
-      <p className="text-gray-500 text-sm line-clamp-2 mb-4 flex-1">
+      <p className="text-gray-500 text-xs line-clamp-2 mb-3 flex-1">
         {task.description}
       </p>
-
-      <div className="flex items-center gap-4 text-xs font-medium text-gray-500 mt-auto pt-4 border-t border-gray-50">
-        <div className="flex items-center gap-1.5">
-          <Clock className="w-3.5 h-3.5" />
+ 
+      <div className="flex items-center gap-3 text-[11px] font-medium text-gray-500 mt-auto pt-3 border-t border-gray-50">
+        <div className="flex items-center gap-1">
+          <Clock className="w-3 h-3" />
           {task.timeEstimate}
         </div>
-        <div className="flex items-center gap-1.5">
-          <Tag className="w-3.5 h-3.5" />
+        <div className="flex items-center gap-1">
+          <Tag className="w-3 h-3" />
           {task.category}
         </div>
       </div>
