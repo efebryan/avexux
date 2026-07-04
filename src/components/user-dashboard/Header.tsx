@@ -1,4 +1,5 @@
 import { NotificationDropdown } from "@/components/user-dashboard/NotificationDropdown";
+import { ProfileDropdown } from "@/components/user-dashboard/ProfileDropdown";
 
 export function Header() {
   return (
@@ -17,20 +18,8 @@ export function Header() {
         {/* Separator */}
         <div className="hidden md:block w-px h-8 bg-gray-200"></div>
 
-        {/* User Profile */}
-        <div className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity">
-          <div className="hidden md:flex flex-col items-end">
-            <span className="text-sm font-bold text-gray-900 leading-tight">Bryan Smith</span>
-            <span className="text-xs text-gray-500 font-medium">Pro Member</span>
-          </div>
-          <div className="w-10 h-10 rounded-full bg-gray-200 overflow-hidden relative border-2 border-white shadow-sm">
-            <img 
-              src="https://api.dicebear.com/7.x/avataaars/svg?seed=Bryan&backgroundColor=b6e3f4" 
-              alt="Profile" 
-              className="w-full h-full object-cover"
-            />
-          </div>
-        </div>
+        {/* User Profile Dropdown */}
+        <ProfileDropdown />
       </div>
     </div>
   );
