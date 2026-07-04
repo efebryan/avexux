@@ -12,14 +12,14 @@ export function QuickActions() {
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
-      {/* Explore New Tasks */}
+      {/* Deposit Fund Wallet */}
       <Link 
-        href="/user/tasks"
+        href="/user/wallet"
         className="group relative overflow-hidden bg-[#0f8538] rounded-xl p-4 text-left transition-transform hover:-translate-y-1 hover:shadow-md shadow-sm flex items-center justify-between"
       >
         <div className="relative z-10 text-white">
-          <p className="text-xs font-medium opacity-90 mb-0.5">Explore</p>
-          <h3 className="text-base font-bold">New Tasks</h3>
+          <p className="text-xs font-medium opacity-90 mb-0.5">Deposit</p>
+          <h3 className="text-base font-bold">Fund Wallet</h3>
         </div>
         <div className="relative z-10 w-7 h-7 rounded-full bg-white/20 flex items-center justify-center transition-transform group-hover:translate-x-1">
           <ChevronRight className="w-4 h-4 text-white" />
