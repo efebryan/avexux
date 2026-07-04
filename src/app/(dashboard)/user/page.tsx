@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import { WelcomeBanner } from "@/components/user-dashboard/WelcomeBanner";
 import { DashboardStats } from "@/components/user-dashboard/DashboardStats";
 import { QuickActions } from "@/components/user-dashboard/QuickActions";
@@ -5,8 +8,11 @@ import { AvailableOpportunities } from "@/components/user-dashboard/AvailableOpp
 import { ActiveTasksTable } from "@/components/user-dashboard/ActiveTasksTable";
 import { WeeklyGoal } from "@/components/user-dashboard/WeeklyGoal";
 import { RecentAchievements } from "@/components/user-dashboard/RecentAchievements";
+import { CongratulationsModal } from "@/components/user-dashboard/CongratulationsModal";
 
 export default function UserDashboard() {
+  const [isCongratsOpen, setIsCongratsOpen] = useState(true);
+
   return (
     <div className="flex flex-col xl:flex-row gap-4">
       {/* Left/Main Column */}
@@ -23,6 +29,12 @@ export default function UserDashboard() {
         <WeeklyGoal />
         <RecentAchievements />
       </div>
+
+      {/* Global Congratulations Campaign Modal */}
+      <CongratulationsModal 
+        isOpen={isCongratsOpen}
+        onClose={() => setIsCongratsOpen(false)}
+      />
     </div>
   );
 }
