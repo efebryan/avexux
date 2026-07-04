@@ -16,42 +16,38 @@ export default function SettingsPage() {
   ];
 
   return (
-    <div className="max-w-5xl mx-auto pb-8">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">Account Settings</h1>
-        <p className="text-gray-500">Manage your profile, security preferences, and notifications.</p>
+    <div className="max-w-4xl mx-auto pb-8">
+      <div className="mb-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">Account Settings</h1>
+        <p className="text-gray-500 text-sm">Manage your profile, security preferences, and notifications.</p>
       </div>
 
-      <div className="flex flex-col md:flex-row gap-8">
-        {/* Sidebar Nav */}
-        <div className="w-full md:w-64 shrink-0">
-          <nav className="flex flex-col space-y-1">
-            {tabs.map((tab) => {
-              const isActive = activeTab === tab.id;
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-colors font-medium text-sm text-left ${
-                    isActive
-                      ? "bg-[#ade5bb]/40 text-[#0f8538]"
-                      : "text-gray-600 hover:bg-gray-100"
-                  }`}
-                >
-                  <tab.icon className={`w-5 h-5 ${isActive ? "text-[#0f8538]" : "text-gray-400"}`} />
-                  {tab.label}
-                </button>
-              );
-            })}
-          </nav>
-        </div>
+      {/* Horizontal Tab Navigation */}
+      <div className="flex items-center gap-6 border-b border-gray-200 mb-6 overflow-x-auto scrollbar-hide">
+        {tabs.map((tab) => {
+          const isActive = activeTab === tab.id;
+          return (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`flex items-center gap-2 pb-4 text-sm font-bold border-b-2 transition-all whitespace-nowrap ${
+                isActive
+                  ? "border-[#0f8538] text-[#0f8538]"
+                  : "border-transparent text-gray-500 hover:text-gray-700"
+              }`}
+            >
+              <tab.icon className={`w-4 h-4 ${isActive ? "text-[#0f8538]" : "text-gray-400"}`} />
+              {tab.label}
+            </button>
+          );
+        })}
+      </div>
 
-        {/* Main Content Area */}
-        <div className="flex-1 bg-white rounded-2xl border border-gray-100 p-6 md:p-8 shadow-sm">
-          {activeTab === "profile" && <ProfileSettings />}
-          {activeTab === "security" && <SecuritySettings />}
-          {activeTab === "notifications" && <NotificationSettings />}
-        </div>
+      {/* Main Content Area */}
+      <div className="bg-white rounded-xl border border-gray-100 p-4 md:p-6 shadow-sm">
+        {activeTab === "profile" && <ProfileSettings />}
+        {activeTab === "security" && <SecuritySettings />}
+        {activeTab === "notifications" && <NotificationSettings />}
       </div>
     </div>
   );
