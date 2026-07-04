@@ -64,7 +64,7 @@ export function ProfileDropdown() {
 
           {/* Change Password */}
           <Link
-            href="/user/settings"
+            href="/user/settings?tab=security"
             onClick={() => setIsOpen(false)}
             className="flex items-center gap-2.5 px-3 py-2 text-xs font-bold text-gray-700 hover:bg-gray-50 hover:text-gray-900 rounded-lg transition-colors"
           >

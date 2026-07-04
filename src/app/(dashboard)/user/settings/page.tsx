@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { User, Shield, Bell } from "lucide-react";
 import { ProfileSettings } from "@/components/user-dashboard/settings/ProfileSettings";
 import { SecuritySettings } from "@/components/user-dashboard/settings/SecuritySettings";
@@ -8,6 +8,16 @@ import { NotificationSettings } from "@/components/user-dashboard/settings/Notif
 
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState("profile");
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const tab = params.get("tab");
+      if (tab && ["profile", "security", "notifications"].includes(tab)) {
+        setActiveTab(tab);
+      }
+    }
+  }, []);
 
   const tabs = [
     { id: "profile", label: "Profile Management", icon: User },
