@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { WelcomeBanner } from "@/components/user-dashboard/WelcomeBanner";
 import { DashboardStats } from "@/components/user-dashboard/DashboardStats";
-import { QuickActions } from "@/components/user-dashboard/QuickActions";
 import { AvailableOpportunities } from "@/components/user-dashboard/AvailableOpportunities";
 import { ActiveTasksTable } from "@/components/user-dashboard/ActiveTasksTable";
 import { WeeklyGoal } from "@/components/user-dashboard/WeeklyGoal";
@@ -19,7 +18,6 @@ export default function UserDashboard() {
       <div className="flex-1 min-w-0">
         <WelcomeBanner />
         <DashboardStats />
-        <QuickActions />
         <AvailableOpportunities />
         <ActiveTasksTable />
       </div>
