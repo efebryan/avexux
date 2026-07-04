@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Transaction, Withdrawal } from "./types";
 import { BalanceCards } from "@/components/user-dashboard/wallet/BalanceCards";
 import { WithdrawalModal } from "@/components/user-dashboard/wallet/WithdrawalModal";
+import { DepositModal } from "@/components/user-dashboard/wallet/DepositModal";
 import { TransactionTable } from "@/components/user-dashboard/wallet/TransactionTable";
 import { WithdrawalTable } from "@/components/user-dashboard/wallet/WithdrawalTable";
 import { toast } from "sonner";
@@ -24,8 +25,10 @@ const mockWithdrawals: Withdrawal[] = [
 export default function WalletPage() {
   const [activeTab, setActiveTab] = useState<"transactions" | "withdrawals">("transactions");
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isDepositModalOpen, setIsDepositModalOpen] = useState(false);
   
   // Mock State
+  const [transactions, setTransactions] = useState<Transaction[]>(mockTransactions);
   const [withdrawals, setWithdrawals] = useState<Withdrawal[]>(mockWithdrawals);
   const [availableBalance, setAvailableBalance] = useState(12500);
   
@@ -55,6 +58,28 @@ export default function WalletPage() {
     setActiveTab("withdrawals");
   };
 
+  const handleDepositRequest = (amount: number, method: string) => {
+    // Add to available balance
+    setAvailableBalance(prev => prev + amount);
+    
+    // Add to transaction history
+    const newTransaction: Transaction = {
+      id: `tx${Date.now()}`,
+      date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+      description: `Deposit: ${method}`,
+      type: "Bonus",
+      amount,
+      status: "Completed"
+    };
+    
+    setTransactions([newTransaction, ...transactions]);
+    setIsDepositModalOpen(false);
+    toast.success(`Successfully deposited ₦${amount.toLocaleString()}!`);
+    
+    // Switch to transactions tab
+    setActiveTab("transactions");
+  };
+
   return (
     <div className="max-w-6xl mx-auto pb-8">
       <div className="mb-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -68,7 +93,7 @@ export default function WalletPage() {
         bonusEarnings={bonusEarnings}
         referralEarnings={referralEarnings}
         onWithdrawClick={() => setIsModalOpen(true)}
-        onDepositClick={() => toast.success("Redirecting to deposit gateway...")}
+        onDepositClick={() => setIsDepositModalOpen(true)}
       />
 
       <div className="mt-12">
@@ -88,7 +113,7 @@ export default function WalletPage() {
         </div>
 
         {activeTab === "transactions" ? (
-          <TransactionTable transactions={mockTransactions} />
+          <TransactionTable transactions={transactions} />
         ) : (
           <WithdrawalTable withdrawals={withdrawals} />
         )}
@@ -99,6 +124,12 @@ export default function WalletPage() {
         onClose={() => setIsModalOpen(false)}
         availableBalance={availableBalance}
         onWithdraw={handleWithdrawRequest}
+      />
+
+      <DepositModal 
+        isOpen={isDepositModalOpen}
+        onClose={() => setIsDepositModalOpen(false)}
+        onDeposit={handleDepositRequest}
       />
     </div>
   );
