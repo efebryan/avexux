@@ -68,6 +68,7 @@ export default function WalletPage() {
         bonusEarnings={bonusEarnings}
         referralEarnings={referralEarnings}
         onWithdrawClick={() => setIsModalOpen(true)}
+        onDepositClick={() => toast.success("Redirecting to deposit gateway...")}
       />
 
       <div className="mt-12">

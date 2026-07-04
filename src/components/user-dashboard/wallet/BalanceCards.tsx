@@ -8,6 +8,7 @@ interface BalanceCardsProps {
   bonusEarnings: number;
   referralEarnings: number;
   onWithdrawClick: () => void;
+  onDepositClick: () => void;
 }
 
 export function BalanceCards({
@@ -15,7 +16,8 @@ export function BalanceCards({
   pendingBalance,
   bonusEarnings,
   referralEarnings,
-  onWithdrawClick
+  onWithdrawClick,
+  onDepositClick
 }: BalanceCardsProps) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 mb-8">
@@ -31,13 +33,20 @@ export function BalanceCards({
           </div>
           <p className="text-xl font-bold mb-3">₦{availableBalance.toLocaleString()}</p>
         </div>
-        <Button 
-          onClick={onWithdrawClick}
-          className="relative z-10 w-full bg-white text-[#0f8538] hover:bg-green-50 rounded-lg font-bold h-8 text-xs flex items-center justify-between px-3 group-hover:shadow transition-all"
-        >
-          Withdraw Funds
-          <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
-        </Button>
+        <div className="relative z-10 flex gap-2 w-full">
+          <Button 
+            onClick={onDepositClick}
+            className="flex-1 bg-white text-[#0f8538] hover:bg-green-50 rounded-lg font-bold h-8 text-xs transition-all shadow-sm"
+          >
+            Deposit
+          </Button>
+          <Button 
+            onClick={onWithdrawClick}
+            className="flex-1 bg-transparent hover:bg-white/10 text-white border border-white/40 rounded-lg font-bold h-8 text-xs transition-all"
+          >
+            Withdraw
+          </Button>
+        </div>
       </Card>
 
       {/* Pending Balance */}
