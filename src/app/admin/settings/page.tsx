@@ -21,10 +21,10 @@ export default function AdminSettingsPage() {
       
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 mb-2">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-1">Platform Settings</h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-1 tracking-tight">Platform Settings</h1>
           <p className="text-gray-500 text-sm">Configure global rules and financial limits.</p>
         </div>
-        <Button onClick={handleSaveSettings} className="bg-blue-600 hover:bg-blue-700 text-white font-medium flex items-center gap-2">
+        <Button onClick={handleSaveSettings} className="bg-blue-600 hover:bg-blue-700 text-white font-medium flex items-center gap-2 rounded-xl shadow-md hover:-translate-y-0.5 transition-all">
           <Save className="w-4 h-4" /> Save Changes
         </Button>
       </div>
@@ -32,96 +32,102 @@ export default function AdminSettingsPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         
         {/* Financial Limits */}
-        <Card className="p-6 border border-gray-100 shadow-sm rounded-xl bg-white">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-10 h-10 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center">
-              <Wallet className="w-5 h-5" />
+        <Card className="p-6 md:p-8 border border-gray-100 shadow-sm rounded-2xl bg-white relative overflow-hidden group">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/5 rounded-full blur-[80px] pointer-events-none -translate-y-1/2 translate-x-1/4"></div>
+          
+          <div className="flex items-center gap-4 mb-8 relative z-10">
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-100 to-emerald-200 text-emerald-700 flex items-center justify-center shadow-inner border border-emerald-200 transition-transform group-hover:scale-110">
+              <Wallet className="w-6 h-6" />
             </div>
             <div>
-              <h2 className="font-bold text-gray-900 text-lg">Financial Limits</h2>
-              <p className="text-xs text-gray-500">Set minimum constraints for users.</p>
+              <h2 className="font-bold text-gray-900 text-xl tracking-tight">Financial Limits</h2>
+              <p className="text-sm text-gray-500">Set minimum constraints for users.</p>
             </div>
           </div>
           
-          <div className="space-y-4">
+          <div className="space-y-5 relative z-10">
             <div>
-               <label className="block text-sm font-bold text-gray-700 mb-1">Minimum Withdrawal (₦)</label>
+               <label className="block text-sm font-bold text-gray-700 mb-1.5">Minimum Withdrawal (₦)</label>
                <input 
                  type="number" 
                  value={minWithdrawal}
                  onChange={(e) => setMinWithdrawal(Number(e.target.value))}
-                 className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                 className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-gray-50 focus:bg-white transition-all"
                />
-               <p className="text-[10px] text-gray-500 mt-1">Users cannot request payouts below this amount.</p>
+               <p className="text-[10px] text-gray-400 mt-1.5 font-medium tracking-wide uppercase">Users cannot request payouts below this amount.</p>
             </div>
             <div>
-               <label className="block text-sm font-bold text-gray-700 mb-1">Minimum Deposit (₦)</label>
+               <label className="block text-sm font-bold text-gray-700 mb-1.5">Minimum Deposit (₦)</label>
                <input 
                  type="number" 
                  value={minDeposit}
                  onChange={(e) => setMinDeposit(Number(e.target.value))}
-                 className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                 className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 bg-gray-50 focus:bg-white transition-all"
                />
             </div>
           </div>
         </Card>
 
         {/* Affiliate System */}
-        <Card className="p-6 border border-gray-100 shadow-sm rounded-xl bg-white">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-10 h-10 rounded-lg bg-orange-100 text-orange-600 flex items-center justify-center">
-              <LinkIcon className="w-5 h-5" />
+        <Card className="p-6 md:p-8 border border-gray-100 shadow-sm rounded-2xl bg-white relative overflow-hidden group">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-orange-500/5 rounded-full blur-[80px] pointer-events-none -translate-y-1/2 translate-x-1/4"></div>
+
+          <div className="flex items-center gap-4 mb-8 relative z-10">
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-orange-100 to-orange-200 text-orange-700 flex items-center justify-center shadow-inner border border-orange-200 transition-transform group-hover:scale-110">
+              <LinkIcon className="w-6 h-6" />
             </div>
             <div>
-              <h2 className="font-bold text-gray-900 text-lg">Affiliate System</h2>
-              <p className="text-xs text-gray-500">Global referral settings.</p>
+              <h2 className="font-bold text-gray-900 text-xl tracking-tight">Affiliate System</h2>
+              <p className="text-sm text-gray-500">Global referral settings.</p>
             </div>
           </div>
           
-          <div className="space-y-4">
+          <div className="space-y-5 relative z-10">
             <div>
-               <label className="block text-sm font-bold text-gray-700 mb-1 flex items-center gap-1">
-                 Commission Rate <Percent className="w-3 h-3" />
+               <label className="block text-sm font-bold text-gray-700 mb-1.5 flex items-center gap-1">
+                 Commission Rate <Percent className="w-3.5 h-3.5" />
                </label>
-               <div className="flex items-center gap-2">
+               <div className="flex items-center gap-3">
                  <input 
                    type="number" 
                    value={commission}
                    onChange={(e) => setCommission(Number(e.target.value))}
-                   className="w-24 px-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                   className="w-24 px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 bg-gray-50 focus:bg-white transition-all text-center font-bold text-lg"
                  />
-                 <span className="font-bold text-gray-700">%</span>
+                 <span className="font-extrabold text-gray-700 text-xl">%</span>
                </div>
-               <p className="text-[10px] text-gray-500 mt-1">Percentage earned from referred users' tasks.</p>
+               <p className="text-[10px] text-gray-400 mt-2 font-medium tracking-wide uppercase">Percentage earned from referred users' tasks.</p>
             </div>
           </div>
         </Card>
 
         {/* Security & System */}
-        <Card className="p-6 border border-gray-100 shadow-sm rounded-xl bg-white md:col-span-2">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-10 h-10 rounded-lg bg-red-100 text-red-600 flex items-center justify-center">
-              <Shield className="w-5 h-5" />
+        <Card className="p-6 md:p-8 border border-gray-100 shadow-sm rounded-2xl bg-white md:col-span-2 relative overflow-hidden group">
+          <div className="absolute top-0 right-0 w-80 h-80 bg-red-500/5 rounded-full blur-[100px] pointer-events-none -translate-y-1/2 translate-x-1/4"></div>
+
+          <div className="flex items-center gap-4 mb-8 relative z-10">
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-red-100 to-red-200 text-red-700 flex items-center justify-center shadow-inner border border-red-200 transition-transform group-hover:scale-110">
+              <Shield className="w-6 h-6" />
             </div>
             <div>
-              <h2 className="font-bold text-gray-900 text-lg">System Security</h2>
-              <p className="text-xs text-gray-500">Critical platform controls.</p>
+              <h2 className="font-bold text-gray-900 text-xl tracking-tight">System Security</h2>
+              <p className="text-sm text-gray-500">Critical platform controls.</p>
             </div>
           </div>
           
-          <div className="border border-red-100 rounded-lg p-4 bg-red-50/50 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div className="border border-red-200 rounded-xl p-6 bg-red-50/50 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 relative z-10 shadow-sm">
              <div>
-               <h3 className="font-bold text-gray-900 flex items-center gap-2">
+               <h3 className="font-bold text-gray-900 flex items-center gap-2 text-lg">
                  Maintenance Mode
                </h3>
-               <p className="text-sm text-gray-600 max-w-lg mt-1">
+               <p className="text-sm text-gray-600 max-w-xl mt-1.5 leading-relaxed">
                  When active, all standard users will be unable to log in and will see a maintenance screen. Admin access remains active.
                </p>
              </div>
              <Button 
                onClick={() => setMaintenanceMode(!maintenanceMode)}
                variant="outline" 
-               className={`shrink-0 font-bold ${maintenanceMode ? 'bg-red-600 text-white hover:bg-red-700 border-red-600' : 'bg-white text-gray-700 hover:bg-gray-50'}`}
+               className={`shrink-0 font-bold rounded-xl h-11 px-6 shadow-sm transition-all ${maintenanceMode ? 'bg-red-600 text-white hover:bg-red-700 border-red-600 shadow-red-500/20' : 'bg-white text-gray-700 hover:bg-gray-50 hover:text-gray-900 border-gray-200 hover:border-gray-300'}`}
              >
                <Power className="w-4 h-4 mr-2" /> 
                {maintenanceMode ? "Disable Maintenance" : "Enable Maintenance"}

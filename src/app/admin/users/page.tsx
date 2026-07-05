@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { Search, Filter, MoreVertical, Ban, CheckCircle, Wallet, Edit } from "lucide-react";
+import { Search, MoreVertical, Ban, CheckCircle, Wallet, Edit, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { UserDetailsModal } from "@/components/admin/UserDetailsModal";
 
 // Mock User Data
 const mockUsers = [
@@ -18,6 +19,9 @@ export default function AdminUsersPage() {
   const [users, setUsers] = useState(mockUsers);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
+  
+  // Modal State
+  const [selectedUser, setSelectedUser] = useState<any>(null);
 
   const filteredUsers = users.filter(user => {
     if (statusFilter !== "All" && user.status !== statusFilter) return false;
@@ -30,6 +34,12 @@ export default function AdminUsersPage() {
       if (u.id === userId) {
         const newStatus = u.status === "Active" ? "Suspended" : "Active";
         toast.success(`User ${u.username} marked as ${newStatus}`);
+        
+        // Update selected user if modal is open
+        if (selectedUser?.id === userId) {
+          setSelectedUser({ ...u, status: newStatus });
+        }
+        
         return { ...u, status: newStatus };
       }
       return u;
@@ -39,15 +49,15 @@ export default function AdminUsersPage() {
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
       
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 mb-6">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 mb-2">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-1">User Management</h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-1 tracking-tight">User Management</h1>
           <p className="text-gray-500 text-sm">View and manage all registered users on the platform.</p>
         </div>
       </div>
 
       {/* Filters & Search */}
-      <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col sm:flex-row gap-4 justify-between items-center">
+      <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex flex-col sm:flex-row gap-4 justify-between items-center">
         <div className="relative w-full sm:max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
           <input 
@@ -55,7 +65,7 @@ export default function AdminUsersPage() {
             placeholder="Search by username or email..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+            className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all bg-gray-50"
           />
         </div>
         
@@ -64,10 +74,10 @@ export default function AdminUsersPage() {
             <button
               key={filter}
               onClick={() => setStatusFilter(filter)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${
+              className={`px-4 py-2 rounded-xl text-sm font-bold transition-all whitespace-nowrap shadow-sm ${
                 statusFilter === filter 
-                  ? "bg-blue-50 text-blue-700 border border-blue-200" 
-                  : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-50"
+                  ? "bg-slate-900 text-white border-transparent" 
+                  : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-50 hover:border-gray-300"
               }`}
             >
               {filter}
@@ -77,44 +87,48 @@ export default function AdminUsersPage() {
       </div>
 
       {/* Users Table */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm text-left">
-            <thead className="text-xs text-gray-500 uppercase bg-gray-50 border-b border-gray-100">
+            <thead className="text-xs text-gray-500 uppercase bg-gray-50/80 border-b border-gray-100">
               <tr>
-                <th className="px-6 py-4 font-semibold">User</th>
-                <th className="px-6 py-4 font-semibold">Status & Tier</th>
-                <th className="px-6 py-4 font-semibold">Wallet Balance</th>
-                <th className="px-6 py-4 font-semibold">Activity</th>
-                <th className="px-6 py-4 font-semibold text-right">Actions</th>
+                <th className="px-6 py-4 font-bold tracking-wider">User</th>
+                <th className="px-6 py-4 font-bold tracking-wider">Status & Tier</th>
+                <th className="px-6 py-4 font-bold tracking-wider">Wallet Balance</th>
+                <th className="px-6 py-4 font-bold tracking-wider">Activity</th>
+                <th className="px-6 py-4 font-bold tracking-wider text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
               {filteredUsers.length > 0 ? (
                 filteredUsers.map((user) => (
-                  <tr key={user.id} className="hover:bg-gray-50 transition-colors">
+                  <tr key={user.id} className="hover:bg-blue-50/30 transition-colors group cursor-pointer" onClick={() => setSelectedUser(user)}>
                     <td className="px-6 py-4">
-                      <div className="flex flex-col">
-                        <span className="font-bold text-gray-900">{user.username}</span>
-                        <span className="text-xs text-gray-500">{user.email}</span>
-                        <span className="text-[10px] text-gray-400 mt-1">Joined: {user.joined}</span>
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-100 to-blue-200 border border-blue-200 flex items-center justify-center text-blue-700 font-bold text-sm uppercase shadow-inner">
+                          {user.username.substring(0, 2)}
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="font-bold text-gray-900 group-hover:text-blue-600 transition-colors">{user.username}</span>
+                          <span className="text-xs text-gray-500">{user.email}</span>
+                        </div>
                       </div>
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex flex-col gap-1.5 items-start">
-                        <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
-                          user.status === 'Active' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                        <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider border ${
+                          user.status === 'Active' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-red-50 text-red-700 border-red-200'
                         }`}>
                           {user.status}
                         </span>
-                        <span className="text-xs font-semibold text-gray-600 bg-gray-100 px-2 py-0.5 rounded">
+                        <span className="text-[10px] font-extrabold uppercase tracking-widest text-gray-600 bg-gray-100/80 px-2 py-0.5 rounded border border-gray-200/50">
                           {user.tier}
                         </span>
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="flex items-center gap-1.5 font-bold text-gray-900">
-                        <Wallet className="w-4 h-4 text-gray-400" />
+                      <div className="flex items-center gap-1.5 font-extrabold text-gray-900">
+                        <Wallet className="w-4 h-4 text-emerald-500" />
                         ₦{user.balance.toLocaleString()}
                       </div>
                     </td>
@@ -125,15 +139,26 @@ export default function AdminUsersPage() {
                       </div>
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-blue-600 hover:bg-blue-50">
-                          <Edit className="w-4 h-4" />
+                      <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedUser(user);
+                          }}
+                          className="h-8 w-8 p-0 text-blue-600 hover:bg-blue-50 rounded-lg"
+                        >
+                          <Eye className="w-4 h-4" />
                         </Button>
                         <Button 
                           variant="ghost" 
                           size="sm" 
-                          onClick={() => toggleUserStatus(user.id)}
-                          className={`h-8 w-8 p-0 ${
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleUserStatus(user.id);
+                          }}
+                          className={`h-8 w-8 p-0 rounded-lg ${
                             user.status === 'Active' ? 'text-red-600 hover:bg-red-50' : 'text-green-600 hover:bg-green-50'
                           }`}
                           title={user.status === 'Active' ? 'Suspend User' : 'Activate User'}
@@ -155,6 +180,14 @@ export default function AdminUsersPage() {
           </table>
         </div>
       </div>
+
+      <UserDetailsModal 
+        isOpen={!!selectedUser}
+        onClose={() => setSelectedUser(null)}
+        user={selectedUser}
+        onToggleStatus={toggleUserStatus}
+      />
     </div>
   );
 }
+

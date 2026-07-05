@@ -49,100 +49,100 @@ export default function AdminFinancialsPage() {
       
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 mb-2">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-1">Financial Management</h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-1 tracking-tight">Financial Management</h1>
           <p className="text-gray-500 text-sm">Verify deposits and process user withdrawals.</p>
         </div>
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-        <Card className="p-4 border border-emerald-100 shadow-sm rounded-xl flex items-center justify-between bg-white">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-6">
+        <Card className="p-5 border border-emerald-100 shadow-sm hover:shadow-md transition-all rounded-2xl flex items-center justify-between bg-white group hover:-translate-y-1">
           <div>
-            <p className="text-gray-500 text-xs font-medium mb-1">Pending Deposits</p>
-            <h3 className="text-2xl font-bold text-emerald-600">
+            <p className="text-gray-500 text-xs font-bold uppercase tracking-wider mb-2">Pending Deposits</p>
+            <h3 className="text-3xl font-extrabold text-emerald-600">
               ₦{deposits.filter(d => d.status === "Pending").reduce((acc, curr) => acc + curr.amount, 0).toLocaleString()}
             </h3>
           </div>
-          <div className="w-12 h-12 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600">
-            <ArrowDownToLine className="w-6 h-6" />
+          <div className="w-14 h-14 rounded-2xl bg-emerald-50 flex items-center justify-center text-emerald-600 transition-transform group-hover:scale-110">
+            <ArrowDownToLine className="w-7 h-7" />
           </div>
         </Card>
         
-        <Card className="p-4 border border-rose-100 shadow-sm rounded-xl flex items-center justify-between bg-white">
+        <Card className="p-5 border border-rose-100 shadow-sm hover:shadow-md transition-all rounded-2xl flex items-center justify-between bg-white group hover:-translate-y-1">
           <div>
-            <p className="text-gray-500 text-xs font-medium mb-1">Pending Withdrawals</p>
-            <h3 className="text-2xl font-bold text-rose-600">
+            <p className="text-gray-500 text-xs font-bold uppercase tracking-wider mb-2">Pending Withdrawals</p>
+            <h3 className="text-3xl font-extrabold text-rose-600">
               ₦{withdrawals.filter(w => w.status === "Pending").reduce((acc, curr) => acc + curr.amount, 0).toLocaleString()}
             </h3>
           </div>
-          <div className="w-12 h-12 rounded-full bg-rose-50 flex items-center justify-center text-rose-600">
-            <ArrowUpToLine className="w-6 h-6" />
+          <div className="w-14 h-14 rounded-2xl bg-rose-50 flex items-center justify-center text-rose-600 transition-transform group-hover:scale-110">
+            <ArrowUpToLine className="w-7 h-7" />
           </div>
         </Card>
       </div>
 
       {/* Tabs */}
-      <div className="flex items-center gap-6 border-b border-gray-200 mb-6">
+      <div className="flex items-center gap-8 border-b border-gray-200 mb-6">
         <button 
           onClick={() => setActiveTab("deposits")}
-          className={`pb-4 text-sm font-bold border-b-2 transition-colors flex items-center gap-2 ${activeTab === "deposits" ? "border-emerald-600 text-emerald-600" : "border-transparent text-gray-500 hover:text-gray-700"}`}
+          className={`pb-4 text-sm font-bold border-b-2 transition-all flex items-center gap-2 ${activeTab === "deposits" ? "border-emerald-600 text-emerald-600" : "border-transparent text-gray-500 hover:text-gray-700"}`}
         >
           User Deposits
-          <span className="bg-emerald-100 text-emerald-700 text-[10px] px-2 py-0.5 rounded-full">
-            {deposits.filter(d => d.status === "Pending").length} Pending
+          <span className="bg-emerald-100 text-emerald-700 text-[10px] px-2 py-0.5 rounded-full font-extrabold">
+            {deposits.filter(d => d.status === "Pending").length}
           </span>
         </button>
         <button 
           onClick={() => setActiveTab("withdrawals")}
-          className={`pb-4 text-sm font-bold border-b-2 transition-colors flex items-center gap-2 ${activeTab === "withdrawals" ? "border-rose-600 text-rose-600" : "border-transparent text-gray-500 hover:text-gray-700"}`}
+          className={`pb-4 text-sm font-bold border-b-2 transition-all flex items-center gap-2 ${activeTab === "withdrawals" ? "border-rose-600 text-rose-600" : "border-transparent text-gray-500 hover:text-gray-700"}`}
         >
           Withdrawal Requests
-          <span className="bg-rose-100 text-rose-700 text-[10px] px-2 py-0.5 rounded-full">
-            {withdrawals.filter(w => w.status === "Pending").length} Pending
+          <span className="bg-rose-100 text-rose-700 text-[10px] px-2 py-0.5 rounded-full font-extrabold">
+            {withdrawals.filter(w => w.status === "Pending").length}
           </span>
         </button>
       </div>
 
       {/* Content based on Tab */}
       {activeTab === "deposits" ? (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-sm text-left">
-              <thead className="text-xs text-gray-500 uppercase bg-gray-50 border-b border-gray-100">
+              <thead className="text-xs text-gray-500 uppercase bg-gray-50/80 border-b border-gray-100">
                 <tr>
-                  <th className="px-6 py-4 font-semibold">User</th>
-                  <th className="px-6 py-4 font-semibold">Amount & Ref</th>
-                  <th className="px-6 py-4 font-semibold">Date</th>
-                  <th className="px-6 py-4 font-semibold">Status</th>
-                  <th className="px-6 py-4 font-semibold text-right">Actions</th>
+                  <th className="px-6 py-4 font-bold tracking-wider">User</th>
+                  <th className="px-6 py-4 font-bold tracking-wider">Amount & Ref</th>
+                  <th className="px-6 py-4 font-bold tracking-wider">Date</th>
+                  <th className="px-6 py-4 font-bold tracking-wider">Status</th>
+                  <th className="px-6 py-4 font-bold tracking-wider text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
                 {deposits.map((dep) => (
-                  <tr key={dep.id} className="hover:bg-gray-50 transition-colors">
+                  <tr key={dep.id} className="hover:bg-emerald-50/30 transition-colors group">
                     <td className="px-6 py-4 font-bold text-gray-900">{dep.user}</td>
                     <td className="px-6 py-4">
                       <div className="flex flex-col">
-                        <span className="font-bold text-emerald-600">₦{dep.amount.toLocaleString()}</span>
-                        <span className="text-xs text-gray-500">{dep.method} • {dep.ref}</span>
+                        <span className="font-extrabold text-emerald-600">₦{dep.amount.toLocaleString()}</span>
+                        <span className="text-[11px] text-gray-500 mt-1">{dep.method} • {dep.ref}</span>
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-gray-500 text-xs">{dep.date}</td>
+                    <td className="px-6 py-4 text-gray-500 text-xs font-medium">{dep.date}</td>
                     <td className="px-6 py-4">
-                      <span className={`text-[10px] font-bold px-2 py-1 rounded uppercase tracking-wider ${
-                        dep.status === "Pending" ? "bg-yellow-100 text-yellow-700" :
-                        dep.status === "Confirmed" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+                      <span className={`text-[10px] font-bold px-2.5 py-1 rounded-md uppercase tracking-wider border ${
+                        dep.status === "Pending" ? "bg-yellow-50 text-yellow-700 border-yellow-200" :
+                        dep.status === "Confirmed" ? "bg-green-50 text-green-700 border-green-200" : "bg-red-50 text-red-700 border-red-200"
                       }`}>
                         {dep.status}
                       </span>
                     </td>
                     <td className="px-6 py-4 text-right">
                       {dep.status === "Pending" ? (
-                        <div className="flex items-center justify-end gap-2">
+                        <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                           <Button 
                             size="sm" 
                             onClick={() => handleDepositAction(dep.id, "Confirmed")}
-                            className="h-8 text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white"
+                            className="h-8 text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg shadow-sm"
                           >
                             <CheckCircle className="w-3.5 h-3.5 mr-1" /> Confirm
                           </Button>
@@ -150,13 +150,13 @@ export default function AdminFinancialsPage() {
                             size="sm" 
                             variant="outline"
                             onClick={() => handleDepositAction(dep.id, "Rejected")}
-                            className="h-8 text-xs font-bold text-red-600 border-red-200 hover:bg-red-50"
+                            className="h-8 text-xs font-bold text-red-600 border-red-200 hover:bg-red-50 rounded-lg"
                           >
                             <XCircle className="w-3.5 h-3.5 mr-1" /> Reject
                           </Button>
                         </div>
                       ) : (
-                        <span className="text-xs text-gray-400 font-medium">Processed</span>
+                        <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest bg-gray-50 px-3 py-1 rounded-full">Processed</span>
                       )}
                     </td>
                   </tr>
@@ -166,44 +166,44 @@ export default function AdminFinancialsPage() {
           </div>
         </div>
       ) : (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-sm text-left">
-              <thead className="text-xs text-gray-500 uppercase bg-gray-50 border-b border-gray-100">
+              <thead className="text-xs text-gray-500 uppercase bg-gray-50/80 border-b border-gray-100">
                 <tr>
-                  <th className="px-6 py-4 font-semibold">User</th>
-                  <th className="px-6 py-4 font-semibold">Amount & Account</th>
-                  <th className="px-6 py-4 font-semibold">Date</th>
-                  <th className="px-6 py-4 font-semibold">Status</th>
-                  <th className="px-6 py-4 font-semibold text-right">Actions</th>
+                  <th className="px-6 py-4 font-bold tracking-wider">User</th>
+                  <th className="px-6 py-4 font-bold tracking-wider">Amount & Account</th>
+                  <th className="px-6 py-4 font-bold tracking-wider">Date</th>
+                  <th className="px-6 py-4 font-bold tracking-wider">Status</th>
+                  <th className="px-6 py-4 font-bold tracking-wider text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
                 {withdrawals.map((req) => (
-                  <tr key={req.id} className="hover:bg-gray-50 transition-colors">
+                  <tr key={req.id} className="hover:bg-rose-50/30 transition-colors group">
                     <td className="px-6 py-4 font-bold text-gray-900">{req.user}</td>
                     <td className="px-6 py-4">
                       <div className="flex flex-col">
-                        <span className="font-bold text-rose-600">₦{req.amount.toLocaleString()}</span>
-                        <span className="text-xs text-gray-500">{req.account}</span>
+                        <span className="font-extrabold text-rose-600">₦{req.amount.toLocaleString()}</span>
+                        <span className="text-[11px] text-gray-500 mt-1">{req.account}</span>
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-gray-500 text-xs">{req.date}</td>
+                    <td className="px-6 py-4 text-gray-500 text-xs font-medium">{req.date}</td>
                     <td className="px-6 py-4">
-                      <span className={`text-[10px] font-bold px-2 py-1 rounded uppercase tracking-wider ${
-                        req.status === "Pending" ? "bg-yellow-100 text-yellow-700" :
-                        req.status === "Processed" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+                      <span className={`text-[10px] font-bold px-2.5 py-1 rounded-md uppercase tracking-wider border ${
+                        req.status === "Pending" ? "bg-yellow-50 text-yellow-700 border-yellow-200" :
+                        req.status === "Processed" ? "bg-green-50 text-green-700 border-green-200" : "bg-red-50 text-red-700 border-red-200"
                       }`}>
                         {req.status}
                       </span>
                     </td>
                     <td className="px-6 py-4 text-right">
                       {req.status === "Pending" ? (
-                        <div className="flex items-center justify-end gap-2">
+                        <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                           <Button 
                             size="sm" 
                             onClick={() => handleWithdrawalAction(req.id, "Processed")}
-                            className="h-8 text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white"
+                            className="h-8 text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow-sm"
                           >
                             <CheckCircle className="w-3.5 h-3.5 mr-1" /> Mark Paid
                           </Button>
@@ -211,13 +211,13 @@ export default function AdminFinancialsPage() {
                             size="sm" 
                             variant="outline"
                             onClick={() => handleWithdrawalAction(req.id, "Failed")}
-                            className="h-8 text-xs font-bold text-red-600 border-red-200 hover:bg-red-50"
+                            className="h-8 text-xs font-bold text-red-600 border-red-200 hover:bg-red-50 rounded-lg"
                           >
                             <XCircle className="w-3.5 h-3.5 mr-1" /> Fail
                           </Button>
                         </div>
                       ) : (
-                        <span className="text-xs text-gray-400 font-medium">Completed</span>
+                        <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest bg-gray-50 px-3 py-1 rounded-full">Completed</span>
                       )}
                     </td>
                   </tr>

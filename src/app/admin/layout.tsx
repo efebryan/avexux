@@ -30,9 +30,9 @@ export default function AdminLayout({
       )}
 
       {/* Mobile Sidebar */}
-      <div className={`fixed inset-y-0 left-0 z-50 w-[280px] bg-gray-900 border-r border-gray-800 shadow-2xl transform transition-transform duration-300 lg:hidden ${isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+      <div className={`fixed inset-y-0 left-0 z-50 w-[280px] bg-[#0a0f1c] border-r border-slate-800 shadow-2xl transform transition-transform duration-300 lg:hidden ${isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <div className="absolute top-6 right-4 z-50">
-          <button onClick={() => setIsMobileSidebarOpen(false)} className="p-2 hover:bg-gray-800 rounded-full text-gray-400 transition-colors">
+          <button onClick={() => setIsMobileSidebarOpen(false)} className="p-2 hover:bg-slate-800 rounded-full text-slate-400 transition-colors">
             <X className="w-6 h-6" />
           </button>
         </div>
@@ -42,7 +42,7 @@ export default function AdminLayout({
       </div>
 
       {/* Desktop Sidebar (Hidden on small screens) */}
-      <div className="hidden lg:block w-64 xl:w-72 border-r border-gray-200 bg-gray-900 shrink-0">
+      <div className="hidden lg:block w-64 xl:w-72 border-r border-slate-800/50 bg-[#0a0f1c] shrink-0">
         <Sidebar />
       </div>
 
