@@ -50,25 +50,28 @@ export function UserDetailsModal({ isOpen, onClose, user, onToggleStatus }: User
         </div>
 
         {/* Content Section */}
-        <div className="p-6">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-            <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
-              <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 flex items-center gap-1">
-                <Wallet className="w-3.5 h-3.5" /> Wallet Balance
-              </p>
-              <h3 className="text-2xl font-extrabold text-gray-900">₦{user.balance.toLocaleString()}</h3>
+        <div className="p-5 sm:p-6">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-6">
+            <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex flex-col justify-center">
+              <div className="flex items-center gap-1.5 mb-1.5">
+                <Wallet className="w-4 h-4 shrink-0 text-gray-400" /> 
+                <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest truncate">Balance</p>
+              </div>
+              <h3 className="text-xl sm:text-2xl font-extrabold text-gray-900 truncate">₦{user.balance.toLocaleString()}</h3>
             </div>
-            <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
-              <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 flex items-center gap-1">
-                <Activity className="w-3.5 h-3.5" /> Tasks Done
-              </p>
-              <h3 className="text-2xl font-extrabold text-blue-600">{user.tasksCompleted}</h3>
+            <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex flex-col justify-center">
+              <div className="flex items-center gap-1.5 mb-1.5">
+                <Activity className="w-4 h-4 shrink-0 text-blue-400" /> 
+                <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest truncate">Tasks</p>
+              </div>
+              <h3 className="text-xl sm:text-2xl font-extrabold text-blue-600 truncate">{user.tasksCompleted}</h3>
             </div>
-            <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
-              <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 flex items-center gap-1">
-                <User className="w-3.5 h-3.5" /> Referrals
-              </p>
-              <h3 className="text-2xl font-extrabold text-amber-600">{user.referrals}</h3>
+            <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex flex-col justify-center col-span-2 sm:col-span-1">
+              <div className="flex items-center gap-1.5 mb-1.5">
+                <User className="w-4 h-4 shrink-0 text-amber-400" /> 
+                <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest truncate">Referrals</p>
+              </div>
+              <h3 className="text-xl sm:text-2xl font-extrabold text-amber-600 truncate">{user.referrals}</h3>
             </div>
           </div>
 
@@ -76,23 +79,23 @@ export function UserDetailsModal({ isOpen, onClose, user, onToggleStatus }: User
             <div className="px-4 py-3 border-b border-gray-50 flex items-center justify-between bg-gray-50/50">
               <h4 className="font-bold text-gray-900 text-sm">Account Settings</h4>
             </div>
-            <div className="p-4 space-y-4">
-               <div className="flex justify-between items-center pb-4 border-b border-gray-50">
+            <div className="p-4 sm:p-5 space-y-5">
+               <div className="flex justify-between items-center pb-5 border-b border-gray-50">
                  <div>
                    <p className="text-sm font-bold text-gray-900">Current Tier</p>
-                   <p className="text-xs text-gray-500">The user's subscription level.</p>
+                   <p className="text-[11px] sm:text-xs text-gray-500 mt-0.5">The user's subscription level.</p>
                  </div>
-                 <span className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-sm">
+                 <span className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg shadow-sm">
                    {user.tier} Plan
                  </span>
                </div>
                
-               <div className="flex justify-between items-center">
+               <div className="flex flex-col sm:flex-row sm:justify-between items-start sm:items-center gap-4">
                  <div>
-                   <p className="text-sm font-bold text-gray-900 flex items-center gap-1">
-                     <ShieldAlert className="w-4 h-4 text-red-500" /> Account Status
+                   <p className="text-sm font-bold text-gray-900 flex items-center gap-1.5">
+                     <ShieldAlert className="w-4 h-4 text-red-500 shrink-0" /> Account Status
                    </p>
-                   <p className="text-xs text-gray-500 max-w-xs mt-1">
+                   <p className="text-[11px] sm:text-xs text-gray-500 max-w-sm mt-1 leading-relaxed">
                      Suspending a user blocks their login and freezes their wallet balance.
                    </p>
                  </div>
@@ -102,7 +105,7 @@ export function UserDetailsModal({ isOpen, onClose, user, onToggleStatus }: User
                      // Don't auto-close — let admin see the status change reflected immediately
                    }}
                    variant="outline"
-                   className={`rounded-xl border shadow-sm font-bold transition-all ${
+                   className={`w-full sm:w-auto shrink-0 rounded-xl border shadow-sm font-bold transition-all h-10 ${
                      user.status === 'Active' 
                       ? 'border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700' 
                       : 'border-green-200 text-green-600 hover:bg-green-50 hover:text-green-700'
