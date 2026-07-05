@@ -50,6 +50,17 @@ export default function AdminTasksPage() {
     setTasks([newTask, ...tasks]);
   };
 
+  const handleDeleteTask = (id: string, title: string) => {
+    if (confirm(`Delete task "${title}"? This cannot be undone.`)) {
+      setTasks(prev => prev.filter(t => t.id !== id));
+      toast.success("Task deleted successfully.");
+    }
+  };
+
+  const handleEditTask = (id: string) => {
+    toast.info("Task editor coming soon — for now use the Create modal.");
+  };
+
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
       
@@ -129,10 +140,10 @@ export default function AdminTasksPage() {
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-blue-600 hover:bg-blue-50 rounded-lg">
+                        <Button variant="ghost" size="sm" onClick={() => handleEditTask(task.id)} className="h-8 w-8 p-0 text-blue-600 hover:bg-blue-50 rounded-lg">
                           <Edit2 className="w-4 h-4" />
                         </Button>
-                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-red-600 hover:bg-red-50 rounded-lg">
+                        <Button variant="ghost" size="sm" onClick={() => handleDeleteTask(task.id, task.title)} className="h-8 w-8 p-0 text-red-600 hover:bg-red-50 rounded-lg">
                           <Trash2 className="w-4 h-4" />
                         </Button>
                       </div>

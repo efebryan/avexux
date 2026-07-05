@@ -1,6 +1,7 @@
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { User, Wallet, Activity, ExternalLink, ShieldAlert, CheckCircle, Ban } from "lucide-react";
+import Link from "next/link";
 
 interface UserDetailsModalProps {
   isOpen: boolean;
@@ -98,7 +99,7 @@ export function UserDetailsModal({ isOpen, onClose, user, onToggleStatus }: User
                  <Button 
                    onClick={() => {
                      onToggleStatus(user.id);
-                     onClose();
+                     // Don't auto-close — let admin see the status change reflected immediately
                    }}
                    variant="outline"
                    className={`rounded-xl border shadow-sm font-bold transition-all ${
@@ -117,9 +118,11 @@ export function UserDetailsModal({ isOpen, onClose, user, onToggleStatus }: User
              <Button variant="ghost" onClick={onClose} className="rounded-xl text-gray-600 hover:bg-gray-200">
                Close
              </Button>
-             <Button className="rounded-xl bg-slate-900 text-white hover:bg-slate-800 shadow-md flex items-center gap-2">
-               Full User Log <ExternalLink className="w-4 h-4" />
-             </Button>
+             <Link href="/admin/users">
+               <Button className="rounded-xl bg-slate-900 text-white hover:bg-slate-800 shadow-md flex items-center gap-2">
+                 Full User Log <ExternalLink className="w-4 h-4" />
+               </Button>
+             </Link>
           </div>
         </div>
 

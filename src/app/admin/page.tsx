@@ -4,6 +4,7 @@ import { Users, ClipboardList, Wallet, ArrowDownToLine, UsersRound, Activity, Al
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { toast } from "sonner";
 
 const stats = [
   { title: "Total Users", value: "1,245", subtext: "+24 this week", icon: Users, color: "text-blue-500", bg: "bg-blue-500/10", border: "border-blue-500/20" },
@@ -41,7 +42,10 @@ export default function AdminOverviewPage() {
           <p className="text-gray-500 text-sm">Key metrics and real-time activity across Arvexus.</p>
         </div>
         <div className="flex gap-2 hidden md:flex">
-           <Button className="bg-slate-900 hover:bg-slate-800 text-white font-medium shadow-md transition-all hover:-translate-y-0.5 rounded-xl px-6">
+           <Button
+             onClick={() => toast.info("Report generation is not yet connected to the backend.")}
+             className="bg-slate-900 hover:bg-slate-800 text-white font-medium shadow-md transition-all hover:-translate-y-0.5 rounded-xl px-6"
+           >
              Generate Report
            </Button>
         </div>
@@ -157,9 +161,11 @@ export default function AdminOverviewPage() {
               </div>
               <div className="flex items-center gap-4">
                 <span className="text-lg font-extrabold">{req.amount}</span>
-                <Button size="sm" className="bg-white/20 hover:bg-white/30 text-white font-medium h-8 text-xs border-0 rounded-lg backdrop-blur-sm">
-                  Review Details
-                </Button>
+                <Link href="/admin/financials">
+                  <Button size="sm" className="bg-white/20 hover:bg-white/30 text-white font-medium h-8 text-xs border-0 rounded-lg backdrop-blur-sm">
+                    Review Details
+                  </Button>
+                </Link>
               </div>
             </div>
           ))}

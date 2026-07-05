@@ -29,10 +29,10 @@ export default function AdminSupportPage() {
     if (!replyText) return;
     toast.success("Reply sent to user!");
     
-    // Mark as resolved after reply for mock flow
-    setTickets(tickets.map(t => t.id === activeTicket ? { ...t, status: "Resolved" } : t));
+    // Mark as resolved after reply, but keep ticket selected so admin can see the resolved state
+    setTickets(prev => prev.map(t => t.id === activeTicket ? { ...t, status: "Resolved" } : t));
     setReplyText("");
-    setActiveTicket(null);
+    // Don't deselect — keep on ticket so admin sees the resolved conversation
   };
 
   const handleResolve = (id: string) => {
@@ -97,7 +97,7 @@ export default function AdminSupportPage() {
         </div>
 
         {/* Ticket Thread View */}
-        <div className="w-full lg:w-2/3 bg-white border border-gray-100 rounded-2xl shadow-sm flex flex-col hidden lg:flex overflow-hidden">
+        <div className="w-full lg:w-2/3 bg-white border border-gray-100 rounded-2xl shadow-sm flex-col hidden lg:flex overflow-hidden">
           {selectedTicket ? (
             <>
               {/* Thread Header */}

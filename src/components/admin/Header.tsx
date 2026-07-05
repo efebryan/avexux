@@ -1,7 +1,17 @@
+"use client";
+
 import { ShieldAlert, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useRouter } from "next/navigation";
 
 export function Header() {
+  const router = useRouter();
+
+  const handleLogout = () => {
+    // In a real app, this would clear auth tokens/session
+    router.push("/admin/login");
+  };
+
   return (
     <div className="w-full flex items-center justify-between gap-4">
       {/* Greeting */}
@@ -14,14 +24,18 @@ export function Header() {
       <div className="flex items-center gap-4 lg:gap-6 shrink-0">
         <div className="flex items-center gap-2 text-sm font-medium text-gray-600">
            <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-           System Online
+           <span className="hidden sm:inline">System Online</span>
         </div>
 
         {/* Separator */}
         <div className="hidden md:block w-px h-8 bg-gray-200"></div>
 
         {/* Admin Logout */}
-        <Button variant="ghost" className="text-red-600 hover:bg-red-50 hover:text-red-700 flex gap-2">
+        <Button
+          variant="ghost"
+          onClick={handleLogout}
+          className="text-red-600 hover:bg-red-50 hover:text-red-700 flex gap-2 rounded-xl"
+        >
           <LogOut className="w-4 h-4" />
           <span className="hidden sm:inline">Logout</span>
         </Button>
