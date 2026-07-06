@@ -67,28 +67,28 @@ export default function AdminLayout({
         </header>
 
         {/* Scrollable Content */}
-        <main className="flex-1 flex flex-col min-h-0 overflow-y-auto relative">
-          <div className="flex-1 p-4 md:p-6 lg:p-8">
+        <main className="flex-1 overflow-y-auto relative">
+          <div className="p-4 md:p-6 lg:p-8">
             <div className="mx-auto max-w-7xl w-full">{children}</div>
           </div>
-          
-          {/* Footer */}
-          <footer className="mt-auto shrink-0 border-t border-slate-200 bg-white py-4 px-6 lg:px-8">
-            <div className="mx-auto max-w-7xl flex flex-col sm:flex-row items-center justify-between gap-4 text-xs font-medium text-slate-500">
-              <div className="flex items-center gap-4">
-                <span>&copy; 2024 Arvexus Admin Pro</span>
-                <span className="text-slate-300">&bull;</span>
-                <a href="#" className="hover:text-slate-800 transition-colors">Privacy Policy</a>
-                <span className="text-slate-300">&bull;</span>
-                <a href="#" className="hover:text-slate-800 transition-colors">Terms of Service</a>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-green-500"></span>
-                System Operational: v2.4.1
-              </div>
-            </div>
-          </footer>
         </main>
+          
+        {/* Static Footer */}
+        <footer className="shrink-0 border-t border-slate-200 bg-white py-4 px-6 lg:px-8 z-10">
+          <div className="mx-auto max-w-7xl flex flex-col sm:flex-row items-center justify-between gap-4 text-xs font-medium text-slate-500">
+            <div className="flex items-center gap-4">
+              <span>&copy; 2024 Arvexus Admin Pro</span>
+              <span className="text-slate-300">&bull;</span>
+              <a href="#" className="hover:text-slate-800 transition-colors">Privacy Policy</a>
+              <span className="text-slate-300">&bull;</span>
+              <a href="#" className="hover:text-slate-800 transition-colors">Terms of Service</a>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-green-500"></span>
+              System Operational: v2.4.1
+            </div>
+          </div>
+        </footer>
       </div>
     </div>
   );
