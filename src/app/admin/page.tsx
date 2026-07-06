@@ -159,8 +159,9 @@ function ChartComponent() {
       )}
 
       {/* SVG Container */}
-      <div className="w-full flex-1 min-h-0 relative">
-        <svg viewBox="0 0 500 180" width="100%" height="100%" preserveAspectRatio="none" className="overflow-visible">
+      <div className="w-full flex-1 min-h-0 relative overflow-x-auto scrollbar-hide">
+        <div className="min-w-[500px] h-full">
+          <svg viewBox="0 0 500 180" width="100%" height="100%" preserveAspectRatio="none" className="overflow-visible">
           <defs>
             {/* Growth Gradient (Theme Matching Green) */}
             <linearGradient id="growthGrad" x1="0" y1="0" x2="0" y2="1">
@@ -228,6 +229,7 @@ function ChartComponent() {
             </g>
           ))}
         </svg>
+        </div>
       </div>
     </div>
   );
@@ -432,6 +434,14 @@ export default function AdminOverviewPage() {
                   </span>
                   
                   {/* Hover Actions */}
+                  <div className="flex md:hidden items-center gap-2 opacity-100 transition-opacity duration-200">
+                    <button className="px-2.5 py-1 text-[10px] font-bold text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors border border-transparent hover:border-rose-100">
+                      Decline
+                    </button>
+                    <button className="px-3 py-1 text-[10px] font-extrabold text-white bg-slate-900 hover:bg-slate-800 rounded-lg transition-colors shadow-sm">
+                      Approve & Pay
+                    </button>
+                  </div>
                   <div className="hidden md:flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                     <button className="px-2.5 py-1 text-[10px] font-bold text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors border border-transparent hover:border-rose-100">
                       Decline

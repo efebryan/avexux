@@ -194,8 +194,9 @@ export default function FinancialsPage() {
             </div>
 
             {/* Custom SVG Line Chart */}
-            <div className="w-full h-[220px] relative">
-              <svg viewBox="0 0 800 200" className="w-full h-full overflow-visible" preserveAspectRatio="none">
+            <div className="w-full h-[220px] relative overflow-x-auto scrollbar-hide">
+              <div className="min-w-[500px] h-full">
+                <svg viewBox="0 0 800 200" className="w-full h-full overflow-visible" preserveAspectRatio="none">
                 {/* Grid Lines */}
                 <line x1="0" y1="50" x2="800" y2="50" stroke="#f1f5f9" strokeDasharray="4 4" strokeWidth="1" />
                 <line x1="0" y1="100" x2="800" y2="100" stroke="#f1f5f9" strokeDasharray="4 4" strokeWidth="1" />
@@ -220,6 +221,7 @@ export default function FinancialsPage() {
                   strokeLinecap="round"
                 />
               </svg>
+              </div>
             </div>
           </Card>
 

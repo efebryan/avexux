@@ -166,7 +166,7 @@ export default function AdminUsersPage() {
 
         <div className="flex flex-col sm:flex-row items-center gap-4 w-full xl:w-auto justify-between">
           {/* Filters */}
-          <div className="flex items-center gap-2 w-full sm:w-auto overflow-x-visible pb-2 sm:pb-0 scrollbar-hide">
+          <div className="flex items-center gap-2 w-full sm:w-auto overflow-x-auto pb-2 sm:pb-0 scrollbar-hide">
             
             {/* Status Selector */}
             <div className="relative">
@@ -360,10 +360,10 @@ export default function AdminUsersPage() {
 
         {/* Pagination */}
         <div className="p-4 px-6 border-t border-slate-200 bg-slate-50/50 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="text-xs text-slate-500 font-medium">
+          <p className="text-xs text-slate-500 font-medium whitespace-nowrap">
             Showing <span className="font-bold text-slate-700">1-{filteredUsers.length}</span> of <span className="font-bold text-slate-700">{filteredUsers.length}</span> users
           </p>
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1 overflow-x-auto scrollbar-hide pb-1 w-full sm:w-auto">
             <Button variant="outline" size="sm" className="w-8 h-8 p-0 text-slate-400 border-slate-200">
               <span className="sr-only">Previous</span>
               &lt;

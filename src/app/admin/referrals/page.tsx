@@ -189,7 +189,8 @@ export default function ReferralsPage() {
             </div>
 
             {/* SVG Line Chart */}
-            <div className="w-full h-[220px] relative">
+            <div className="w-full h-[220px] relative overflow-x-auto scrollbar-hide">
+              <div className="min-w-[500px] h-full relative">
               
               {/* Tooltip */}
               <div className="absolute left-[15%] top-0 bg-white border border-slate-100 shadow-lg rounded-xl p-3 z-10 hidden md:block">
@@ -227,6 +228,7 @@ export default function ReferralsPage() {
                 <circle cx="700" cy="65" r="3" fill="#16a34a" />
                 <circle cx="800" cy="30" r="4" fill="#fff" stroke="#16a34a" strokeWidth="2" />
               </svg>
+              </div>
             </div>
           </Card>
 

@@ -71,7 +71,7 @@ export default function SupportPage() {
       
       {/* Top Metrics Bar */}
       <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 shrink-0">
-        <div className="flex items-center gap-8">
+        <div className="flex items-center gap-8 overflow-x-auto scrollbar-hide">
           
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 border border-blue-100">
@@ -142,10 +142,10 @@ export default function SupportPage() {
       </div>
 
       {/* Main 3-Column Layout */}
-      <div className="flex flex-1 min-h-0 overflow-hidden">
+      <div className="flex flex-col md:flex-row flex-1 overflow-y-auto md:overflow-hidden">
         
         {/* ================= LEFT COLUMN: TICKETS ================= */}
-        <div className="w-[320px] flex-shrink-0 border-r border-slate-200 flex flex-col bg-white">
+        <div className="w-full md:w-[320px] flex-shrink-0 border-b md:border-b-0 md:border-r border-slate-200 flex flex-col bg-white">
           <div className="p-4 border-b border-slate-100 shrink-0">
             <div className="flex justify-between items-center mb-4">
               <h2 className="font-bold text-slate-900">Tickets (42)</h2>
@@ -200,7 +200,7 @@ export default function SupportPage() {
         </div>
 
         {/* ================= MIDDLE COLUMN: CHAT ================= */}
-        <div className="flex-1 flex flex-col bg-[#fafafa]">
+        <div className="w-full md:flex-1 flex flex-col bg-[#fafafa]">
           {/* Chat Header */}
           <div className="px-6 py-4 bg-white border-b border-slate-200 shrink-0 flex justify-between items-center shadow-[0_4px_20px_-15px_rgba(0,0,0,0.05)] z-10">
             <div className="flex items-center gap-4">
@@ -313,7 +313,7 @@ export default function SupportPage() {
         </div>
 
         {/* ================= RIGHT COLUMN: CONTEXT ================= */}
-        <div className="w-[300px] flex-shrink-0 border-l border-slate-200 bg-white flex flex-col">
+        <div className="hidden lg:flex w-[300px] flex-shrink-0 border-l border-slate-200 bg-white flex-col">
           <div className="p-6 border-b border-slate-100">
             <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-6">User Context</h3>
             

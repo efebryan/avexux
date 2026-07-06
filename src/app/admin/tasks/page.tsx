@@ -77,16 +77,16 @@ export default function AdminTasksPage() {
       </div>
 
       {/* Tabs */}
-      <div className="flex items-center gap-8 border-b border-slate-200 mb-6">
+      <div className="flex items-center gap-8 border-b border-slate-200 mb-6 overflow-x-auto scrollbar-hide">
         <button 
           onClick={() => setActiveTab("manage")}
-          className={`pb-4 text-sm font-bold border-b-2 transition-all ${activeTab === "manage" ? "border-primary text-primary" : "border-transparent text-slate-500 hover:text-slate-700"}`}
+          className={`pb-4 text-sm font-bold border-b-2 transition-all whitespace-nowrap ${activeTab === "manage" ? "border-primary text-primary" : "border-transparent text-slate-500 hover:text-slate-700"}`}
         >
           Manage Tasks
         </button>
         <button 
           onClick={() => setActiveTab("review")}
-          className={`pb-4 text-sm font-bold border-b-2 transition-all flex items-center gap-2 ${activeTab === "review" ? "border-primary text-primary" : "border-transparent text-slate-500 hover:text-slate-700"}`}
+          className={`pb-4 text-sm font-bold border-b-2 transition-all flex items-center gap-2 whitespace-nowrap ${activeTab === "review" ? "border-primary text-primary" : "border-transparent text-slate-500 hover:text-slate-700"}`}
         >
           Review Submissions
           <span className="bg-primary/10 text-primary text-[10px] px-2 py-0.5 rounded-full font-extrabold">
