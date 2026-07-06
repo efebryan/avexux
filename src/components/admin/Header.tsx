@@ -68,7 +68,7 @@ export function Header() {
                 onClick={() => setShowNotifications(false)}
               />
               
-              <div className="absolute top-full right-0 mt-2 w-[calc(100vw-32px)] max-w-[360px] sm:w-80 bg-white rounded-xl shadow-xl border border-slate-200 z-50 overflow-hidden flex flex-col animate-in fade-in slide-in-from-top-2 duration-200">
+              <div className="fixed top-[72px] right-4 sm:absolute sm:top-full sm:right-0 sm:mt-2 w-[calc(100vw-32px)] max-w-[360px] sm:w-80 bg-white rounded-xl shadow-xl border border-slate-200 z-50 overflow-hidden flex flex-col animate-in fade-in slide-in-from-top-2 duration-200">
                 
                 <div className="px-4 py-3 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
                   <h3 className="font-bold text-slate-900 text-sm">Notifications</h3>
