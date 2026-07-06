@@ -1,389 +1,407 @@
 "use client";
 
 import { useState } from "react";
-import { CheckCircle, XCircle, ArrowDownToLine, ArrowUpToLine, Download, Activity, FileText, Check } from "lucide-react";
+import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { Card } from "@/components/ui/card";
+import { 
+  Wallet, 
+  ClipboardList, 
+  PiggyBank, 
+  TrendingUp, 
+  TrendingDown,
+  Calendar,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  ArrowRight
+} from "lucide-react";
 
 // Mock Data
-const mockDeposits = [
-  { 
-    id: "d1", 
-    user: "john_doe99", 
-    email: "john@example.com",
-    amount: 15000, 
-    method: "Bank Transfer", 
-    ref: "TRX-998822", 
-    date: "Oct 24, 2023, 10:30 AM", 
+const transactionHistory = [
+  {
+    id: "#TXN-84291",
+    user: "John Doe",
+    initials: "JD",
+    color: "bg-green-100 text-green-700",
+    type: "DEPOSIT",
+    typeColor: "bg-blue-100 text-blue-700",
+    amount: "₦50,000",
+    status: "Completed",
+    statusColor: "bg-green-50 text-green-700",
+    dotColor: "bg-green-500"
+  },
+  {
+    id: "#TXN-84292",
+    user: "Sarah Amadi",
+    initials: "SA",
+    color: "bg-blue-100 text-blue-700",
+    type: "WITHDRAWAL",
+    typeColor: "bg-rose-100 text-rose-700",
+    amount: "₦12,500",
+    amountColor: "text-rose-600",
     status: "Pending",
-    img: "https://ui-avatars.com/api/?name=John+Doe&background=E2E8F0&color=333" 
+    statusColor: "bg-amber-50 text-amber-700",
+    dotColor: "bg-amber-500"
   },
-  { 
-    id: "d2", 
-    user: "sarah_tasks", 
-    email: "sarah@tasks.org",
-    amount: 5000, 
-    method: "Bank Transfer", 
-    ref: "TRX-445511", 
-    date: "Oct 23, 2023, 2:15 PM", 
-    status: "Confirmed",
-    img: "https://ui-avatars.com/api/?name=Sarah+Tasks&background=E2E8F0&color=333"
-  },
-  { 
-    id: "d3", 
-    user: "new_guy12", 
-    email: "newguy@mail.com",
-    amount: 1000, 
-    method: "Bank Transfer", 
-    ref: "TRX-112233", 
-    date: "Oct 23, 2023, 9:00 AM", 
-    status: "Rejected",
-    img: "https://ui-avatars.com/api/?name=New+Guy&background=E2E8F0&color=333"
-  },
+  {
+    id: "#TXN-84293",
+    user: "Michael Kola",
+    initials: "MK",
+    color: "bg-slate-100 text-slate-700",
+    type: "TASK REWARD",
+    typeColor: "bg-slate-100 text-slate-700",
+    amount: "₦2,500",
+    status: "Completed",
+    statusColor: "bg-green-50 text-green-700",
+    dotColor: "bg-green-500"
+  }
 ];
 
-const mockWithdrawals = [
-  { 
-    id: "w1", 
-    user: "mike_hustle", 
-    email: "mike@hustle.com",
-    amount: 8000, 
-    account: "Access Bank",
-    accountNumber: "0123456789", 
-    date: "Oct 24, 2023, 11:45 AM", 
-    status: "Pending",
-    img: "https://ui-avatars.com/api/?name=Mike+Hustle&background=E2E8F0&color=333"
+const pendingRequests = [
+  {
+    id: "req1",
+    name: "Adeola Bakare",
+    img: "https://ui-avatars.com/api/?name=Adeola+Bakare&background=E2E8F0&color=333",
+    method: "BANK TRANSFER",
+    amount: "₦85,000",
+    bank: "GTBank PLC",
+    account: "012****984"
   },
-  { 
-    id: "w2", 
-    user: "crypto_king", 
-    email: "crypto@king.net",
-    amount: 25000, 
-    account: "GTBank",
-    accountNumber: "0987654321", 
-    date: "Oct 22, 2023, 4:20 PM", 
-    status: "Processed",
-    img: "https://ui-avatars.com/api/?name=Crypto+King&background=E2E8F0&color=333"
+  {
+    id: "req2",
+    name: "Chioma Eze",
+    img: "https://ui-avatars.com/api/?name=Chioma+Eze&background=E2E8F0&color=333",
+    method: "BANK TRANSFER",
+    amount: "₦15,200",
+    bank: "Zenith Bank",
+    account: "208****412"
   },
-  { 
-    id: "w3", 
-    user: "john_doe99", 
-    email: "john@example.com",
-    amount: 5000, 
-    account: "Zenith Bank",
-    accountNumber: "1122334455", 
-    date: "Oct 20, 2023, 1:10 PM", 
-    status: "Failed",
-    img: "https://ui-avatars.com/api/?name=John+Doe&background=E2E8F0&color=333"
-  },
+  {
+    id: "req3",
+    name: "Umar Sani",
+    img: "https://ui-avatars.com/api/?name=Umar+Sani&background=E2E8F0&color=333",
+    method: "BANK TRANSFER",
+    amount: "₦45,000",
+    bank: "Kuda MFB",
+    account: "309****112"
+  }
 ];
 
-export default function AdminFinancialsPage() {
-  const [activeTab, setActiveTab] = useState<"deposits" | "withdrawals">("deposits");
-  const [deposits, setDeposits] = useState(mockDeposits);
-  const [withdrawals, setWithdrawals] = useState(mockWithdrawals);
+// Reusable mini bar chart component
+function MiniBarChart({ data, color }: { data: number[], color: string }) {
+  const max = Math.max(...data);
+  return (
+    <div className="flex items-end gap-1.5 h-10 mt-4">
+      {data.map((val, i) => {
+        const heightPercent = (val / max) * 100;
+        return (
+          <div 
+            key={i} 
+            className={`w-full rounded-t-sm ${color} transition-all duration-500`}
+            style={{ height: `${heightPercent}%` }}
+          />
+        );
+      })}
+    </div>
+  );
+}
 
-  const handleDepositAction = (id: string, action: "Confirmed" | "Rejected") => {
-    setDeposits(deposits.map(d => {
-      if (d.id === id) {
-        toast.success(`Deposit ${action.toLowerCase()}`);
-        return { ...d, status: action };
-      }
-      return d;
-    }));
+export default function FinancialsPage() {
+  const [requests, setRequests] = useState(pendingRequests);
+
+  const handleAction = (id: string, action: string) => {
+    setRequests(requests.filter(req => req.id !== id));
+    toast.success(`Request ${action} successfully`);
   };
-
-  const handleWithdrawalAction = (id: string, action: "Processed" | "Failed") => {
-    setWithdrawals(withdrawals.map(w => {
-      if (w.id === id) {
-        toast.success(`Withdrawal marked as ${action.toLowerCase()}`);
-        return { ...w, status: action };
-      }
-      return w;
-    }));
-  };
-
-  // Calculate summaries
-  const totalProcessedDeposits = deposits.filter(d => d.status === "Confirmed").reduce((acc, curr) => acc + curr.amount, 0);
-  const totalProcessedWithdrawals = withdrawals.filter(w => w.status === "Processed").reduce((acc, curr) => acc + curr.amount, 0);
-  const totalProcessed = totalProcessedDeposits + totalProcessedWithdrawals;
-  
-  const pendingDeposits = deposits.filter(d => d.status === "Pending").reduce((acc, curr) => acc + curr.amount, 0);
-  const pendingWithdrawals = withdrawals.filter(w => w.status === "Pending").reduce((acc, curr) => acc + curr.amount, 0);
-  const pendingDepositsCount = deposits.filter(d => d.status === "Pending").length;
-  const pendingWithdrawalsCount = withdrawals.filter(w => w.status === "Pending").length;
 
   return (
     <div className="space-y-6 pb-10">
       
-      {/* Header Section */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 mb-2">
-        <div>
-          <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Financial Management</h1>
-          <p className="text-slate-500 text-sm mt-1">Verify deposits and process user withdrawals seamlessly.</p>
-        </div>
+      {/* 1. Four Cards Top Row */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         
-        <div className="flex items-center gap-3 w-full md:w-auto">
-          <Button variant="outline" className="bg-white hover:bg-slate-50 text-slate-700 font-semibold border-slate-200 rounded-lg px-4 flex shadow-sm">
-            <FileText className="w-4 h-4 mr-2 text-slate-500" />
-            Generate Report
-          </Button>
-          <Button className="bg-primary hover:bg-primary/95 text-white font-semibold shadow-sm rounded-lg px-5 w-full md:w-auto">
-            <Download className="w-4 h-4 mr-2" />
-            Export CSV
-          </Button>
-        </div>
-      </div>
-
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-2">
-        
-        {/* Total Processed */}
-        <Card className="p-6 border border-slate-200 shadow-sm rounded-2xl flex items-center justify-between bg-white relative overflow-hidden group">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-[40px] pointer-events-none -translate-y-1/2 translate-x-1/2"></div>
-          <div className="relative z-10">
-            <p className="text-slate-500 text-xs font-bold uppercase tracking-wider mb-2">Total Processed Vol.</p>
-            <h3 className="text-3xl font-extrabold text-slate-900 tracking-tight">
-              ₦{totalProcessed.toLocaleString()}
-            </h3>
-          </div>
-          <div className="w-14 h-14 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-600 relative z-10">
-            <Activity className="w-6 h-6" strokeWidth={2.5} />
-          </div>
-        </Card>
-        
-        {/* Pending Deposits */}
-        <Card className="p-6 border border-emerald-100 shadow-sm rounded-2xl flex items-center justify-between bg-emerald-50/20 relative overflow-hidden group">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-[40px] pointer-events-none -translate-y-1/2 translate-x-1/2"></div>
-          <div className="relative z-10">
-            <div className="flex items-center gap-2 mb-2">
-              <p className="text-emerald-700 text-xs font-bold uppercase tracking-wider">Pending Deposits</p>
-              {pendingDepositsCount > 0 && (
-                <span className="bg-emerald-100 text-emerald-700 text-[10px] px-2 py-0.5 rounded-full font-bold">
-                  {pendingDepositsCount} new
-                </span>
-              )}
+        {/* Total Revenue */}
+        <Card className="p-5 border border-slate-200 shadow-sm rounded-2xl bg-white flex flex-col justify-between">
+          <div className="flex justify-between items-start mb-4">
+            <div className="w-10 h-10 rounded-xl bg-green-50 flex items-center justify-center text-green-600">
+              <Wallet className="w-5 h-5" strokeWidth={2.5} />
             </div>
-            <h3 className="text-3xl font-extrabold text-emerald-600 tracking-tight">
-              ₦{pendingDeposits.toLocaleString()}
-            </h3>
+            <div className="bg-green-50 text-green-700 text-[11px] font-bold px-2 py-0.5 rounded-full flex items-center gap-0.5">
+              <TrendingUp className="w-3 h-3" /> 12.5%
+            </div>
           </div>
-          <div className="w-14 h-14 rounded-2xl bg-emerald-100/50 border border-emerald-100 flex items-center justify-center text-emerald-600 relative z-10 transition-transform group-hover:-translate-y-1">
-            <ArrowDownToLine className="w-6 h-6" strokeWidth={2.5} />
+          <div>
+            <p className="text-slate-500 text-xs font-bold mb-1">Total Revenue</p>
+            <h3 className="text-3xl font-extrabold text-slate-900 tracking-tight">₦42.8M</h3>
           </div>
+          <MiniBarChart data={[30, 40, 35, 50, 45, 60, 65]} color="bg-green-200/70" />
         </Card>
-        
+
         {/* Pending Withdrawals */}
-        <Card className="p-6 border border-rose-100 shadow-sm rounded-2xl flex items-center justify-between bg-rose-50/20 relative overflow-hidden group">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-rose-500/10 rounded-full blur-[40px] pointer-events-none -translate-y-1/2 translate-x-1/2"></div>
-          <div className="relative z-10">
-            <div className="flex items-center gap-2 mb-2">
-              <p className="text-rose-700 text-xs font-bold uppercase tracking-wider">Pending Withdrawals</p>
-              {pendingWithdrawalsCount > 0 && (
-                <span className="bg-rose-100 text-rose-700 text-[10px] px-2 py-0.5 rounded-full font-bold">
-                  {pendingWithdrawalsCount} req
-                </span>
+        <Card className="p-5 border border-slate-200 shadow-sm rounded-2xl bg-white flex flex-col justify-between">
+          <div className="flex justify-between items-start mb-4">
+            <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center text-amber-500">
+              <ClipboardList className="w-5 h-5" strokeWidth={2.5} />
+            </div>
+            <div className="bg-rose-50 text-rose-600 text-[11px] font-bold px-2 py-0.5 rounded-full flex items-center gap-0.5">
+              <TrendingUp className="w-3 h-3" /> 4.2%
+            </div>
+          </div>
+          <div>
+            <p className="text-slate-500 text-xs font-bold mb-1">Pending Withdrawals</p>
+            <h3 className="text-3xl font-extrabold text-slate-900 tracking-tight">₦2.4M</h3>
+          </div>
+          <MiniBarChart data={[40, 25, 30, 20, 15, 10, 8]} color="bg-amber-200/70" />
+        </Card>
+
+        {/* Total Deposits */}
+        <Card className="p-5 border border-slate-200 shadow-sm rounded-2xl bg-white flex flex-col justify-between">
+          <div className="flex justify-between items-start mb-4">
+            <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-500">
+              <PiggyBank className="w-5 h-5" strokeWidth={2.5} />
+            </div>
+            <div className="bg-green-50 text-green-700 text-[11px] font-bold px-2 py-0.5 rounded-full flex items-center gap-0.5">
+              <TrendingUp className="w-3 h-3" /> 18.5%
+            </div>
+          </div>
+          <div>
+            <p className="text-slate-500 text-xs font-bold mb-1">Total Deposits</p>
+            <h3 className="text-3xl font-extrabold text-slate-900 tracking-tight">₦85.1M</h3>
+          </div>
+          <MiniBarChart data={[20, 25, 35, 40, 55, 60, 65]} color="bg-indigo-200/70" />
+        </Card>
+
+        {/* Net Profit */}
+        <Card className="p-5 border border-slate-200 shadow-sm rounded-2xl bg-white flex flex-col justify-between">
+          <div className="flex justify-between items-start mb-4">
+            <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600">
+              <TrendingUp className="w-5 h-5" strokeWidth={2.5} />
+            </div>
+            <div className="bg-green-50 text-green-700 text-[11px] font-bold px-2 py-0.5 rounded-full flex items-center gap-0.5">
+              <TrendingUp className="w-3 h-3" /> 9.1%
+            </div>
+          </div>
+          <div>
+            <p className="text-slate-500 text-xs font-bold mb-1">Net Profit</p>
+            <h3 className="text-3xl font-extrabold text-slate-900 tracking-tight">₦14.2M</h3>
+          </div>
+          <MiniBarChart data={[15, 20, 25, 20, 30, 40, 45]} color="bg-emerald-200/70" />
+        </Card>
+
+      </div>
+
+      {/* Main Grid Layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        {/* Left Column - Span 2 */}
+        <div className="lg:col-span-2 flex flex-col gap-6">
+          
+          {/* Revenue vs Payouts Chart Card */}
+          <Card className="border border-slate-200 shadow-sm rounded-2xl bg-white p-6">
+            <div className="flex justify-between items-start mb-8">
+              <div>
+                <h2 className="font-bold text-lg text-slate-900 tracking-tight">Revenue vs Payouts</h2>
+                <p className="text-xs text-slate-500 mt-0.5">Last 30 days financial performance analysis</p>
+              </div>
+              <div className="flex items-center gap-4 text-[11px] font-bold text-slate-600">
+                <div className="flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-primary"></span> Revenue
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-rose-500"></span> Payouts
+                </div>
+              </div>
+            </div>
+
+            {/* Custom SVG Line Chart */}
+            <div className="w-full h-[220px] relative">
+              <svg viewBox="0 0 800 200" className="w-full h-full overflow-visible" preserveAspectRatio="none">
+                {/* Grid Lines */}
+                <line x1="0" y1="50" x2="800" y2="50" stroke="#f1f5f9" strokeDasharray="4 4" strokeWidth="1" />
+                <line x1="0" y1="100" x2="800" y2="100" stroke="#f1f5f9" strokeDasharray="4 4" strokeWidth="1" />
+                <line x1="0" y1="150" x2="800" y2="150" stroke="#f1f5f9" strokeDasharray="4 4" strokeWidth="1" />
+                <line x1="0" y1="200" x2="800" y2="200" stroke="#f1f5f9" strokeDasharray="4 4" strokeWidth="1" />
+                
+                {/* Payouts Line (Dashed Red) */}
+                <path 
+                  d="M 0,190 C 100,160 200,190 300,180 C 400,150 450,150 500,180 C 600,220 700,100 800,140" 
+                  fill="none" 
+                  stroke="#ef4444" 
+                  strokeWidth="3" 
+                  strokeDasharray="6 6"
+                />
+                
+                {/* Revenue Line (Solid Green) */}
+                <path 
+                  d="M 0,180 C 50,110 100,70 200,130 C 300,200 350,50 450,70 C 550,90 600,170 700,20 C 750,-30 800,50 800,50" 
+                  fill="none" 
+                  stroke="#006e0d" 
+                  strokeWidth="3" 
+                  strokeLinecap="round"
+                />
+              </svg>
+            </div>
+          </Card>
+
+          {/* Transaction History Table */}
+          <Card className="border border-slate-200 shadow-sm rounded-2xl bg-white flex flex-col">
+            <div className="p-6 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+              <h2 className="font-bold text-lg text-slate-900 tracking-tight">Transaction History</h2>
+              
+              <div className="flex flex-wrap items-center gap-2">
+                <Button variant="outline" size="sm" className="h-8 text-xs font-semibold bg-slate-50 border-slate-200 text-slate-600 rounded-lg px-3 flex items-center gap-1.5 hover:bg-slate-100">
+                  All Types <ChevronDown className="w-3.5 h-3.5" />
+                </Button>
+                <Button variant="outline" size="sm" className="h-8 text-xs font-semibold bg-slate-50 border-slate-200 text-slate-600 rounded-lg px-3 flex items-center gap-1.5 hover:bg-slate-100">
+                  All Statuses <ChevronDown className="w-3.5 h-3.5" />
+                </Button>
+                <Button variant="outline" size="sm" className="h-8 text-xs font-semibold bg-slate-50 border-slate-200 text-slate-600 rounded-lg px-3 flex items-center gap-1.5 hover:bg-slate-100">
+                  <Calendar className="w-3.5 h-3.5" /> Date Range
+                </Button>
+              </div>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm text-left">
+                <thead className="text-[10px] text-slate-400 uppercase bg-transparent font-bold tracking-wider">
+                  <tr>
+                    <th className="px-6 py-4 font-bold">TRANSACTION ID</th>
+                    <th className="px-6 py-4 font-bold">USER</th>
+                    <th className="px-6 py-4 font-bold">TYPE</th>
+                    <th className="px-6 py-4 font-bold">AMOUNT</th>
+                    <th className="px-6 py-4 font-bold">STATUS</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100/70 border-t border-slate-100">
+                  {transactionHistory.map((txn, i) => (
+                    <tr key={i} className="hover:bg-slate-50/50 transition-colors">
+                      <td className="px-6 py-4">
+                        <span className="text-slate-500 font-medium text-[13px]">{txn.id}</span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-3">
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs ${txn.color}`}>
+                            {txn.initials}
+                          </div>
+                          <span className="font-bold text-slate-900 text-sm">{txn.user}</span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className={`px-2.5 py-1 rounded-md text-[10px] font-extrabold uppercase tracking-wide ${txn.typeColor}`}>
+                          {txn.type}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className={`font-bold text-sm ${txn.amountColor || "text-green-600"}`}>
+                          {txn.amount}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold ${txn.statusColor}`}>
+                          <span className={`w-1.5 h-1.5 rounded-full mr-1.5 ${txn.dotColor}`}></span>
+                          {txn.status}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Pagination Footer */}
+            <div className="p-4 border-t border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-4">
+              <span className="text-xs text-slate-500 font-medium">
+                Showing <span className="font-bold text-slate-700">1</span> to <span className="font-bold text-slate-700">10</span> of 2,450 results
+              </span>
+              <div className="flex items-center gap-1.5">
+                <button className="w-8 h-8 flex items-center justify-center rounded-md border border-slate-200 text-slate-400 hover:bg-slate-50">
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+                <button className="w-8 h-8 flex items-center justify-center rounded-md bg-primary text-white font-bold text-xs">
+                  1
+                </button>
+                <button className="w-8 h-8 flex items-center justify-center rounded-md border border-slate-200 text-slate-600 font-bold text-xs hover:bg-slate-50">
+                  2
+                </button>
+                <button className="w-8 h-8 flex items-center justify-center rounded-md border border-slate-200 text-slate-600 font-bold text-xs hover:bg-slate-50">
+                  3
+                </button>
+                <button className="w-8 h-8 flex items-center justify-center rounded-md border border-slate-200 text-slate-400 hover:bg-slate-50">
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          </Card>
+          
+        </div>
+
+        {/* Right Column - Span 1 (Pending Approval) */}
+        <div className="lg:col-span-1">
+          <Card className="border border-slate-200 shadow-sm rounded-2xl bg-white flex flex-col h-full overflow-hidden">
+            <div className="p-6 border-b border-slate-100">
+              <h2 className="font-bold text-lg text-slate-900 tracking-tight">Pending Approval</h2>
+              <p className="text-xs text-slate-500 mt-0.5">Review and approve withdrawal requests</p>
+            </div>
+            
+            <div className="flex-1 flex flex-col gap-4 p-5 overflow-y-auto">
+              {requests.map((req) => (
+                <div key={req.id} className="border border-slate-100 rounded-xl p-4 shadow-sm relative group bg-white hover:border-slate-200 transition-all">
+                  
+                  <div className="flex justify-between items-start mb-4">
+                    <div className="flex gap-3">
+                      <div className="w-10 h-10 rounded-full overflow-hidden shrink-0 border border-slate-100">
+                        <img src={req.img} alt={req.name} className="w-full h-full object-cover" />
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-sm text-slate-900">{req.name}</h4>
+                        <p className="text-[9px] font-bold text-slate-400 mt-0.5 tracking-wider">{req.method}</p>
+                      </div>
+                    </div>
+                    <span className="font-bold text-sm text-rose-500">{req.amount}</span>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-y-2 text-xs mb-4">
+                    <span className="text-slate-400">Bank Name:</span>
+                    <span className="text-slate-900 font-medium text-right">{req.bank}</span>
+                    <span className="text-slate-400">Account No:</span>
+                    <span className="text-slate-900 font-medium text-right">{req.account}</span>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <Button 
+                      onClick={() => handleAction(req.id, "approved")}
+                      className="w-full bg-primary hover:bg-primary/90 text-white font-bold h-9 text-xs rounded-lg shadow-sm"
+                    >
+                      Approve
+                    </Button>
+                    <Button 
+                      variant="outline"
+                      onClick={() => handleAction(req.id, "rejected")}
+                      className="w-full border-rose-200 text-rose-500 hover:bg-rose-50 hover:text-rose-600 font-bold h-9 text-xs rounded-lg"
+                    >
+                      Reject
+                    </Button>
+                  </div>
+                </div>
+              ))}
+              
+              {requests.length === 0 && (
+                <div className="py-10 text-center">
+                  <p className="text-sm text-slate-500 font-medium">No pending requests.</p>
+                </div>
               )}
             </div>
-            <h3 className="text-3xl font-extrabold text-rose-600 tracking-tight">
-              ₦{pendingWithdrawals.toLocaleString()}
-            </h3>
-          </div>
-          <div className="w-14 h-14 rounded-2xl bg-rose-100/50 border border-rose-100 flex items-center justify-center text-rose-600 relative z-10 transition-transform group-hover:-translate-y-1">
-            <ArrowUpToLine className="w-6 h-6" strokeWidth={2.5} />
-          </div>
-        </Card>
-      </div>
 
-      {/* Modern Segmented Tabs */}
-      <div className="bg-slate-100 p-1 rounded-xl inline-flex mb-2 border border-slate-200 shadow-inner">
-        <button 
-          onClick={() => setActiveTab("deposits")}
-          className={`flex items-center gap-2 px-6 py-2.5 rounded-lg text-sm font-bold transition-all ${
-            activeTab === "deposits" 
-              ? "bg-white text-slate-900 shadow-sm" 
-              : "text-slate-500 hover:text-slate-700"
-          }`}
-        >
-          User Deposits
-          <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${
-            activeTab === "deposits" ? "bg-primary/10 text-primary" : "bg-slate-200 text-slate-500"
-          }`}>
-            {deposits.length}
-          </span>
-        </button>
-        <button 
-          onClick={() => setActiveTab("withdrawals")}
-          className={`flex items-center gap-2 px-6 py-2.5 rounded-lg text-sm font-bold transition-all ${
-            activeTab === "withdrawals" 
-              ? "bg-white text-slate-900 shadow-sm" 
-              : "text-slate-500 hover:text-slate-700"
-          }`}
-        >
-          Withdrawal Requests
-          <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${
-            activeTab === "withdrawals" ? "bg-rose-100 text-rose-600" : "bg-slate-200 text-slate-500"
-          }`}>
-            {withdrawals.length}
-          </span>
-        </button>
+            <div className="p-4 border-t border-slate-100 flex justify-center">
+              <button className="text-[11px] font-extrabold text-primary hover:text-primary/80 transition-colors flex items-center gap-1 group">
+                View All Pending Requests (14)
+                <ArrowRight className="w-3.5 h-3.5 transform group-hover:translate-x-0.5 transition-transform" />
+              </button>
+            </div>
+          </Card>
+        </div>
       </div>
-
-      {/* Content based on Tab */}
-      {activeTab === "deposits" ? (
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden relative z-10">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm text-left">
-              <thead className="text-[11px] text-slate-500 uppercase bg-slate-50/80 border-b border-slate-200 font-bold tracking-wider">
-                <tr>
-                  <th className="px-6 py-4">USER</th>
-                  <th className="px-6 py-4">TRANSACTION</th>
-                  <th className="px-6 py-4">DATE</th>
-                  <th className="px-6 py-4">STATUS</th>
-                  <th className="px-6 py-4 text-right">ACTIONS</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {deposits.map((dep) => (
-                  <tr key={dep.id} className="hover:bg-slate-50/50 transition-colors group">
-                    <td className="px-6 py-4 w-[280px]">
-                      <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-full bg-slate-200 overflow-hidden shrink-0 border border-slate-100">
-                          <img src={dep.img} alt={dep.user} className="w-full h-full object-cover" />
-                        </div>
-                        <div className="flex flex-col">
-                          <span className="font-bold text-slate-900 group-hover:text-primary transition-colors cursor-pointer">{dep.user}</span>
-                          <span className="text-xs text-slate-500 mt-0.5">{dep.email}</span>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex flex-col">
-                        <span className="font-extrabold text-slate-900 text-[15px]">₦{dep.amount.toLocaleString()}</span>
-                        <span className="text-xs text-slate-500 mt-0.5 font-medium">{dep.method} <span className="text-slate-300 mx-1">•</span> <span className="font-mono text-[11px] text-slate-400">{dep.ref}</span></span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-slate-600 text-xs font-semibold">{dep.date}</td>
-                    <td className="px-6 py-4">
-                      <span className={`inline-flex items-center justify-center px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border ${
-                        dep.status === "Pending" ? "bg-amber-50 text-amber-600 border-amber-100" :
-                        dep.status === "Confirmed" ? "bg-emerald-50 text-emerald-600 border-emerald-100" : "bg-red-50 text-red-600 border-red-100"
-                      }`}>
-                        <span className={`w-1.5 h-1.5 rounded-full mr-1.5 ${
-                          dep.status === "Pending" ? "bg-amber-500 animate-pulse" :
-                          dep.status === "Confirmed" ? "bg-emerald-500" : "bg-red-500"
-                        }`}></span>
-                        {dep.status}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      {dep.status === "Pending" ? (
-                        <div className="flex items-center justify-end gap-2">
-                          <Button 
-                            size="sm" 
-                            variant="outline"
-                            onClick={() => handleDepositAction(dep.id, "Rejected")}
-                            className="h-8 w-8 p-0 text-red-500 border-red-200 hover:bg-red-50 hover:text-red-600 rounded-lg shadow-sm bg-white"
-                            title="Reject"
-                          >
-                            <XCircle className="w-4 h-4" strokeWidth={2.5} />
-                          </Button>
-                          <Button 
-                            size="sm" 
-                            onClick={() => handleDepositAction(dep.id, "Confirmed")}
-                            className="h-8 px-3 text-xs font-bold bg-primary hover:bg-primary/90 text-white rounded-lg shadow-sm border border-primary"
-                          >
-                            <Check className="w-4 h-4 mr-1.5" strokeWidth={3} /> Confirm
-                          </Button>
-                        </div>
-                      ) : (
-                        <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100 inline-block">Reviewed</span>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      ) : (
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden relative z-10">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm text-left">
-              <thead className="text-[11px] text-slate-500 uppercase bg-slate-50/80 border-b border-slate-200 font-bold tracking-wider">
-                <tr>
-                  <th className="px-6 py-4">USER</th>
-                  <th className="px-6 py-4">PAYOUT DETAILS</th>
-                  <th className="px-6 py-4">DATE</th>
-                  <th className="px-6 py-4">STATUS</th>
-                  <th className="px-6 py-4 text-right">ACTIONS</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {withdrawals.map((req) => (
-                  <tr key={req.id} className="hover:bg-slate-50/50 transition-colors group">
-                    <td className="px-6 py-4 w-[280px]">
-                      <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-full bg-slate-200 overflow-hidden shrink-0 border border-slate-100">
-                          <img src={req.img} alt={req.user} className="w-full h-full object-cover" />
-                        </div>
-                        <div className="flex flex-col">
-                          <span className="font-bold text-slate-900 group-hover:text-primary transition-colors cursor-pointer">{req.user}</span>
-                          <span className="text-xs text-slate-500 mt-0.5">{req.email}</span>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex flex-col">
-                        <span className="font-extrabold text-slate-900 text-[15px]">₦{req.amount.toLocaleString()}</span>
-                        <span className="text-xs text-slate-500 mt-0.5 font-medium">{req.account} <span className="text-slate-300 mx-1">•</span> <span className="font-mono text-[11px] text-slate-400">{req.accountNumber}</span></span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-slate-600 text-xs font-semibold">{req.date}</td>
-                    <td className="px-6 py-4">
-                      <span className={`inline-flex items-center justify-center px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border ${
-                        req.status === "Pending" ? "bg-amber-50 text-amber-600 border-amber-100" :
-                        req.status === "Processed" ? "bg-emerald-50 text-emerald-600 border-emerald-100" : "bg-red-50 text-red-600 border-red-100"
-                      }`}>
-                        <span className={`w-1.5 h-1.5 rounded-full mr-1.5 ${
-                          req.status === "Pending" ? "bg-amber-500 animate-pulse" :
-                          req.status === "Processed" ? "bg-emerald-500" : "bg-red-500"
-                        }`}></span>
-                        {req.status}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      {req.status === "Pending" ? (
-                        <div className="flex items-center justify-end gap-2">
-                          <Button 
-                            size="sm" 
-                            variant="outline"
-                            onClick={() => handleWithdrawalAction(req.id, "Failed")}
-                            className="h-8 w-8 p-0 text-red-500 border-red-200 hover:bg-red-50 hover:text-red-600 rounded-lg shadow-sm bg-white"
-                            title="Fail"
-                          >
-                            <XCircle className="w-4 h-4" strokeWidth={2.5} />
-                          </Button>
-                          <Button 
-                            size="sm" 
-                            onClick={() => handleWithdrawalAction(req.id, "Processed")}
-                            className="h-8 px-3 text-xs font-bold bg-primary hover:bg-primary/90 text-white rounded-lg shadow-sm border border-primary"
-                          >
-                            <Check className="w-4 h-4 mr-1.5" strokeWidth={3} /> Mark Paid
-                          </Button>
-                        </div>
-                      ) : (
-                        <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100 inline-block">Processed</span>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
