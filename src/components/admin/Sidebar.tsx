@@ -67,10 +67,6 @@ export function Sidebar() {
 
       {/* Bottom Section */}
       <div className="mt-auto px-6 space-y-6">
-        <Button className="w-full bg-primary hover:bg-primary/95 text-white font-semibold shadow-md rounded-lg flex items-center justify-center gap-2 h-11">
-           <FileText className="w-4 h-4" />
-           Generate Report
-        </Button>
 
         <div className="flex flex-col space-y-4 pt-4">
           <Link href="/admin/support" className="flex items-center gap-4 text-sm font-medium text-slate-400 hover:text-white transition-colors">
