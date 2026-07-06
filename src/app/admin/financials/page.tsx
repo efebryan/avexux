@@ -88,24 +88,7 @@ const pendingRequests = [
   }
 ];
 
-// Reusable mini bar chart component
-function MiniBarChart({ data, color }: { data: number[], color: string }) {
-  const max = Math.max(...data);
-  return (
-    <div className="flex items-end gap-1.5 h-10 mt-4">
-      {data.map((val, i) => {
-        const heightPercent = (val / max) * 100;
-        return (
-          <div 
-            key={i} 
-            className={`w-full rounded-t-sm ${color} transition-all duration-500`}
-            style={{ height: `${heightPercent}%` }}
-          />
-        );
-      })}
-    </div>
-  );
-}
+
 
 export default function FinancialsPage() {
   const [requests, setRequests] = useState(pendingRequests);
@@ -122,71 +105,67 @@ export default function FinancialsPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         
         {/* Total Revenue */}
-        <Card className="p-5 border border-slate-200 shadow-sm rounded-2xl bg-white flex flex-col justify-between">
-          <div className="flex justify-between items-start mb-4">
-            <div className="w-10 h-10 rounded-xl bg-green-50 flex items-center justify-center text-green-600">
-              <Wallet className="w-5 h-5" strokeWidth={2.5} />
+        <Card className="p-3.5 border border-slate-200 shadow-sm rounded-2xl bg-white flex flex-col justify-between">
+          <div className="flex justify-between items-start mb-3">
+            <div className="w-8 h-8 rounded-lg bg-green-50 flex items-center justify-center text-green-600">
+              <Wallet className="w-4 h-4" strokeWidth={2.5} />
             </div>
-            <div className="bg-green-50 text-green-700 text-[11px] font-bold px-2 py-0.5 rounded-full flex items-center gap-0.5">
-              <TrendingUp className="w-3 h-3" /> 12.5%
+            <div className="bg-green-50 text-green-700 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-0.5">
+              <TrendingUp className="w-2.5 h-2.5" /> 12.5%
             </div>
           </div>
           <div>
-            <p className="text-slate-500 text-xs font-bold mb-1">Total Revenue</p>
-            <h3 className="text-3xl font-extrabold text-slate-900 tracking-tight">₦42.8M</h3>
+            <p className="text-slate-500 text-[11px] font-bold mb-0.5">Total Revenue</p>
+            <h3 className="text-2xl font-extrabold text-slate-900 tracking-tight">₦42.8M</h3>
           </div>
-          <MiniBarChart data={[30, 40, 35, 50, 45, 60, 65]} color="bg-green-200/70" />
         </Card>
 
         {/* Pending Withdrawals */}
-        <Card className="p-5 border border-slate-200 shadow-sm rounded-2xl bg-white flex flex-col justify-between">
-          <div className="flex justify-between items-start mb-4">
-            <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center text-amber-500">
-              <ClipboardList className="w-5 h-5" strokeWidth={2.5} />
+        <Card className="p-3.5 border border-slate-200 shadow-sm rounded-2xl bg-white flex flex-col justify-between">
+          <div className="flex justify-between items-start mb-3">
+            <div className="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center text-amber-500">
+              <ClipboardList className="w-4 h-4" strokeWidth={2.5} />
             </div>
-            <div className="bg-rose-50 text-rose-600 text-[11px] font-bold px-2 py-0.5 rounded-full flex items-center gap-0.5">
-              <TrendingUp className="w-3 h-3" /> 4.2%
+            <div className="bg-rose-50 text-rose-600 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-0.5">
+              <TrendingUp className="w-2.5 h-2.5" /> 4.2%
             </div>
           </div>
           <div>
-            <p className="text-slate-500 text-xs font-bold mb-1">Pending Withdrawals</p>
-            <h3 className="text-3xl font-extrabold text-slate-900 tracking-tight">₦2.4M</h3>
+            <p className="text-slate-500 text-[11px] font-bold mb-0.5">Pending Withdrawals</p>
+            <h3 className="text-2xl font-extrabold text-slate-900 tracking-tight">₦2.4M</h3>
           </div>
-          <MiniBarChart data={[40, 25, 30, 20, 15, 10, 8]} color="bg-amber-200/70" />
         </Card>
 
         {/* Total Deposits */}
-        <Card className="p-5 border border-slate-200 shadow-sm rounded-2xl bg-white flex flex-col justify-between">
-          <div className="flex justify-between items-start mb-4">
-            <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-500">
-              <PiggyBank className="w-5 h-5" strokeWidth={2.5} />
+        <Card className="p-3.5 border border-slate-200 shadow-sm rounded-2xl bg-white flex flex-col justify-between">
+          <div className="flex justify-between items-start mb-3">
+            <div className="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-500">
+              <PiggyBank className="w-4 h-4" strokeWidth={2.5} />
             </div>
-            <div className="bg-green-50 text-green-700 text-[11px] font-bold px-2 py-0.5 rounded-full flex items-center gap-0.5">
-              <TrendingUp className="w-3 h-3" /> 18.5%
+            <div className="bg-green-50 text-green-700 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-0.5">
+              <TrendingUp className="w-2.5 h-2.5" /> 18.5%
             </div>
           </div>
           <div>
-            <p className="text-slate-500 text-xs font-bold mb-1">Total Deposits</p>
-            <h3 className="text-3xl font-extrabold text-slate-900 tracking-tight">₦85.1M</h3>
+            <p className="text-slate-500 text-[11px] font-bold mb-0.5">Total Deposits</p>
+            <h3 className="text-2xl font-extrabold text-slate-900 tracking-tight">₦85.1M</h3>
           </div>
-          <MiniBarChart data={[20, 25, 35, 40, 55, 60, 65]} color="bg-indigo-200/70" />
         </Card>
 
         {/* Net Profit */}
-        <Card className="p-5 border border-slate-200 shadow-sm rounded-2xl bg-white flex flex-col justify-between">
-          <div className="flex justify-between items-start mb-4">
-            <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600">
-              <TrendingUp className="w-5 h-5" strokeWidth={2.5} />
+        <Card className="p-3.5 border border-slate-200 shadow-sm rounded-2xl bg-white flex flex-col justify-between">
+          <div className="flex justify-between items-start mb-3">
+            <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600">
+              <TrendingUp className="w-4 h-4" strokeWidth={2.5} />
             </div>
-            <div className="bg-green-50 text-green-700 text-[11px] font-bold px-2 py-0.5 rounded-full flex items-center gap-0.5">
-              <TrendingUp className="w-3 h-3" /> 9.1%
+            <div className="bg-green-50 text-green-700 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-0.5">
+              <TrendingUp className="w-2.5 h-2.5" /> 9.1%
             </div>
           </div>
           <div>
-            <p className="text-slate-500 text-xs font-bold mb-1">Net Profit</p>
-            <h3 className="text-3xl font-extrabold text-slate-900 tracking-tight">₦14.2M</h3>
+            <p className="text-slate-500 text-[11px] font-bold mb-0.5">Net Profit</p>
+            <h3 className="text-2xl font-extrabold text-slate-900 tracking-tight">₦14.2M</h3>
           </div>
-          <MiniBarChart data={[15, 20, 25, 20, 30, 40, 45]} color="bg-emerald-200/70" />
         </Card>
 
       </div>
