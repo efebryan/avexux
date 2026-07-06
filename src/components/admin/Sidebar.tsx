@@ -33,12 +33,12 @@ export function Sidebar() {
       
       {/* Logo */}
       <div className="flex items-center gap-3 px-6 mb-10">
-        <div className="bg-[#22c55e] p-2 rounded-xl flex-shrink-0">
+        <div className="bg-primary p-2 rounded-xl flex-shrink-0">
           <LayoutGrid className="w-5 h-5 text-white" strokeWidth={2.5} />
         </div>
         <div className="flex flex-col">
-          <span className="font-bold text-xl leading-none text-white tracking-tight">Arvexus</span>
-          <span className="text-[10px] font-bold text-[#22c55e] uppercase tracking-widest mt-1">SUPER ADMIN</span>
+          <span className="font-heading font-bold text-xl leading-none text-white tracking-tight">Arvexus</span>
+          <span className="font-heading text-[10px] font-bold text-primary uppercase tracking-widest mt-1">SUPER ADMIN</span>
         </div>
       </div>
 
@@ -54,11 +54,11 @@ export function Sidebar() {
               href={item.href}
               className={`group flex items-center gap-4 px-6 py-3.5 transition-all duration-200 font-medium text-sm ${
                 isActive 
-                  ? "bg-[#1f2937] text-white border-l-[3px] border-[#22c55e]" 
+                  ? "bg-[#1f2937] text-white border-l-[3px] border-primary" 
                   : "text-slate-400 hover:bg-[#1f2937] hover:text-slate-200 border-l-[3px] border-transparent"
               }`}
             >
-              <item.icon className={`w-5 h-5 ${isActive ? "text-[#22c55e]" : "text-slate-500 group-hover:text-slate-400"}`} />
+              <item.icon className={`w-5 h-5 ${isActive ? "text-primary" : "text-slate-500 group-hover:text-slate-400"}`} />
               {item.name}
             </Link>
           );
@@ -67,7 +67,7 @@ export function Sidebar() {
 
       {/* Bottom Section */}
       <div className="mt-auto px-6 space-y-6">
-        <Button className="w-full bg-[#22c55e] hover:bg-green-600 text-white font-semibold shadow-md rounded-lg flex items-center justify-center gap-2 h-11">
+        <Button className="w-full bg-primary hover:bg-primary/95 text-white font-semibold shadow-md rounded-lg flex items-center justify-center gap-2 h-11">
            <FileText className="w-4 h-4" />
            Generate Report
         </Button>

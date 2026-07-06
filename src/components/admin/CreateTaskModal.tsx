@@ -53,7 +53,7 @@ export function CreateTaskModal({ isOpen, onClose, onTaskCreate }: CreateTaskMod
         <div className="p-6 bg-gradient-to-r from-slate-900 to-slate-800 text-white flex justify-between items-center">
            <div>
              <DialogTitle className="text-xl font-bold flex items-center gap-2">
-               <ClipboardList className="w-5 h-5 text-blue-400" />
+               <ClipboardList className="w-5 h-5 text-primary" />
                Create New Task
              </DialogTitle>
              <DialogDescription className="text-slate-300 text-sm mt-1">
@@ -70,7 +70,7 @@ export function CreateTaskModal({ isOpen, onClose, onTaskCreate }: CreateTaskMod
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="e.g., Download and review our new app"
-              className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all bg-gray-50/50"
+              className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-gray-50/50"
             />
           </div>
 
@@ -80,7 +80,7 @@ export function CreateTaskModal({ isOpen, onClose, onTaskCreate }: CreateTaskMod
               <select 
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
-                className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all bg-gray-50/50 appearance-none"
+                className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-gray-50/50 appearance-none"
               >
                 <option value="App Testing">App Testing</option>
                 <option value="Social Media">Social Media</option>
@@ -100,7 +100,7 @@ export function CreateTaskModal({ isOpen, onClose, onTaskCreate }: CreateTaskMod
                   value={timeEstimate}
                   onChange={(e) => setTimeEstimate(e.target.value)}
                   placeholder="e.g., 5 mins"
-                  className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all bg-gray-50/50"
+                  className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-gray-50/50"
                 />
               </div>
             </div>
@@ -113,7 +113,7 @@ export function CreateTaskModal({ isOpen, onClose, onTaskCreate }: CreateTaskMod
               value={reward}
               onChange={(e) => setReward(e.target.value)}
               placeholder="e.g., 1500"
-              className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all bg-gray-50/50"
+              className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-gray-50/50"
             />
           </div>
 
@@ -127,7 +127,7 @@ export function CreateTaskModal({ isOpen, onClose, onTaskCreate }: CreateTaskMod
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Detail exactly what the user needs to do and what proof they must submit..."
               rows={4}
-              className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 resize-none transition-all bg-gray-50/50"
+              className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary resize-none transition-all bg-gray-50/50"
             />
           </div>
 
@@ -135,7 +135,7 @@ export function CreateTaskModal({ isOpen, onClose, onTaskCreate }: CreateTaskMod
             <Button type="button" variant="ghost" onClick={onClose} className="text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-xl">
               Cancel
             </Button>
-            <Button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl px-6 shadow-md shadow-blue-500/20 transition-all hover:-translate-y-0.5">
+            <Button type="submit" className="bg-primary hover:bg-primary/95 text-white font-medium rounded-xl px-6 shadow-md shadow-primary/20 transition-all hover:-translate-y-0.5">
               <Save className="w-4 h-4 mr-2" /> Publish Task
             </Button>
           </div>
