@@ -68,15 +68,12 @@ export function Header() {
                 onClick={() => setShowNotifications(false)}
               />
               
-              <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90%] max-w-[360px] sm:absolute sm:top-full sm:left-auto sm:right-0 sm:translate-x-0 sm:translate-y-0 sm:mt-2 sm:w-80 bg-white rounded-xl shadow-xl border border-slate-200 z-50 overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200 sm:slide-in-from-top-2 sm:zoom-in-100">
+              <div className="absolute top-full right-0 mt-2 w-[calc(100vw-32px)] max-w-[360px] sm:w-80 bg-white rounded-xl shadow-xl border border-slate-200 z-50 overflow-hidden flex flex-col animate-in fade-in slide-in-from-top-2 duration-200">
                 
                 <div className="px-4 py-3 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
                   <h3 className="font-bold text-slate-900 text-sm">Notifications</h3>
                   <div className="flex items-center gap-2">
                     <span className="text-[10px] font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full">3 New</span>
-                    <button onClick={() => setShowNotifications(false)} className="sm:hidden text-slate-400 hover:text-slate-600">
-                      <X className="w-4 h-4" />
-                    </button>
                   </div>
                 </div>
 
