@@ -14,8 +14,8 @@ const plusJakartaSans = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Arvexus - Digital Opportunities Platform",
-  description: "Complete online tasks, earn rewards, and grow with Arvexus.",
+  title: "Avexux - Digital Opportunities Platform",
+  description: "Complete online tasks, earn rewards, and grow with Avexux.",
 };
 
 export default function RootLayout({

@@ -70,7 +70,7 @@ export default function UserDashboardLayout({
 
         {/* Fixed Footer */}
         <footer className="shrink-0 py-3 px-4 md:px-6 border-t border-gray-200 bg-[#f8fafc] text-xs text-gray-400 flex justify-center items-center z-10">
-          <p>&copy; {new Date().getFullYear()} Arvexus. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} Avexux. All rights reserved.</p>
         </footer>
       </div>
     </div>

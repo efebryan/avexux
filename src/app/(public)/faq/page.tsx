@@ -14,8 +14,8 @@ interface FAQItem {
 const faqData: FAQItem[] = [
   {
     category: "General",
-    question: "What is Arvexus?",
-    answer: "Arvexus is an institutional-grade digital rewards and advertising platform based in Nigeria. We bridge the gap between businesses wanting to reach real customers and users seeking verified digital earning opportunities.",
+    question: "What is Avexux?",
+    answer: "Avexux is an institutional-grade digital rewards and advertising platform based in Nigeria. We bridge the gap between businesses wanting to reach real customers and users seeking verified digital earning opportunities.",
   },
   {
     category: "General",
@@ -34,18 +34,18 @@ const faqData: FAQItem[] = [
   },
   {
     category: "Campaigns",
-    question: "How do I promote my business on Arvexus?",
+    question: "How do I promote my business on Avexux?",
     answer: "You can launch an advertising campaign from your dashboard. Define your target audience, set your budget in Naira (₦), outline the task you want users to complete (e.g., app install, social media engagement), and watch your business grow with verified results.",
   },
   {
     category: "Campaigns",
-    question: "Are the users on Arvexus real?",
+    question: "Are the users on Avexux real?",
     answer: "Yes, 100%. We employ institutional-grade verification checks, device finger-printing, and automatic auditing logs to ensure that only real, unique humans complete your campaigns. Bot activity is strictly blocked.",
   },
   {
     category: "Security & Trust",
     question: "Is my personal data secure?",
-    answer: "Absolutely. Arvexus infrastructure is designed with security-first principles and verified with SOC2 compliance. We use AES-256 bit encryption to secure your payment information and personal data.",
+    answer: "Absolutely. Avexux infrastructure is designed with security-first principles and verified with SOC2 compliance. We use AES-256 bit encryption to secure your payment information and personal data.",
   },
   {
     category: "Security & Trust",
@@ -85,7 +85,7 @@ export default function FAQPage() {
             Frequently Asked Questions
           </h1>
           <p className="text-lg text-gray-500">
-            Have questions about Arvexus? Find answers to commonly asked questions about earning, campaigns, and security.
+            Have questions about Avexux? Find answers to commonly asked questions about earning, campaigns, and security.
           </p>
         </div>
 

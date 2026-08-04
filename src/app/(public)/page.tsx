@@ -34,14 +34,14 @@ export default function HomePage() {
               >
                 <span className="inline-flex items-center gap-2 py-1.5 px-4 rounded-full bg-[#e6f7e6] text-[#2faf2f] text-sm font-semibold mb-8">
                   <span className="w-2 h-2 rounded-full bg-[#2faf2f]"></span>
-                  Now available for Businesses
+                  Now available for Everyone
                 </span>
                 <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold font-heading leading-[1.1] tracking-tight mb-6 text-gray-900">
                   Earn Rewards.
                   <br />
                   Promote Your Business.
                   <br />
-                  Grow with Arvexus.
+                  Grow with Avexux.
                 </h1>
                 <p className="text-lg text-gray-500 mb-10 max-w-xl mx-auto lg:mx-0 leading-relaxed">
                   The bridge between real digital opportunities and impactful
@@ -56,7 +56,7 @@ export default function HomePage() {
                       "w-full sm:w-auto h-14 px-8 text-base bg-[#2faf2f] hover:bg-[#2faf2f]/90 text-white rounded-xl shadow-lg shadow-green-900/10",
                     )}
                   >
-                    Get Started Free <ArrowRight className="ml-2 w-5 h-5" />
+                    Get Started <ArrowRight className="ml-2 w-5 h-5" />
                   </Link>
                   <Link
                     href="/about"
@@ -344,13 +344,13 @@ export default function HomePage() {
                 Into Opportunities
               </h2>
               <p className="text-gray-500 mb-8 text-lg">
-                Arvexus provides a secure environment for individuals to earn
+                Avexux provides a secure environment for individuals to earn
                 from anywhere. No experience required—just your device and a
                 little bit of time.
               </p>
               <ul className="space-y-4 mb-10">
                 {[
-                  "Unlimited daily tasks",
+                  "Daily tasks",
                   "Secure and fast payments",
                   "Tiered rewards system",
                 ].map((item, i) => (
@@ -360,15 +360,6 @@ export default function HomePage() {
                   </li>
                 ))}
               </ul>
-              <Link
-                href="/register"
-                className={cn(
-                  buttonVariants({ size: "lg" }),
-                  "bg-[#2faf2f] hover:bg-[#2faf2f]/90 text-white rounded-xl px-8",
-                )}
-              >
-                Join as Individual
-              </Link>
             </div>
           </div>
 
@@ -381,7 +372,7 @@ export default function HomePage() {
                 Drive Real Results.
               </h2>
               <p className="text-gray-500 mb-8 text-lg">
-                Stop wasting budget on bot-heavy ads. Arvexus connects you with
+                Stop wasting budget on bot-heavy ads. Avexux connects you with
                 real verified users who engage with your content and products.
               </p>
               <ul className="space-y-4 mb-10">
@@ -396,15 +387,6 @@ export default function HomePage() {
                   </li>
                 ))}
               </ul>
-              <Link
-                href="/register"
-                className={cn(
-                  buttonVariants({ variant: "outline", size: "lg" }),
-                  "border-gray-200 text-gray-700 hover:bg-gray-50 rounded-xl px-8",
-                )}
-              >
-                Launch Campaign
-              </Link>
             </div>
             <div className="flex-1 w-full">
               <div className="w-full aspect-[4/3] rounded-3xl overflow-hidden shadow-2xl relative bg-gradient-to-tr from-gray-100 to-gray-200 border border-gray-200 flex items-center justify-center">
@@ -417,12 +399,12 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Why Professional Choose Arvexus (Dark Section) */}
+      {/* Why Professional Choose Avexux (Dark Section) */}
       <section className="py-24 bg-[#333535] text-white">
         <div className="container mx-auto px-6 max-w-7xl">
           <div className="text-center mb-16">
             <h2 className="text-3xl font-bold font-heading mb-4 text-white">
-              Why Professional Choose Arvexus
+              Why Professional Choose Avexux
             </h2>
             <p className="text-gray-400 max-w-2xl mx-auto text-base">
               Trust, transparency, and growth are baked into our DNA.
@@ -526,7 +508,7 @@ export default function HomePage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="bg-[#fafcfa] p-8 rounded-2xl border border-gray-100 text-left">
               <div className="text-gray-900 font-medium italic mb-6">
-                "Arvexus completely changed how I monetize my free time."
+                "Avexux completely changed how I monetize my free time."
               </div>
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-gray-200"></div>

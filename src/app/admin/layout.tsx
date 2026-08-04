@@ -77,7 +77,7 @@ export default function AdminLayout({
         <footer className="shrink-0 border-t border-slate-200 bg-white py-4 px-6 lg:px-8 z-10">
           <div className="mx-auto max-w-7xl flex flex-col sm:flex-row items-center justify-between gap-4 text-xs font-medium text-slate-500">
             <div className="flex items-center gap-4">
-              <span>&copy; 2024 Arvexus Admin Pro</span>
+              <span>&copy; 2024 Avexux Admin Pro</span>
             </div>
             <div className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-green-500"></span>

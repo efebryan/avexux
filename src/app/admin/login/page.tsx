@@ -5,7 +5,7 @@ import { ShieldAlert, RefreshCw, FileCheck } from "lucide-react";
 import Image from "next/image";
 
 export const metadata: Metadata = {
-  title: "Admin Login - Arvexus Internal Systems",
+  title: "Admin Login - Avexux Internal Systems",
 };
 
 export default function AdminLoginPage() {
@@ -19,7 +19,7 @@ export default function AdminLoginPage() {
           {/* Header */}
           <div className="text-center mb-6 lg:mb-8">
             <h1 className="font-heading font-bold text-2xl tracking-tight text-[#004a09]">
-              Arvexus
+              Avexux
             </h1>
             <p className="text-[10px] font-bold tracking-[0.2em] text-gray-400 uppercase mt-1">
               Internal Systems
@@ -49,7 +49,7 @@ export default function AdminLoginPage() {
                Institutional<br/>Integrity
              </h3>
              <p className="text-sm text-gray-500 leading-relaxed">
-               Real-time monitoring and verified asset distribution for the Arvexus network.
+               Real-time monitoring and verified asset distribution for the Avexux network.
              </p>
           </div>
 

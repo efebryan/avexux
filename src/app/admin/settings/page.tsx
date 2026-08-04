@@ -106,7 +106,7 @@ export default function AdminSettingsPage() {
                         <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-2">Site Title</label>
                         <input 
                           type="text" 
-                          defaultValue="Arvexus Corporate Suite" 
+                          defaultValue="Avexux Corporate Suite" 
                           className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-[13px] text-slate-900 font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 focus:bg-white"
                         />
                       </div>
@@ -117,7 +117,7 @@ export default function AdminSettingsPage() {
                         <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-2">Copyright Text</label>
                         <input 
                           type="text" 
-                          defaultValue="© 2024 Arvexus Intelligence Systems" 
+                          defaultValue="© 2024 Avexux Intelligence Systems" 
                           className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-[13px] text-slate-900 font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 focus:bg-white"
                         />
                       </div>
@@ -344,7 +344,7 @@ export default function AdminSettingsPage() {
                 </div>
                 <div>
                   <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-2">Sender Email Address</label>
-                  <input type="text" defaultValue="noreply@arvexus.com" className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-[13px] text-slate-900 font-medium" />
+                  <input type="text" defaultValue="noreply@avexux.com" className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-[13px] text-slate-900 font-medium" />
                 </div>
                 <Button className="w-full bg-slate-900 text-white hover:bg-slate-800 font-bold h-10 rounded-lg">
                   Test Email Connection

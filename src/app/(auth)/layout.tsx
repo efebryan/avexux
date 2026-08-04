@@ -14,7 +14,7 @@ export default function AuthLayout({
             A
           </div>
           <span className="font-heading font-bold text-xl tracking-tight text-foreground">
-            Arvexus
+            Avexux
           </span>
         </Link>
         <Link href="/" className="text-sm font-medium text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors">

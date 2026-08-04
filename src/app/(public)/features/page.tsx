@@ -65,7 +65,7 @@ export default function FeaturesPage() {
             Designed for Earners & Advertisers
           </h1>
           <p className="text-lg text-gray-500 leading-relaxed">
-            Arvexus uses state-of-the-art security, algorithmic verification, and Naira (₦) escrow systems to create a mutually beneficial digital network.
+            Avexux uses state-of-the-art security, algorithmic verification, and Naira (₦) escrow systems to create a mutually beneficial digital network.
           </p>
         </div>
 
@@ -96,24 +96,29 @@ export default function FeaturesPage() {
         </div>
 
         {/* Features Content */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-24">
+        <div className="mb-24">
           <AnimatePresence mode="wait">
-            {currentFeatures.map((feat, idx) => (
-              <motion.div
-                key={feat.title}
-                initial={{ opacity: 0, y: 15 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -15 }}
-                transition={{ duration: 0.3, delay: idx * 0.05 }}
-                className="bg-white p-8 rounded-3xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow space-y-4"
-              >
-                <div className="w-12 h-12 rounded-2xl bg-[#e6f7e6] flex items-center justify-center mb-4">
-                  {feat.icon}
+            <motion.div
+              key={activeTab}
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -15 }}
+              transition={{ duration: 0.3 }}
+              className="grid grid-cols-1 md:grid-cols-3 gap-8"
+            >
+              {currentFeatures.map((feat) => (
+                <div
+                  key={feat.title}
+                  className="bg-white p-8 rounded-3xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow space-y-4"
+                >
+                  <div className="w-12 h-12 rounded-2xl bg-[#e6f7e6] flex items-center justify-center mb-4">
+                    {feat.icon}
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900 font-heading">{feat.title}</h3>
+                  <p className="text-sm text-gray-500 leading-relaxed">{feat.desc}</p>
                 </div>
-                <h3 className="text-xl font-bold text-gray-900 font-heading">{feat.title}</h3>
-                <p className="text-sm text-gray-500 leading-relaxed">{feat.desc}</p>
-              </motion.div>
-            ))}
+              ))}
+            </motion.div>
           </AnimatePresence>
         </div>
 

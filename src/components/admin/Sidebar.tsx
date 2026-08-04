@@ -37,7 +37,7 @@ export function Sidebar() {
           <LayoutGrid className="w-5 h-5 text-white" strokeWidth={2.5} />
         </div>
         <div className="flex flex-col">
-          <span className="font-heading font-bold text-xl leading-none text-white tracking-tight">Arvexus</span>
+          <span className="font-heading font-bold text-xl leading-none text-white tracking-tight">Avexux</span>
           <span className="font-heading text-[10px] font-bold text-primary uppercase tracking-widest mt-1">SUPER ADMIN</span>
         </div>
       </div>

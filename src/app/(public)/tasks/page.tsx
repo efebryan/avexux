@@ -39,7 +39,7 @@ const initialTasks: Task[] = [
   },
   {
     id: "task-3",
-    title: "Download & Install Arvexus Beta",
+    title: "Download & Install Avexux Beta",
     category: "App Install",
     payout: 3500,
     completed: 420,

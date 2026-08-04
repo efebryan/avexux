@@ -6,7 +6,7 @@ import { toast } from "sonner";
 
 export function QuickActions() {
   const handleCopyLink = () => {
-    navigator.clipboard.writeText("https://arvexus.com/ref/bryan123");
+    navigator.clipboard.writeText("https://avexux.com/ref/bryan123");
     toast.success("Referral link copied to clipboard!");
   };
 

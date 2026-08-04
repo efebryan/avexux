@@ -82,7 +82,7 @@ export default function AboutPage() {
               </span> and growth.
             </h1>
             <p className="text-lg md:text-xl text-gray-500 mb-10 max-w-2xl mx-auto leading-relaxed">
-              Arvexus was founded on a simple belief: that the digital economy should be accessible to everyone. We connect ambitious businesses with a motivated workforce ready to execute.
+              Avexux was founded on a simple belief: that the digital economy should be accessible to everyone. We connect ambitious businesses with a motivated workforce ready to execute.
             </p>
           </motion.div>
         </div>
@@ -228,7 +228,7 @@ export default function AboutPage() {
               Ready to transform your digital journey?
             </h2>
             <p className="text-green-50 text-lg md:text-xl mb-10 max-w-2xl mx-auto">
-              Whether you're looking to earn extra income or seeking to amplify your business reach, Arvexus is your trusted partner.
+              Whether you're looking to earn extra income or seeking to amplify your business reach, Avexux is your trusted partner.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link

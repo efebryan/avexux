@@ -4,8 +4,8 @@ import Link from "next/link";
 import { TrendingUp } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "Login - Arvexus",
-  description: "Login to your Arvexus account.",
+  title: "Login - Avexux",
+  description: "Login to your Avexux account.",
 };
 
 export default function LoginPage() {
@@ -14,7 +14,7 @@ export default function LoginPage() {
       {/* Header */}
       <header className="absolute top-0 left-0 w-full p-6 lg:p-8 flex justify-between items-center z-10">
         <Link href="/" className="font-heading font-bold text-2xl tracking-tight text-[#1a9a1a]">
-          Arvexus
+          Avexux
         </Link>
       </header>
 
@@ -32,7 +32,7 @@ export default function LoginPage() {
            </h1>
            
            <p className="text-base md:text-lg text-gray-600 mb-6 lg:mb-6 leading-relaxed">
-             Join 50,000+ professionals using Arvexus to access high-yield digital opportunities through a secure, institutional-grade platform.
+             Join 50,000+ professionals using Avexux to access high-yield digital opportunities through a secure, institutional-grade platform.
            </p>
 
            {/* Graphic Card */}

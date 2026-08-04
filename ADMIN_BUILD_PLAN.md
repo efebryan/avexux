@@ -1,10 +1,10 @@
-# Arvexus Admin Dashboard — Analysis & Build Requirements
+# Avexux Admin Dashboard — Analysis & Build Requirements
 
 ---
 
 ## OVERVIEW
 
-The Arvexus user dashboard is a task-earning platform. Users complete tasks, earn money,
+The Avexux user dashboard is a task-earning platform. Users complete tasks, earn money,
 refer others, spin a reward wheel, and manage their wallet. The admin panel needs to be
 the CONTROL ROOM that manages everything users experience. Below is a complete breakdown
 of every section the admin needs to mirror, control, or oversee.

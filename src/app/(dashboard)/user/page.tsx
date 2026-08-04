@@ -6,7 +6,7 @@ import { DashboardStats } from "@/components/user-dashboard/DashboardStats";
 import { AvailableOpportunities } from "@/components/user-dashboard/AvailableOpportunities";
 import { ActiveTasksTable } from "@/components/user-dashboard/ActiveTasksTable";
 import { WeeklyGoal } from "@/components/user-dashboard/WeeklyGoal";
-import { RecentAchievements } from "@/components/user-dashboard/RecentAchievements";
+import { RankAchievements } from "@/components/user-dashboard/RankAchievements";
 import { CongratulationsModal } from "@/components/user-dashboard/CongratulationsModal";
 
 export default function UserDashboard() {
@@ -25,7 +25,7 @@ export default function UserDashboard() {
       {/* Right Column */}
       <div className="w-full xl:w-[320px] 2xl:w-[360px] shrink-0">
         <WeeklyGoal />
-        <RecentAchievements />
+        <RankAchievements />
       </div>
 
       {/* Global Congratulations Campaign Modal */}

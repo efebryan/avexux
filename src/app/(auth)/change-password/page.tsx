@@ -2,8 +2,8 @@ import { ChangePasswordForm } from "@/features/auth/components/ChangePasswordFor
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Change Password - Arvexus",
-  description: "Update your Arvexus account password",
+  title: "Change Password - Avexux",
+  description: "Update your Avexux account password",
 };
 
 export default function ChangePasswordPage() {

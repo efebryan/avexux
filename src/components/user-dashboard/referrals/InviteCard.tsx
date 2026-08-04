@@ -11,7 +11,7 @@ interface InviteCardProps {
 }
 
 export function InviteCard({ referralCode }: InviteCardProps) {
-  const referralLink = `https://arvexus.com/ref/${referralCode}`;
+  const referralLink = `https://avexux.com/ref/${referralCode}`;
 
   const handleCopy = () => {
     navigator.clipboard.writeText(referralLink);

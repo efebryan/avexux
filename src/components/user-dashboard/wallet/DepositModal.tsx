@@ -69,7 +69,7 @@ export function DepositModal({ isOpen, onClose, onDeposit }: DepositModalProps) 
               </div>
               <div className="flex justify-between">
                 <span>Account Name:</span>
-                <span className="font-bold text-gray-900">Arvexus Limited</span>
+                <span className="font-bold text-gray-900">Avexux Limited</span>
               </div>
               <p className="text-[10px] text-gray-400 mt-1 italic">
                 *Funds will credit automatically after transfer confirmation.

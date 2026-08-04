@@ -4,7 +4,7 @@ import { Card } from "@/components/ui/card";
 const cards = [
   {
     title: "Getting Started",
-    desc: "Learn the basics of using Arvexus and setting up your profile.",
+    desc: "Learn the basics of using Avexux and setting up your profile.",
     icon: <BookOpen className="w-4 h-4 text-[#0f8538]" />,
     link: "Read Guide"
   },

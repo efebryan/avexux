@@ -17,51 +17,64 @@ interface Plan {
 
 const plans: Plan[] = [
   {
-    name: "Starter Pack",
-    priceMonthly: 15000,
-    priceAnnually: 12000,
-    description: "Perfect for small businesses starting their digital reach.",
+    name: "Lite Plan",
+    priceMonthly: 5000,
+    priceAnnually: 4000,
+    description: "Ideal for individuals or micro-businesses testing task campaigns.",
     features: [
-      "Up to 5,000 verified task completions",
-      "Standard demographic targeting",
+      "Up to 1,500 verified completions",
+      "Basic demographic targeting",
       "Automatic proof verification",
-      "Standard email support",
-      "72-hour campaign setup time",
+      "Standard setup within 72 hrs",
     ],
-    ctaText: "Launch Starter Campaign",
+    ctaText: "Get Started",
     popular: false,
   },
   {
     name: "Growth Plan",
-    priceMonthly: 45000,
-    priceAnnually: 36000,
-    description: "Designed for scaling brands requiring faster verified results.",
+    priceMonthly: 25000,
+    priceAnnually: 20000,
+    description: "Perfect for growing brands needing consistent, verified reach.",
     features: [
-      "Up to 20,000 verified task completions",
-      "Advanced geo-state targeting",
+      "Up to 8,000 verified completions",
+      "State & location targeting",
       "Fraud detection protocols active",
-      "Priority verification (under 2 hours)",
-      "24/7 Priority support channel",
-      "Custom task design support",
+      "Priority review (under 12 hrs)",
+      "Standard email support",
     ],
-    ctaText: "Launch Growth Campaign",
+    ctaText: "Launch Growth",
+    popular: false,
+  },
+  {
+    name: "Pro Business",
+    priceMonthly: 65000,
+    priceAnnually: 52000,
+    description: "Designed for scaling businesses requiring rapid verified execution.",
+    features: [
+      "Up to 25,000 verified completions",
+      "Advanced geo & demographic targeting",
+      "AI-driven instant proof validation",
+      "Priority 2-hr campaign approval",
+      "24/7 Priority support channel",
+      "Custom task workflow design",
+    ],
+    ctaText: "Launch Pro Campaign",
     popular: true,
   },
   {
     name: "Enterprise Pro",
-    priceMonthly: 120000,
-    priceAnnually: 96000,
-    description: "For agencies and large corporations needing massive reach.",
+    priceMonthly: 150000,
+    priceAnnually: 120000,
+    description: "For large corporations and agencies requiring massive scale.",
     features: [
-      "Unlimited task completions",
-      "Granular state and age-based targeting",
+      "Unlimited verified completions",
+      "Granular state & age targeting",
       "Dedicated account manager",
-      "Instant AI-driven proof validation",
-      "API access for campaign automation",
-      "Custom branding options",
+      "API access & campaign automation",
+      "Custom branding & SLA options",
       "Direct account manager line",
     ],
-    ctaText: "Contact Enterprise Sales",
+    ctaText: "Contact Sales",
     popular: false,
   },
 ];
@@ -119,8 +132,8 @@ export default function PricingPage() {
           </span>
         </div>
 
-        {/* Pricing Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-start mb-24">
+        {/* Pricing Grid (4 Plans) */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 items-start mb-24">
           {plans.map((plan, idx) => {
             const price = billingCycle === "monthly" ? plan.priceMonthly : plan.priceAnnually;
             return (
@@ -129,48 +142,48 @@ export default function PricingPage() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: idx * 0.1 }}
-                className={`bg-white rounded-3xl p-8 border transition-all ${
+                className={`bg-white rounded-3xl p-6 border transition-all ${
                   plan.popular
                     ? "border-[#2faf2f] ring-2 ring-[#2faf2f]/10 shadow-lg relative"
                     : "border-gray-100 shadow-sm hover:shadow-md"
                 }`}
               >
                 {plan.popular && (
-                  <span className="absolute top-0 right-8 -translate-y-1/2 bg-[#2faf2f] text-white text-[10px] font-bold py-1 px-3 rounded-full uppercase tracking-wider">
+                  <span className="absolute top-0 right-6 -translate-y-1/2 bg-[#2faf2f] text-white text-[10px] font-bold py-1 px-3 rounded-full uppercase tracking-wider">
                     Most Popular
                   </span>
                 )}
                 
                 <h3 className="text-xl font-bold text-gray-900 mb-2 font-heading">{plan.name}</h3>
-                <p className="text-sm text-gray-400 mb-6 leading-relaxed h-12">{plan.description}</p>
+                <p className="text-xs text-gray-400 mb-6 leading-relaxed h-12">{plan.description}</p>
                 
-                <div className="flex items-baseline gap-1.5 mb-8">
-                  <span className="text-4xl font-extrabold text-gray-900 font-heading">
+                <div className="flex items-baseline gap-1 mb-6">
+                  <span className="text-2xl lg:text-3xl font-extrabold text-gray-900 font-heading">
                     {formatPrice(price)}
                   </span>
-                  <span className="text-sm font-semibold text-gray-400">/ month</span>
+                  <span className="text-xs font-semibold text-gray-400">/ mo</span>
                 </div>
 
                 <Link
                   href="/register?type=advertiser"
-                  className={`w-full h-12 rounded-xl font-bold flex items-center justify-center gap-2 mb-8 transition-all ${
+                  className={`w-full h-11 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 mb-6 transition-all ${
                     plan.popular
                       ? "bg-[#2faf2f] hover:bg-[#2faf2f]/90 text-white shadow-md shadow-green-900/10"
                       : "border border-gray-200 text-gray-700 hover:bg-gray-50"
                   }`}
                 >
                   {plan.ctaText}
-                  <ArrowRight className="w-4 h-4" />
+                  <ArrowRight className="w-3.5 h-3.5" />
                 </Link>
 
-                <div className="space-y-4">
-                  <div className="text-xs font-bold text-gray-900 uppercase tracking-wider mb-2">What's included:</div>
+                <div className="space-y-3">
+                  <div className="text-[11px] font-bold text-gray-900 uppercase tracking-wider mb-2">What's included:</div>
                   {plan.features.map((feature) => (
-                    <div key={feature} className="flex items-start gap-3">
-                      <div className="w-5 h-5 rounded-full bg-[#e6f7e6] flex items-center justify-center shrink-0 mt-0.5">
-                        <Check className="text-[#2faf2f] w-3 h-3" strokeWidth={3} />
+                    <div key={feature} className="flex items-start gap-2.5">
+                      <div className="w-4 h-4 rounded-full bg-[#e6f7e6] flex items-center justify-center shrink-0 mt-0.5">
+                        <Check className="text-[#2faf2f] w-2.5 h-2.5" strokeWidth={3} />
                       </div>
-                      <span className="text-sm text-gray-600 leading-relaxed">{feature}</span>
+                      <span className="text-xs text-gray-600 leading-relaxed">{feature}</span>
                     </div>
                   ))}
                 </div>

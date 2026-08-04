@@ -59,13 +59,13 @@ export default function AdvertisePage() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center mb-24">
           <div className="lg:col-span-7 text-center lg:text-left">
             <span className="inline-flex items-center gap-1.5 py-1 px-3 rounded-full bg-[#e6f7e6] text-[#2faf2f] text-xs font-bold uppercase tracking-wider mb-6">
-              Advertise on Arvexus
+              Advertise on Avexux
             </span>
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold font-heading text-gray-900 leading-[1.1] mb-6 tracking-tight">
               Reach Verified Customers in Nigeria.
             </h1>
             <p className="text-lg text-gray-500 mb-10 max-w-xl mx-auto lg:mx-0 leading-relaxed">
-              Arvexus helps your business grow by driving authentic user actions, social engagements, app downloads, and product testing from thousands of verified local users.
+              Avexux helps your business grow by driving authentic user actions, social engagements, app downloads, and product testing from thousands of verified local users.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
               <Link href="/register?type=advertiser" className="w-full sm:w-auto h-14 px-8 text-base bg-[#2faf2f] hover:bg-[#2faf2f]/90 text-white font-bold rounded-xl shadow-lg shadow-green-900/10 flex items-center justify-center gap-2">
@@ -142,7 +142,7 @@ export default function AdvertisePage() {
         <div className="mb-24">
           <div className="text-center max-w-xl mx-auto mb-16">
             <h2 className="text-3xl font-bold font-heading text-gray-900 mb-4">How to Launch a Campaign</h2>
-            <p className="text-sm text-gray-500">Four simple steps to connect with real Nigerian users on Arvexus.</p>
+            <p className="text-sm text-gray-500">Four simple steps to connect with real Nigerian users on Avexux.</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">

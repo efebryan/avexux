@@ -68,8 +68,8 @@ export default function ContactPage() {
                   <div>
                     <h3 className="text-sm font-bold text-gray-900 mb-1">Email Support</h3>
                     <p className="text-sm text-gray-500 mb-1">Send us an email anytime. We reply within 24 hours.</p>
-                    <a href="mailto:support@arvexus.com" className="text-sm font-semibold text-[#2faf2f] hover:underline">
-                      support@arvexus.com
+                    <a href="mailto:support@avexux.com" className="text-sm font-semibold text-[#2faf2f] hover:underline">
+                      support@avexux.com
                     </a>
                   </div>
                 </div>
