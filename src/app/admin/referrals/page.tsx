@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { 
@@ -10,77 +11,115 @@ import {
   TrendingUp, 
   TrendingDown,
   Banknote,
-  LineChart
+  LineChart,
+  Loader2
 } from "lucide-react";
-
-// Mock Data
-const recentPayouts = [
-  {
-    id: "#TXN-88210",
-    referrer: "Babatunde O.",
-    initials: "BO",
-    color: "bg-emerald-100 text-emerald-700",
-    newUser: "chidi.e@mail.com",
-    amount: "₦12,500.00",
-    date: "Dec 01, 2023",
-    status: "Completed",
-    statusColor: "bg-emerald-50 text-emerald-700",
-    dotColor: "bg-emerald-500"
-  },
-  {
-    id: "#TXN-88195",
-    referrer: "Amina M.",
-    initials: "AM",
-    color: "bg-slate-100 text-slate-700",
-    newUser: "sarah.jones@web.co",
-    amount: "₦8,200.00",
-    date: "Nov 30, 2023",
-    status: "Pending",
-    statusColor: "bg-amber-50 text-amber-700",
-    dotColor: "bg-amber-500"
-  },
-  {
-    id: "#TXN-88188",
-    referrer: "Kelechi U.",
-    initials: "KU",
-    color: "bg-indigo-100 text-indigo-700",
-    newUser: "fola.williams@biz.ng",
-    amount: "₦15,000.00",
-    date: "Nov 29, 2023",
-    status: "Completed",
-    statusColor: "bg-emerald-50 text-emerald-700",
-    dotColor: "bg-emerald-500"
-  }
-];
-
-const topReferrers = [
-  {
-    rank: 1,
-    name: "Obi Nwosu",
-    img: "https://ui-avatars.com/api/?name=Obi+Nwosu&background=E2E8F0&color=333",
-    conversion: "18.4%",
-    earnings: "₦842K",
-    referrals: 142
-  },
-  {
-    rank: 2,
-    name: "Adebayo S.",
-    img: "https://ui-avatars.com/api/?name=Adebayo+S&background=E2E8F0&color=333",
-    conversion: "15.2%",
-    earnings: "₦610K",
-    referrals: 98
-  },
-  {
-    rank: 3,
-    name: "Fatima K.",
-    img: "https://ui-avatars.com/api/?name=Fatima+K&background=E2E8F0&color=333",
-    conversion: "14.8%",
-    earnings: "₦525K",
-    referrals: 84
-  }
-];
+import { createClient } from "@/utils/supabase/client";
 
 export default function ReferralsPage() {
+  const [recentPayouts, setRecentPayouts] = useState<any[]>([]);
+  const [topReferrers, setTopReferrers] = useState<any[]>([]);
+  const [stats, setStats] = useState({
+    totalReferrals: 0,
+    activeAffiliates: 0,
+    totalPayouts: 0
+  });
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchData() {
+      setIsLoading(true);
+      const supabase = createClient();
+      
+      const { data, error } = await supabase
+        .from("referrals")
+        .select(`
+          id, 
+          commission_earned, 
+          status, 
+          created_at,
+          referrer:profiles!referrer_id(id, full_name),
+          referred:profiles!referred_id(id, full_name, email)
+        `)
+        .order("created_at", { ascending: false });
+
+      if (!error && data) {
+        setStats({
+          totalReferrals: data.length,
+          activeAffiliates: new Set(data.map((r: any) => r.referrer?.id).filter(Boolean)).size,
+          totalPayouts: data.reduce((sum: number, r: any) => sum + Number(r.commission_earned || 0), 0)
+        });
+
+        // Recent Payouts
+        const recent = data.slice(0, 10).map((r: any) => {
+          const name = r.referrer?.full_name || "Unknown";
+          const nameParts = name.split(" ");
+          const initials = nameParts.length > 1 
+            ? `${nameParts[0][0]}${nameParts[1][0]}`.toUpperCase()
+            : name.substring(0, 2).toUpperCase();
+
+          const shortId = r.id.split("-")[0].toUpperCase();
+
+          return {
+            id: `#REF-${shortId}`,
+            referrer: name,
+            initials: initials,
+            color: "bg-emerald-100 text-emerald-700",
+            newUser: r.referred?.email || "unknown@mail.com",
+            amount: `₦${Number(r.commission_earned || 0).toLocaleString()}`,
+            date: new Date(r.created_at).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }) + ", " + new Date(r.created_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+            status: r.status,
+            statusColor: r.status === 'Active' || r.status === 'Completed' ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700",
+            dotColor: r.status === 'Active' || r.status === 'Completed' ? "bg-emerald-500" : "bg-amber-500"
+          };
+        });
+        setRecentPayouts(recent);
+
+        // Top Referrers
+        const referrerMap = new Map();
+        data.forEach((r: any) => {
+          const refId = r.referrer?.id;
+          if (!refId) return;
+          if (!referrerMap.has(refId)) {
+            referrerMap.set(refId, {
+              name: r.referrer?.full_name || "Unknown",
+              earnings: 0,
+              referrals: 0
+            });
+          }
+          const refData = referrerMap.get(refId);
+          refData.earnings += Number(r.commission_earned || 0);
+          refData.referrals += 1;
+        });
+
+        const top = Array.from(referrerMap.values())
+          .sort((a, b) => b.earnings - a.earnings)
+          .slice(0, 5)
+          .map((t, index) => ({
+            rank: index + 1,
+            name: t.name,
+            img: `https://ui-avatars.com/api/?name=${encodeURIComponent(t.name)}&background=E2E8F0&color=333`,
+            conversion: "N/A",
+            earnings: `₦${t.earnings.toLocaleString()}`,
+            referrals: t.referrals
+          }));
+        
+        setTopReferrers(top);
+      }
+      setIsLoading(false);
+    }
+
+    fetchData();
+  }, []);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center p-12 h-screen">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6 pb-10">
       
@@ -111,13 +150,10 @@ export default function ReferralsPage() {
             <div className="w-10 h-10 rounded-lg bg-green-50 flex items-center justify-center text-green-600">
               <Users className="w-5 h-5" strokeWidth={2.5} />
             </div>
-            <div className="text-green-600 text-xs font-bold flex items-center gap-1">
-              <TrendingUp className="w-3.5 h-3.5" strokeWidth={3} /> +12%
-            </div>
           </div>
           <div>
             <p className="text-slate-500 text-[13px] font-medium mb-1">Total Referrals</p>
-            <h3 className="text-3xl font-extrabold text-slate-900 tracking-tight">8,432</h3>
+            <h3 className="text-3xl font-extrabold text-slate-900 tracking-tight">{stats.totalReferrals.toLocaleString()}</h3>
           </div>
         </Card>
 
@@ -126,13 +162,10 @@ export default function ReferralsPage() {
             <div className="w-10 h-10 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-500">
               <Activity className="w-5 h-5" strokeWidth={2.5} />
             </div>
-            <div className="text-green-600 text-xs font-bold flex items-center gap-1">
-              <TrendingUp className="w-3.5 h-3.5" strokeWidth={3} /> +5.4%
-            </div>
           </div>
           <div>
             <p className="text-slate-500 text-[13px] font-medium mb-1">Active Affiliates</p>
-            <h3 className="text-3xl font-extrabold text-slate-900 tracking-tight">1,240</h3>
+            <h3 className="text-3xl font-extrabold text-slate-900 tracking-tight">{stats.activeAffiliates.toLocaleString()}</h3>
           </div>
         </Card>
 
@@ -140,9 +173,6 @@ export default function ReferralsPage() {
           <div className="flex justify-between items-start mb-4">
             <div className="w-10 h-10 rounded-lg bg-amber-50 flex items-center justify-center text-amber-500">
               <LineChart className="w-5 h-5" strokeWidth={2.5} />
-            </div>
-            <div className="text-rose-500 text-xs font-bold flex items-center gap-1">
-              <TrendingDown className="w-3.5 h-3.5" strokeWidth={3} /> -0.8%
             </div>
           </div>
           <div>
@@ -156,13 +186,10 @@ export default function ReferralsPage() {
             <div className="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600">
               <Banknote className="w-5 h-5" strokeWidth={2.5} />
             </div>
-            <div className="text-green-600 text-xs font-bold flex items-center gap-1">
-              <TrendingUp className="w-3.5 h-3.5" strokeWidth={3} /> +18%
-            </div>
           </div>
           <div>
             <p className="text-slate-500 text-[13px] font-medium mb-1">Total Referral Payouts</p>
-            <h3 className="text-3xl font-extrabold text-slate-900 tracking-tight">₦4.2M</h3>
+            <h3 className="text-3xl font-extrabold text-slate-900 tracking-tight">₦{stats.totalPayouts.toLocaleString()}</h3>
           </div>
         </Card>
 
@@ -235,17 +262,14 @@ export default function ReferralsPage() {
           {/* Recent Referral Payouts Table */}
           <Card className="border border-slate-200 shadow-sm rounded-xl bg-white flex flex-col">
             <div className="p-6 border-b border-slate-100 flex justify-between items-center">
-              <h2 className="font-bold text-lg text-slate-900 tracking-tight">Recent Referral Payouts</h2>
-              <button className="text-[13px] font-bold text-green-600 hover:text-green-700 transition-colors">
-                View All Transactions
-              </button>
+              <h2 className="font-bold text-lg text-slate-900 tracking-tight">Recent Referrals</h2>
             </div>
 
             <div className="overflow-x-auto">
               <table className="w-full text-sm text-left">
                 <thead className="text-[10px] text-slate-400 uppercase bg-transparent font-bold tracking-wider">
                   <tr>
-                    <th className="px-6 py-4">TRANSACTION ID</th>
+                    <th className="px-6 py-4">REF ID</th>
                     <th className="px-6 py-4">REFERRER</th>
                     <th className="px-6 py-4">NEW USER</th>
                     <th className="px-6 py-4">AMOUNT</th>
@@ -254,7 +278,7 @@ export default function ReferralsPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100/70 border-t border-slate-100">
-                  {recentPayouts.map((txn, i) => (
+                  {recentPayouts.length > 0 ? recentPayouts.map((txn, i) => (
                     <tr key={i} className="hover:bg-slate-50/50 transition-colors">
                       <td className="px-6 py-4">
                         <span className="text-[13px] text-green-600 font-medium">{txn.id}</span>
@@ -286,7 +310,13 @@ export default function ReferralsPage() {
                         </span>
                       </td>
                     </tr>
-                  ))}
+                  )) : (
+                    <tr>
+                      <td colSpan={6} className="px-6 py-10 text-center text-slate-500 font-medium">
+                        No referrals found yet.
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>
@@ -344,7 +374,7 @@ export default function ReferralsPage() {
             </div>
             
             <div className="flex-1 px-6 space-y-5">
-              {topReferrers.map((user) => (
+              {topReferrers.length > 0 ? topReferrers.map((user) => (
                 <div key={user.rank} className="flex justify-between items-center">
                   <div className="flex items-center gap-3">
                     <div className="relative">
@@ -367,7 +397,11 @@ export default function ReferralsPage() {
                     <span className="text-[10px] text-slate-400 font-medium">{user.referrals} Referrals</span>
                   </div>
                 </div>
-              ))}
+              )) : (
+                <div className="text-center text-slate-500 font-medium py-6 text-sm">
+                  No referrers yet.
+                </div>
+              )}
             </div>
 
             <div className="p-4 mt-2">
