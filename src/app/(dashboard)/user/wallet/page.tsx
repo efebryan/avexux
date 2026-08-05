@@ -14,27 +14,18 @@ const DepositModal = dynamic(() => import("@/components/user-dashboard/wallet/De
   ssr: false,
 });
 
-const mockTransactions: Transaction[] = [
-  { id: "tx1", date: "Oct 24, 2023", description: "Task Approved: UI Testing", type: "Task", amount: 1500, status: "Completed" },
-  { id: "tx2", date: "Oct 22, 2023", description: "Referral Bonus: John D.", type: "Referral", amount: 500, status: "Completed" },
-  { id: "tx3", date: "Oct 20, 2023", description: "Task Approved: Google Review", type: "Task", amount: 350, status: "Completed" },
-  { id: "tx4", date: "Oct 19, 2023", description: "Task Pending: Survey", type: "Task", amount: 500, status: "Pending" },
-  { id: "tx5", date: "Oct 15, 2023", description: "Welcome Bonus", type: "Bonus", amount: 1000, status: "Completed" },
-];
+const mockTransactions: Transaction[] = [];
 
-const mockWithdrawals: Withdrawal[] = [
-  { id: "w1", date: "Oct 10, 2023", method: "Bank Transfer", accountDetails: "**** 1234", amount: 8000, status: "Processed" },
-  { id: "w2", date: "Sep 25, 2023", method: "Mobile Money", accountDetails: "0801***456", amount: 5000, status: "Failed" },
-];
+const mockWithdrawals: Withdrawal[] = [];
 
 export default function WalletPage() {
   const [activeTab, setActiveTab] = useState<"transactions" | "withdrawals">("transactions");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDepositModalOpen, setIsDepositModalOpen] = useState(false);
   
-  // Mock State
-  const [transactions, setTransactions] = useState<Transaction[]>(mockTransactions);
-  const [withdrawals, setWithdrawals] = useState<Withdrawal[]>(mockWithdrawals);
+  // State
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [withdrawals, setWithdrawals] = useState<Withdrawal[]>([]);
   const [availableBalance, setAvailableBalance] = useState(0);
   const [pendingBalance, setPendingBalance] = useState(0);
   const [bonusEarnings, setBonusEarnings] = useState(0);
@@ -66,6 +57,44 @@ export default function WalletPage() {
         if (refData) {
           const refSum = refData.reduce((acc, curr) => acc + Number(curr.reward_amount), 0);
           setReferralEarnings(refSum);
+        }
+
+        // Fetch Transactions
+        const { data: txData } = await supabase
+          .from("transactions")
+          .select("*")
+          .eq("user_id", user.id)
+          .order("created_at", { ascending: false });
+
+        if (txData) {
+          const formattedTx: Transaction[] = txData.map((tx: any) => ({
+            id: tx.id,
+            date: new Date(tx.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+            description: tx.metadata?.description || `${tx.type.charAt(0).toUpperCase() + tx.type.slice(1).toLowerCase().replace('_', ' ')}`,
+            type: tx.type,
+            amount: Number(tx.amount),
+            status: tx.status,
+          }));
+          setTransactions(formattedTx);
+        }
+
+        // Fetch Withdrawals
+        const { data: wData } = await supabase
+          .from("withdrawal_requests")
+          .select("*")
+          .eq("user_id", user.id)
+          .order("created_at", { ascending: false });
+
+        if (wData) {
+          const formattedW: Withdrawal[] = wData.map((w: any) => ({
+            id: w.id,
+            date: new Date(w.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+            method: "Bank Transfer",
+            accountDetails: `${w.bank_name} - ${w.account_number}`,
+            amount: Number(w.amount),
+            status: w.status === "Approved" ? "Processed" : w.status,
+          }));
+          setWithdrawals(formattedW);
         }
       }
     }
