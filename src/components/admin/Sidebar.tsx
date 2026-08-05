@@ -12,7 +12,8 @@ import {
   HelpCircle,
   LayoutGrid,
   FileText,
-  LogOut
+  LogOut,
+  Gift
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -22,6 +23,7 @@ const navItems = [
   { name: "Tasks", href: "/admin/tasks", icon: ClipboardList },
   { name: "Financials", href: "/admin/financials", icon: Wallet },
   { name: "Referrals", href: "/admin/referrals", icon: RefreshCw },
+  { name: "Rewards", href: "/admin/rewards", icon: Gift },
   { name: "Settings", href: "/admin/settings", icon: Settings },
 ];
 
