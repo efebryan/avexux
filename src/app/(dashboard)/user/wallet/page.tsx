@@ -1,13 +1,17 @@
 "use client";
 
 import { useState } from "react";
+import dynamic from "next/dynamic";
 import { Transaction, Withdrawal } from "./types";
 import { BalanceCards } from "@/components/user-dashboard/wallet/BalanceCards";
 import { WithdrawalModal } from "@/components/user-dashboard/wallet/WithdrawalModal";
-import { DepositModal } from "@/components/user-dashboard/wallet/DepositModal";
 import { TransactionTable } from "@/components/user-dashboard/wallet/TransactionTable";
 import { WithdrawalTable } from "@/components/user-dashboard/wallet/WithdrawalTable";
 import { toast } from "sonner";
+
+const DepositModal = dynamic(() => import("@/components/user-dashboard/wallet/DepositModal").then(mod => mod.DepositModal), {
+  ssr: false,
+});
 
 const mockTransactions: Transaction[] = [
   { id: "tx1", date: "Oct 24, 2023", description: "Task Approved: UI Testing", type: "Task", amount: 1500, status: "Completed" },
