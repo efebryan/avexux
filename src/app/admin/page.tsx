@@ -239,6 +239,9 @@ function ChartComponent() {
 export default function AdminOverviewPage() {
   const [totalDeposits, setTotalDeposits] = useState(0);
   const [totalWithdrawals, setTotalWithdrawals] = useState(0);
+  const [totalUsers, setTotalUsers] = useState(0);
+  const [activeUsers, setActiveUsers] = useState(0);
+  const [totalReferrals, setTotalReferrals] = useState(0);
 
   useEffect(() => {
     async function fetchFinancials() {
@@ -265,6 +268,22 @@ export default function AdminOverviewPage() {
         const sum = withdrawalData.reduce((acc, curr) => acc + Number(curr.amount), 0);
         setTotalWithdrawals(sum);
       }
+
+      const { count: usersCount } = await supabase
+        .from("profiles")
+        .select("*", { count: "exact", head: true });
+      if (usersCount !== null) setTotalUsers(usersCount);
+
+      const { count: activeUsersCount } = await supabase
+        .from("profiles")
+        .select("*", { count: "exact", head: true })
+        .eq("status", "ACTIVE");
+      if (activeUsersCount !== null) setActiveUsers(activeUsersCount);
+
+      const { count: referralsCount } = await supabase
+        .from("referrals")
+        .select("*", { count: "exact", head: true });
+      if (referralsCount !== null) setTotalReferrals(referralsCount);
     }
     fetchFinancials();
   }, []);
@@ -303,6 +322,12 @@ export default function AdminOverviewPage() {
                   ? `₦${totalDeposits.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` 
                   : stat.title === "WITHDRAWALS PAID" 
                   ? `₦${totalWithdrawals.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` 
+                  : stat.title === "TOTAL USERS"
+                  ? totalUsers.toLocaleString()
+                  : stat.title === "ACTIVE USERS"
+                  ? activeUsers.toLocaleString()
+                  : stat.title === "TOTAL REFERRALS"
+                  ? totalReferrals.toLocaleString()
                   : stat.value}
               </h3>
             </div>
