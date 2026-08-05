@@ -19,6 +19,11 @@ export default function AdminLayout({
     setIsMobileSidebarOpen(false);
   }, [pathname]);
 
+  // If on the login page, render without the dashboard wrapper
+  if (pathname === "/admin/login") {
+    return <div className="min-h-screen bg-slate-50">{children}</div>;
+  }
+
   return (
     <div className="flex h-[100dvh] w-full bg-slate-50 overflow-hidden relative font-sans">
       {/* Mobile Sidebar Overlay */}

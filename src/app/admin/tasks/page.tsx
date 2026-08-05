@@ -5,12 +5,13 @@ import { Plus, Search, CheckCircle, XCircle, Eye, Edit2, Trash2 } from "lucide-r
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { CreateTaskModal } from "@/components/admin/CreateTaskModal";
+import { TaskPreviewModal } from "@/components/admin/TaskPreviewModal";
 
 // Mock Data
 const mockTasks = [
-  { id: "1", title: "Test our new Banking App UI", category: "App Testing", advertiser: "FinTech Corp", reward: 1500, submissions: 45, status: "Active", created: "Oct 20, 2023" },
-  { id: "2", title: "Follow & Retweet Crypto Campaign", category: "Social Media", advertiser: "CryptoLaunch", reward: 200, submissions: 120, status: "Active", created: "Oct 21, 2023" },
-  { id: "3", title: "Complete Survey on E-commerce", category: "Surveys", advertiser: "MarketResearch Inc.", reward: 500, submissions: 8, status: "Paused", created: "Oct 22, 2023" },
+  { id: "1", title: "Test our new Banking App UI", category: "App Testing", advertiser: "FinTech Corp", reward: 1500, submissions: 45, status: "Active", created: "Oct 20, 2023", description: "Download and review our new mobile banking application. Test transfer flows and submit a screenshot of your successful transaction." },
+  { id: "2", title: "Follow & Retweet Crypto Campaign", category: "Social Media", advertiser: "CryptoLaunch", reward: 200, submissions: 120, status: "Active", created: "Oct 21, 2023", description: "Follow @CryptoLaunch on X (Twitter), like and retweet our pinned announcement post. Submit your profile handle and screenshot." },
+  { id: "3", title: "Complete Survey on E-commerce", category: "Surveys", advertiser: "MarketResearch Inc.", reward: 500, submissions: 8, status: "Paused", created: "Oct 22, 2023", description: "Answer 10 short questions regarding your online shopping habits in Nigeria. Takes under 3 minutes to complete." },
 ];
 
 const mockSubmissions = [
@@ -24,6 +25,7 @@ export default function AdminTasksPage() {
   const [tasks, setTasks] = useState(mockTasks);
   const [submissions, setSubmissions] = useState(mockSubmissions);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [selectedTaskForPreview, setSelectedTaskForPreview] = useState<any | null>(null);
 
   const toggleTaskStatus = (id: string) => {
     setTasks(tasks.map(t => {
@@ -139,11 +141,32 @@ export default function AdminTasksPage() {
                       </button>
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Button variant="ghost" size="sm" onClick={() => handleEditTask(task.id)} className="h-8 w-8 p-0 text-primary hover:bg-primary/10 rounded-lg">
+                      <div className="flex items-center justify-end gap-1 opacity-90 hover:opacity-100 transition-opacity">
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={() => setSelectedTaskForPreview(task)} 
+                          title="Preview Task Details"
+                          className="h-8 w-8 p-0 text-slate-600 hover:text-primary hover:bg-slate-100 rounded-lg"
+                        >
+                          <Eye className="w-4 h-4" />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={() => handleEditTask(task.id)} 
+                          title="Edit Task"
+                          className="h-8 w-8 p-0 text-slate-600 hover:text-primary hover:bg-slate-100 rounded-lg"
+                        >
                           <Edit2 className="w-4 h-4" />
                         </Button>
-                        <Button variant="ghost" size="sm" onClick={() => handleDeleteTask(task.id, task.title)} className="h-8 w-8 p-0 text-red-600 hover:bg-red-50 rounded-lg">
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={() => handleDeleteTask(task.id, task.title)} 
+                          title="Delete Task"
+                          className="h-8 w-8 p-0 text-red-600 hover:bg-red-50 rounded-lg"
+                        >
                           <Trash2 className="w-4 h-4" />
                         </Button>
                       </div>
@@ -187,6 +210,7 @@ export default function AdminTasksPage() {
                           <Button 
                             variant="outline" 
                             size="sm" 
+                            onClick={() => setSelectedTaskForPreview(tasks.find(t => t.id === sub.taskId) || { title: sub.taskTitle, category: "Submission", advertiser: sub.user, reward: 0, status: sub.status, created: sub.date, description: `Proof submitted by ${sub.user}. Verification pending approval.` })}
                             className="h-8 text-xs font-bold text-primary border-primary/20 hover:bg-primary/10 flex gap-1 rounded-lg"
                           >
                             <Eye className="w-3.5 h-3.5" /> View
@@ -223,6 +247,12 @@ export default function AdminTasksPage() {
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
         onTaskCreate={handleCreateTask}
+      />
+
+      <TaskPreviewModal 
+        isOpen={!!selectedTaskForPreview}
+        onClose={() => setSelectedTaskForPreview(null)}
+        task={selectedTaskForPreview}
       />
     </div>
   );

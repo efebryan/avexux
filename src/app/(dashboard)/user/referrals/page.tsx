@@ -1,11 +1,14 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { ReferralStats } from "@/components/user-dashboard/referrals/ReferralStats";
 import { InviteCard } from "@/components/user-dashboard/referrals/InviteCard";
 import { ReferralLeaderboard } from "@/components/user-dashboard/referrals/ReferralLeaderboard";
 import { MyReferralsTable } from "@/components/user-dashboard/referrals/MyReferralsTable";
+import { createClient } from "@/utils/supabase/client";
+import { Loader2 } from "lucide-react";
 
-// Mock Data
+// Mock Data for Leaderboard (Requires a backend view or RPC to aggregate total invites efficiently)
 const mockLeaders = [
   { rank: 1, username: "CryptoKing99", totalInvites: 450, earnings: 125000 },
   { rank: 2, username: "SarahTasks", totalInvites: 320, earnings: 85000 },
@@ -14,18 +17,76 @@ const mockLeaders = [
   { rank: 5, username: "JohnDoe22", totalInvites: 95, earnings: 15000 },
 ];
 
-const mockMyReferrals = [
-  { id: "1", username: "Alex123", dateJoined: "Oct 20, 2023", status: "Active" as const, earned: 250 },
-  { id: "2", username: "DevNerd", dateJoined: "Oct 18, 2023", status: "Active" as const, earned: 150 },
-  { id: "3", username: "BusyBee", dateJoined: "Oct 15, 2023", status: "Inactive" as const, earned: 0 },
-  { id: "4", username: "CryptoFan", dateJoined: "Oct 10, 2023", status: "Active" as const, earned: 100 },
-];
-
 export default function ReferralsPage() {
-  const userReferralCode = "bryan123";
-  const totalReferrals = 4;
-  const activeReferrals = 3;
-  const referralEarnings = 500;
+  const [isLoading, setIsLoading] = useState(true);
+  const [userReferralCode, setUserReferralCode] = useState("");
+  const [myReferrals, setMyReferrals] = useState<any[]>([]);
+  const [stats, setStats] = useState({
+    totalReferrals: 0,
+    activeReferrals: 0,
+    referralEarnings: 0,
+  });
+
+  const supabase = createClient();
+
+  useEffect(() => {
+    async function fetchData() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setIsLoading(false);
+        return;
+      }
+
+      // 1. Fetch user's referral code
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("referral_code")
+        .eq("id", user.id)
+        .single();
+      
+      if (profile) {
+        setUserReferralCode(profile.referral_code);
+      }
+
+      // 2. Fetch users who were referred by this user
+      // Assuming 'profiles' table has a 'referred_by_code' column
+      if (profile?.referral_code) {
+        const { data: referralsData } = await supabase
+          .from("profiles")
+          .select("id, full_name, created_at, status")
+          .eq("referred_by_code", profile.referral_code);
+
+        if (referralsData) {
+          const formattedReferrals = referralsData.map((ref: any) => ({
+            id: ref.id,
+            username: ref.full_name || "Unknown User",
+            dateJoined: new Date(ref.created_at).toLocaleDateString(),
+            status: ref.status === "ACTIVE" ? "Active" : "Inactive",
+            earned: 0, // Placeholder until commission logic is fully built out
+          }));
+
+          setMyReferrals(formattedReferrals);
+
+          setStats({
+            totalReferrals: formattedReferrals.length,
+            activeReferrals: formattedReferrals.filter(r => r.status === "Active").length,
+            referralEarnings: 0, // Placeholder
+          });
+        }
+      }
+
+      setIsLoading(false);
+    }
+    fetchData();
+  }, []);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center p-12">
+        <Loader2 className="w-8 h-8 animate-spin text-[#0f8538]" />
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-6xl mx-auto pb-8">
@@ -35,15 +96,15 @@ export default function ReferralsPage() {
       </div>
 
       <ReferralStats 
-        totalReferrals={totalReferrals}
-        activeReferrals={activeReferrals}
-        referralEarnings={referralEarnings}
+        totalReferrals={stats.totalReferrals}
+        activeReferrals={stats.activeReferrals}
+        referralEarnings={stats.referralEarnings}
       />
 
       <InviteCard referralCode={userReferralCode} />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <MyReferralsTable referrals={mockMyReferrals} />
+        <MyReferralsTable referrals={myReferrals} />
         <ReferralLeaderboard leaders={mockLeaders} />
       </div>
     </div>

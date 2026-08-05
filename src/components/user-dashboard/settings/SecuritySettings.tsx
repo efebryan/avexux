@@ -1,9 +1,49 @@
+"use client";
+
+import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Smartphone } from "lucide-react";
+import { Smartphone, Loader2 } from "lucide-react";
+import { createClient } from "@/utils/supabase/client";
+import { toast } from "sonner";
 
 export function SecuritySettings() {
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [isUpdating, setIsUpdating] = useState(false);
+
+  const supabase = createClient();
+
+  const handleUpdatePassword = async () => {
+    if (!newPassword || !confirmPassword) {
+      toast.error("Please fill in both password fields.");
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      toast.error("New passwords do not match.");
+      return;
+    }
+    if (newPassword.length < 8) {
+      toast.error("Password must be at least 8 characters.");
+      return;
+    }
+
+    setIsUpdating(true);
+    const { error } = await supabase.auth.updateUser({
+      password: newPassword
+    });
+    setIsUpdating(false);
+
+    if (error) {
+      toast.error(error.message || "Failed to update password.");
+    } else {
+      toast.success("Password updated successfully!");
+      setNewPassword("");
+      setConfirmPassword("");
+    }
+  };
+
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div>
@@ -16,18 +56,35 @@ export function SecuritySettings() {
         <h3 className="font-semibold text-sm text-gray-900">Change Password</h3>
         <div className="space-y-3 max-w-md">
           <div className="space-y-1">
-            <Label htmlFor="current" className="text-xs">Current Password</Label>
-            <Input id="current" type="password" placeholder="••••••••" className="rounded-lg h-9 text-xs" />
-          </div>
-          <div className="space-y-1">
             <Label htmlFor="new" className="text-xs">New Password</Label>
-            <Input id="new" type="password" placeholder="••••••••" className="rounded-lg h-9 text-xs" />
+            <Input 
+              id="new" 
+              type="password" 
+              placeholder="••••••••" 
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              className="rounded-lg h-9 text-xs" 
+            />
           </div>
           <div className="space-y-1">
             <Label htmlFor="confirm" className="text-xs">Confirm New Password</Label>
-            <Input id="confirm" type="password" placeholder="••••••••" className="rounded-lg h-9 text-xs" />
+            <Input 
+              id="confirm" 
+              type="password" 
+              placeholder="••••••••" 
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              className="rounded-lg h-9 text-xs" 
+            />
           </div>
-          <Button className="bg-gray-900 hover:bg-gray-800 text-white rounded-lg h-8 px-3 text-xs mt-1">Update Password</Button>
+          <Button 
+            onClick={handleUpdatePassword} 
+            disabled={isUpdating}
+            className="bg-gray-900 hover:bg-gray-800 text-white rounded-lg h-8 px-3 text-xs mt-1"
+          >
+            {isUpdating ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" /> : null}
+            Update Password
+          </Button>
         </div>
       </div>
 

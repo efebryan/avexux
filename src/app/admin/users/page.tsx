@@ -1,64 +1,89 @@
 "use client";
 
-import { useState } from "react";
-import { Search, Download, UserPlus, SlidersHorizontal, ChevronDown, Info, Eye, Edit2, Trash2, Users } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Search, Download, UserPlus, SlidersHorizontal, ChevronDown, Info, Eye, Edit2, Trash2, Users, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { createClient } from "@/utils/supabase/client";
+import { CreateUserModal } from "@/components/admin/CreateUserModal";
 
-// Mock Data
-const mockUsers = [
-  { 
-    id: "1", 
-    username: "Adebayo Chidubem", 
-    email: "adebayo.c@provider.com", 
-    joined: "Oct 12, 2023", 
-    status: "ACTIVE", 
-    earnings: 452000, 
-    tasks: 142, 
-    initials: "AC", 
-    role: "Admin",
-    img: "https://ui-avatars.com/api/?name=Adebayo+Chidubem&background=E2E8F0&color=333" 
-  },
-  { 
-    id: "2", 
-    username: "Okonkwo Ifeanyi", 
-    email: "ifeanyi.o@service.io", 
-    joined: "Nov 05, 2023", 
-    status: "PENDING", 
-    earnings: 28500, 
-    tasks: 12, 
-    initials: "OI", 
-    role: "User",
-    img: "https://ui-avatars.com/api/?name=Okonkwo+Ifeanyi&background=E2E8F0&color=333" 
-  },
-  { 
-    id: "3", 
-    username: "Fatima Yusuf", 
-    email: "fatima.y@corpmail.net", 
-    joined: "Sep 28, 2023", 
-    status: "SUSPENDED", 
-    earnings: 1120400, 
-    tasks: 305, 
-    initials: "FY", 
-    role: "Moderator",
-    img: "https://ui-avatars.com/api/?name=Fatima+Yusuf&background=E2E8F0&color=333" 
-  },
-  { 
-    id: "4", 
-    username: "Nnamdi Azikiwe", 
-    email: "nnamdi.z@techhub.com", 
-    joined: "Jan 15, 2024", 
-    status: "ACTIVE", 
-    earnings: 185200, 
-    tasks: 54, 
-    initials: "NA", 
-    role: "User",
-    img: "https://ui-avatars.com/api/?name=Nnamdi+Azikiwe&background=E2E8F0&color=333" 
-  },
-];
+// UI User Type
+type AdminUser = {
+  id: string;
+  username: string;
+  email: string;
+  joined: string;
+  status: string;
+  earnings: number;
+  tasks: number;
+  initials: string;
+  role: string;
+};
 
 export default function AdminUsersPage() {
-  const [users, setUsers] = useState(mockUsers);
+  const [users, setUsers] = useState<AdminUser[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  
+  const supabase = createClient();
+
+  async function fetchUsers() {
+    setIsLoading(true);
+    // Fetch profiles with their associated wallet data
+    const { data: profiles, error } = await supabase
+      .from("profiles")
+      .select(`
+        id,
+        full_name,
+        email,
+        role,
+        status,
+        created_at,
+        wallets(total_earned)
+      `)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      toast.error("Failed to load users from database");
+      setIsLoading(false);
+      return;
+    }
+
+    const formattedUsers: AdminUser[] = (profiles || []).map((p: any) => {
+      // Calculate initials
+      const nameParts = (p.full_name || "User").split(" ");
+      const initials = nameParts.length > 1 
+        ? `${nameParts[0][0]}${nameParts[1][0]}`.toUpperCase()
+        : (p.full_name || "U").substring(0, 2).toUpperCase();
+
+      // Extract earnings
+      const earnings = p.wallets && p.wallets.length > 0 
+        ? Number(p.wallets[0].total_earned) 
+        : 0;
+
+      // Format Date
+      const dateObj = new Date(p.created_at);
+      const joined = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+
+      return {
+        id: p.id,
+        username: p.full_name || "Unknown User",
+        email: p.email || "",
+        joined,
+        status: p.status || "ACTIVE",
+        earnings,
+        tasks: 0,
+        initials,
+        role: p.role === "admin" ? "Admin" : p.role === "moderator" ? "Moderator" : "User"
+      };
+    });
+
+    setUsers(formattedUsers);
+    setIsLoading(false);
+  }
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
   
   // Search & Filtering States
   const [searchQuery, setSearchQuery] = useState("");
@@ -67,15 +92,18 @@ export default function AdminUsersPage() {
   const [joinedFilter, setJoinedFilter] = useState("All"); // All, 2023, 2024
   const [activeDropdown, setActiveDropdown] = useState<"status" | "role" | "joined" | null>(null);
 
+  // Add User Modal State
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+
   // Edit Modal States
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<typeof mockUsers[0] | null>(null);
+  const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null);
   
   // Delete Modal States
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [userToDelete, setUserToDelete] = useState<typeof mockUsers[0] | null>(null);
+  const [userToDelete, setUserToDelete] = useState<AdminUser | null>(null);
 
-  const handleDeleteClick = (user: typeof mockUsers[0]) => {
+  const handleDeleteClick = (user: AdminUser) => {
     setUserToDelete(user);
     setIsDeleteModalOpen(true);
   };
@@ -92,7 +120,7 @@ export default function AdminUsersPage() {
     toast.info(`Viewing details for ${username}.`);
   };
 
-  const handleEditUser = (user: typeof mockUsers[0]) => {
+  const handleEditUser = (user: AdminUser) => {
     setSelectedUser({ ...user });
     setIsEditModalOpen(true);
   };
@@ -125,14 +153,22 @@ export default function AdminUsersPage() {
     return matchesSearch && matchesStatus && matchesRole && matchesJoined;
   });
 
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center p-12 h-screen">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6 pb-10">
       
       {/* Header Section */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 mb-2">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 tracking-tight">User Management</h1>
-          <p className="text-slate-500 text-sm mt-1">Total active users: <span className="font-bold text-slate-700">1,245</span></p>
+          <h1 className="text-2xl font-bold font-heading text-slate-900 tracking-tight">User Management</h1>
+          <p className="text-slate-500 text-sm mt-1">Total users: <span className="font-bold text-slate-700">{users.length}</span></p>
         </div>
         
         <div className="flex items-center gap-3 w-full md:w-auto">
@@ -140,7 +176,10 @@ export default function AdminUsersPage() {
             <Download className="w-4 h-4 mr-2 text-slate-500" />
             Export CSV
           </Button>
-          <Button className="bg-primary hover:bg-primary/95 text-white font-semibold shadow-sm rounded-lg px-5 w-full md:w-auto">
+          <Button 
+            onClick={() => setIsAddModalOpen(true)}
+            className="bg-primary hover:bg-primary/95 text-white font-semibold shadow-sm rounded-lg px-5 w-full md:w-auto"
+          >
             <UserPlus className="w-4 h-4 mr-2" />
             Add New User
           </Button>
@@ -283,8 +322,8 @@ export default function AdminUsersPage() {
                   <tr key={user.id} className="hover:bg-slate-50/50 transition-colors group">
                     <td className="px-6 py-4 w-[300px]">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-slate-200 overflow-hidden shrink-0 border border-slate-100">
-                          <img src={user.img} alt={user.username} className="w-full h-full object-cover" />
+                        <div className="w-10 h-10 rounded-full bg-slate-200 overflow-hidden shrink-0 border border-slate-100 flex items-center justify-center text-xs font-bold text-slate-500">
+                          {user.initials}
                         </div>
                         <div className="flex flex-col">
                           <span className="font-bold text-slate-900 group-hover:text-primary transition-colors cursor-pointer">{user.username}</span>
@@ -388,6 +427,12 @@ export default function AdminUsersPage() {
           </div>
         </div>
       </div>
+
+      <CreateUserModal 
+        isOpen={isAddModalOpen} 
+        onClose={() => setIsAddModalOpen(false)} 
+        onSuccess={fetchUsers} 
+      />
 
       {/* Edit User Modal */}
       {isEditModalOpen && selectedUser && (

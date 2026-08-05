@@ -5,8 +5,9 @@ import { Settings, Lock, LogOut } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { logoutAction } from "@/app/(auth)/actions";
 
-export function ProfileDropdown() {
+export function ProfileDropdown({ fullName = "User" }: { fullName?: string }) {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
@@ -22,7 +23,8 @@ export function ProfileDropdown() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await logoutAction();
     toast.success("Successfully logged out!");
     setIsOpen(false);
     // Redirect to home/login page
@@ -37,12 +39,12 @@ export function ProfileDropdown() {
         className="flex items-center gap-3 cursor-pointer hover:opacity-90 transition-opacity text-left focus:outline-none"
       >
         <div className="hidden md:flex flex-col items-end">
-          <span className="text-sm font-bold text-gray-900 leading-tight">Bryan Smith</span>
+          <span className="text-sm font-bold text-gray-900 leading-tight">{fullName}</span>
           <span className="text-xs text-gray-500 font-medium">Pro Member</span>
         </div>
         <div className="w-10 h-10 rounded-full bg-gray-200 overflow-hidden relative border-2 border-white shadow-sm transition-all hover:scale-105">
           <img 
-            src="https://api.dicebear.com/7.x/avataaars/svg?seed=Bryan&backgroundColor=b6e3f4" 
+            src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${fullName.split(' ')[0]}&backgroundColor=b6e3f4`} 
             alt="Profile" 
             className="w-full h-full object-cover"
           />

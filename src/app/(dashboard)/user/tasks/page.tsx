@@ -1,91 +1,82 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Task, TaskStatus } from "./types";
 import { TaskCard } from "@/components/user-dashboard/tasks/TaskCard";
 import { TaskFilters } from "@/components/user-dashboard/tasks/TaskFilters";
 import { TaskDetailsModal } from "@/components/user-dashboard/tasks/TaskDetailsModal";
 import { toast } from "sonner";
+import { createClient } from "@/utils/supabase/client";
+import { Loader2 } from "lucide-react";
 
-const mockTasks: Task[] = [
-  {
-    id: "1",
-    title: "Test our new Banking App UI",
-    description: "We need users to test the newly designed transfer flow in our beta banking app. Please record your screen while completing a transfer and provide feedback on the ease of use.",
-    reward: 1500,
-    timeEstimate: "15 mins",
-    category: "App Testing",
-    status: "Available",
-    advertiser: "FinTech Corp",
-    requirements: ["Must have an Android device", "Screen recording software required", "Must speak clearly during recording"]
-  },
-  {
-    id: "2",
-    title: "Follow & Retweet Crypto Campaign",
-    description: "Follow our official Twitter account and retweet the pinned post. Help us spread the word about our upcoming token launch!",
-    reward: 200,
-    timeEstimate: "2 mins",
-    category: "Social Media",
-    status: "Available",
-    advertiser: "CryptoLaunch",
-    requirements: ["Twitter account must be at least 6 months old", "Must have at least 50 followers"]
-  },
-  {
-    id: "3",
-    title: "Complete Survey on E-commerce Habits",
-    description: "Fill out a 10-minute survey regarding your online shopping habits, preferred payment methods, and delivery experiences.",
-    reward: 500,
-    timeEstimate: "10 mins",
-    category: "Surveys",
-    status: "In Progress",
-    advertiser: "MarketResearch Inc.",
-    requirements: ["Must be a frequent online shopper"]
-  },
-  {
-    id: "4",
-    title: "Leave a Review on Google Maps",
-    description: "Visit our local coffee shop page on Google Maps and leave an honest 5-star review about your experience.",
-    reward: 350,
-    timeEstimate: "5 mins",
-    category: "Reviews",
-    status: "Pending Review",
-    advertiser: "Daily Brew Coffee",
-    requirements: ["Must be physically located in the same city", "Local Guide badge is a plus"]
-  },
-  {
-    id: "5",
-    title: "Watch & Like YouTube Video",
-    description: "Watch our latest promotional video all the way through, drop a like, and leave a positive comment.",
-    reward: 150,
-    timeEstimate: "5 mins",
-    category: "Video Review",
-    status: "Approved",
-    advertiser: "Tech Reviews Channel",
-    requirements: ["Must watch at least 80% of the video"]
-  },
-  {
-    id: "6",
-    title: "Signup for Newsletter",
-    description: "Simply navigate to our landing page and subscribe to our weekly newsletter using a valid email address.",
-    reward: 100,
-    timeEstimate: "2 mins",
-    category: "Website Visit",
-    status: "Rejected",
-    advertiser: "Health & Fitness Weekly",
-    requirements: ["Use a valid, active email address", "Confirm the subscription in your inbox"]
-  }
-];
-
-const categories = ["App Testing", "Social Media", "Surveys", "Reviews", "Video Review", "Website Visit"];
+const categories = ["Social Media", "Reviews", "Video Review", "Website Visit"];
 
 export default function TaskCenterPage() {
-  const [tasks, setTasks] = useState<Task[]>(mockTasks);
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<"available" | "active" | "history">("available");
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("All");
   
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const supabase = createClient();
+
+  useEffect(() => {
+    async function fetchTasks() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setIsLoading(false);
+        return;
+      }
+
+      // 1. Fetch all active tasks
+      const { data: allTasks, error: tasksError } = await supabase
+        .from("tasks")
+        .select("*")
+        .eq("status", "Active");
+
+      if (tasksError) {
+        toast.error("Failed to load tasks");
+        setIsLoading(false);
+        return;
+      }
+
+      // 2. Fetch user's submissions
+      const { data: submissions, error: subError } = await supabase
+        .from("task_submissions")
+        .select("task_id, status")
+        .eq("user_id", user.id);
+
+      const submissionMap = new Map();
+      if (submissions && !subError) {
+        submissions.forEach(sub => {
+          submissionMap.set(sub.task_id, sub.status);
+        });
+      }
+
+      // 3. Map database records to UI Task type
+      const formattedTasks: Task[] = (allTasks || []).map(t => {
+        const userStatus = submissionMap.get(t.id) || "Available";
+        return {
+          id: t.id,
+          title: t.title,
+          description: t.description,
+          reward: Number(t.reward_amount),
+          timeEstimate: t.time_estimate || "5 mins",
+          category: t.category,
+          status: userStatus as TaskStatus,
+          advertiser: t.advertiser,
+          requirements: t.requirements || []
+        };
+      });
+
+      setTasks(formattedTasks);
+      setIsLoading(false);
+    }
+    fetchTasks();
+  }, []);
 
   // Filter Logic
   const filteredTasks = tasks.filter(task => {
@@ -112,7 +103,35 @@ export default function TaskCenterPage() {
     setIsModalOpen(true);
   };
 
-  const handleTaskAction = (taskId: string, action: "accept" | "submit") => {
+  const handleTaskAction = async (taskId: string, action: "accept" | "submit") => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    if (action === "accept") {
+      const { error } = await supabase.from("task_submissions").insert({
+        task_id: taskId,
+        user_id: user.id,
+        status: "In Progress"
+      });
+
+      if (error) {
+        toast.error("Failed to accept task.");
+        return;
+      }
+      toast.success("Task accepted! Moved to your Active tab.");
+    } else if (action === "submit") {
+      const { error } = await supabase.from("task_submissions")
+        .update({ status: "Pending Review" })
+        .eq("task_id", taskId)
+        .eq("user_id", user.id);
+
+      if (error) {
+        toast.error("Failed to submit proof.");
+        return;
+      }
+      toast.success("Proof submitted successfully! It is now Pending Review.");
+    }
+
     setTasks(prev => prev.map(t => {
       if (t.id === taskId) {
         if (action === "accept") {
@@ -125,13 +144,15 @@ export default function TaskCenterPage() {
     }));
     
     setIsModalOpen(false);
-    
-    if (action === "accept") {
-      toast.success("Task accepted! Moved to your Active tab.");
-    } else {
-      toast.success("Proof submitted successfully! It is now Pending Review.");
-    }
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center p-12">
+        <Loader2 className="w-8 h-8 animate-spin text-[#0f8538]" />
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-6xl mx-auto pb-8">

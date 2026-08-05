@@ -7,6 +7,7 @@ import * as z from "zod";
 import { Loader2, Lock, Eye, EyeOff, ShieldCheck, UserCog, ArrowRight, Shield } from "lucide-react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { loginAction } from "@/app/(auth)/actions";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -44,12 +45,25 @@ export function AdminLoginForm() {
 
   async function onSubmit(data: AdminLoginFormValues) {
     setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
+    
+    const result = await loginAction({
+      identifier: data.adminId,
+      password: data.password,
+      rememberMe: true
+    });
+
+    if (result.success) {
       toast.success("Authentication successful. Entering secure portal.");
-      console.log(data);
-      // router.push("/admin/dashboard");
-    }, 1500);
+      if (result.redirectUrl === '/admin') {
+        router.push("/admin");
+      } else {
+        toast.error("Access Denied: You do not have administrator privileges.");
+        setIsLoading(false);
+      }
+    } else {
+      toast.error(result.error || "Failed to log in.");
+      setIsLoading(false);
+    }
   }
 
    return (

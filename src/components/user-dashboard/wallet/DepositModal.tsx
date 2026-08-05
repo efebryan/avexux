@@ -3,7 +3,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Landmark, CreditCard, AlertCircle } from "lucide-react";
+import { Landmark, CreditCard, AlertCircle, Loader2 } from "lucide-react";
+import { usePaystackPayment } from "react-paystack";
+import { toast } from "sonner";
+import { verifyDepositAction } from "@/app/(dashboard)/user/wallet/paystack-actions";
 
 interface DepositModalProps {
   isOpen: boolean;
@@ -13,14 +16,48 @@ interface DepositModalProps {
 
 export function DepositModal({ isOpen, onClose, onDeposit }: DepositModalProps) {
   const [amount, setAmount] = useState<string>("");
+  const [isProcessing, setIsProcessing] = useState(false);
   const minDeposit = 1000;
+
+  // Use a fallback public key for local dev if environment variable is missing
+  const publicKey = process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY || "pk_test_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx";
+
+  const config = {
+    reference: `DEP_${Date.now()}_${Math.floor(Math.random() * 1000000)}`,
+    email: "user@avexux.com", // In a real app, pass the actual user email
+    amount: parseFloat(amount || "0") * 100, // Paystack amount is in kobo/cents
+    publicKey: publicKey,
+  };
+
+  const initializePayment = usePaystackPayment(config);
+
+  const onSuccess = async (reference: any) => {
+    setIsProcessing(true);
+    toast.info("Payment successful! Verifying with server...");
+    
+    // Call server action to verify securely and update wallet
+    const result = await verifyDepositAction(reference.reference, parseFloat(amount));
+    
+    setIsProcessing(false);
+    if (result.success) {
+      toast.success(`Successfully deposited ₦${parseFloat(amount).toLocaleString()}`);
+      onDeposit(parseFloat(amount), "Paystack");
+      setAmount("");
+      onClose();
+    } else {
+      toast.error(result.error || "Failed to verify deposit. Please contact support.");
+    }
+  };
+
+  const onPaystackClose = () => {
+    toast.error("Payment was cancelled.");
+  };
 
   const handlePay = (e: React.FormEvent) => {
     e.preventDefault();
     const numAmount = parseFloat(amount);
     if (!isNaN(numAmount) && numAmount >= minDeposit) {
-      onDeposit(numAmount, "Bank Transfer");
-      setAmount("");
+      initializePayment({ onSuccess, onClose: onPaystackClose });
     }
   };
 
@@ -57,22 +94,15 @@ export function DepositModal({ isOpen, onClose, onDeposit }: DepositModalProps) 
             </div>
 
             {/* Bank Transfer Details */}
-            <div className="p-3 bg-gray-50 rounded-lg border border-gray-100 space-y-1.5 text-xs text-gray-600 pt-2 border-t mt-2">
-              <p className="font-bold text-gray-900 mb-1">Transfer to Account:</p>
-              <div className="flex justify-between">
-                <span>Bank:</span>
-                <span className="font-bold text-gray-900">Providus Bank</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Account Number:</span>
-                <span className="font-bold text-gray-900">1029384756</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Account Name:</span>
-                <span className="font-bold text-gray-900">Avexux Limited</span>
-              </div>
-              <p className="text-[10px] text-gray-400 mt-1 italic">
-                *Funds will credit automatically after transfer confirmation.
+            <div className="p-3 bg-blue-50 rounded-lg border border-blue-100 space-y-1.5 text-xs text-blue-700 mt-2">
+              <p className="font-bold flex items-center gap-1.5 mb-1">
+                <CreditCard className="w-4 h-4" /> Secure Payment via Paystack
+              </p>
+              <p className="text-[11px] opacity-90">
+                You will be redirected to Paystack to complete this transaction securely using your Card, Bank Transfer, or USSD.
+              </p>
+              <p className="text-[10px] opacity-70 mt-1 italic">
+                *Funds will credit automatically after successful payment.
               </p>
             </div>
           </div>
@@ -83,10 +113,10 @@ export function DepositModal({ isOpen, onClose, onDeposit }: DepositModalProps) 
             </Button>
             <Button 
               type="submit" 
-              disabled={isInvalid}
+              disabled={isInvalid || isProcessing}
               className="flex-1 bg-[#0f8538] hover:bg-[#0c6b2c] text-white rounded-lg shadow-md h-8 text-xs font-bold"
             >
-              Confirm Payment
+              {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : "Pay with Paystack"}
             </Button>
           </div>
         </form>

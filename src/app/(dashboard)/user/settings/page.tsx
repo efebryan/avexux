@@ -26,7 +26,7 @@ export default function SettingsPage() {
   ];
 
   return (
-    <div className="max-w-4xl mx-auto pb-8">
+    <div className="max-w-2xl mx-auto pb-8">
       <div className="mb-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Account Settings</h1>
         <p className="text-gray-500 text-sm">Manage your profile, security preferences, and notifications.</p>

@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import Link from "next/link";
-import { Loader2, Mail, User, Lock, Eye, EyeOff, Gift, ArrowRight } from "lucide-react";
+import { Loader2, Mail, Phone, User, Lock, Eye, EyeOff, Gift, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -20,11 +20,14 @@ import {
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 
+import { signupAction } from "@/app/(auth)/actions";
+import { useRouter } from "next/navigation";
+
 const registerSchema = z.object({
   fullName: z.string().min(2, { message: "Full name is required." }),
-  email: z.string().email({ message: "Please enter a valid email address." }),
+  identifier: z.string().min(1, { message: "Please enter a valid email address or phone number." }),
   password: z.string().min(8, { message: "Password must be at least 8 characters." }),
-  referralCode: z.string().optional(),
+  referralCode: z.string().min(1, { message: "Referral code is required." }),
   acceptTerms: z.boolean().refine((val) => val === true, {
     message: "You must accept the terms and conditions.",
   }),
@@ -33,6 +36,7 @@ const registerSchema = z.object({
 type RegisterFormValues = z.infer<typeof registerSchema>;
 
 export function RegisterForm() {
+  const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
@@ -40,7 +44,7 @@ export function RegisterForm() {
     resolver: zodResolver(registerSchema),
     defaultValues: {
       fullName: "",
-      email: "",
+      identifier: "",
       password: "",
       referralCode: "",
       acceptTerms: false,
@@ -49,11 +53,15 @@ export function RegisterForm() {
 
   async function onSubmit(data: RegisterFormValues) {
     setIsLoading(true);
-    setTimeout(() => {
+    const result = await signupAction(data);
+    
+    if (result.success) {
+      toast.success("Account created successfully. Please check your email to verify.");
+      router.push("/login");
+    } else {
+      toast.error(result.error || "Failed to create account.");
       setIsLoading(false);
-      toast.success("Account created successfully. Please verify your email.");
-      console.log(data);
-    }, 1500);
+    }
   }
 
   return (
@@ -87,16 +95,16 @@ export function RegisterForm() {
 
           <FormField
             control={form.control}
-            name="email"
+            name="identifier"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-[10px] font-bold text-gray-700">Email Address</FormLabel>
+                <FormLabel className="text-[10px] font-bold text-gray-700">Email Address or Phone Number</FormLabel>
                 <FormControl>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
-                      <Mail size={16} />
+                      {field.value.includes('@') ? <Mail size={16} /> : <Phone size={16} />}
                     </div>
-                    <Input type="email" placeholder="name@company.com" {...field} className="pl-9 h-10 bg-white border-gray-200 rounded-lg text-sm placeholder:text-gray-300 focus-visible:ring-[#2faf2f]" disabled={isLoading} />
+                    <Input type="text" placeholder="name@company.com or +1234567890" {...field} className="pl-9 h-10 bg-white border-gray-200 rounded-lg text-sm placeholder:text-gray-300 focus-visible:ring-[#2faf2f]" disabled={isLoading} />
                   </div>
                 </FormControl>
                 <FormMessage className="text-[11px]" />
@@ -143,7 +151,7 @@ export function RegisterForm() {
               <FormItem>
                 <div className="flex justify-between items-center mb-0.5">
                   <FormLabel className="text-[10px] font-bold text-gray-700 mb-0">Referral Code</FormLabel>
-                  <span className="text-[9px] text-gray-400 uppercase tracking-wider">Optional</span>
+                  <span className="text-[9px] text-red-500 uppercase tracking-wider font-bold">Required</span>
                 </div>
                 <FormControl>
                   <div className="relative">

@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import Link from "next/link";
-import { Loader2, Mail, Lock, Eye, EyeOff, ArrowRight } from "lucide-react";
+import { Loader2, Mail, Phone, Lock, Eye, EyeOff, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 
@@ -21,8 +21,10 @@ import {
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 
+import { loginAction } from "@/app/(auth)/actions";
+
 const loginSchema = z.object({
-  email: z.string().email({ message: "Please enter a valid email address." }),
+  identifier: z.string().min(1, { message: "Please enter a valid email address or phone number." }),
   password: z.string().min(1, { message: "Password is required." }),
   rememberMe: z.boolean(),
 });
@@ -37,7 +39,7 @@ export function LoginForm() {
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      email: "",
+      identifier: "",
       password: "",
       rememberMe: false,
     },
@@ -45,12 +47,15 @@ export function LoginForm() {
 
   async function onSubmit(data: LoginFormValues) {
     setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
+    const result = await loginAction(data);
+    
+    if (result.success) {
       toast.success("Successfully logged in.");
-      console.log(data);
-      // router.push("/dashboard"); // Redirect logic here
-    }, 1500);
+      router.push(result.redirectUrl || "/user"); // Redirect to dashboard on success
+    } else {
+      toast.error(result.error || "Failed to log in.");
+      setIsLoading(false);
+    }
   }
 
   return (
@@ -65,16 +70,16 @@ export function LoginForm() {
           
           <FormField
             control={form.control}
-            name="email"
+            name="identifier"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-xs font-bold text-gray-700">Email Address</FormLabel>
+                <FormLabel className="text-xs font-bold text-gray-700">Email Address or Phone Number</FormLabel>
                 <FormControl>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
-                      <Mail size={18} />
+                      {field.value.includes('@') ? <Mail size={18} /> : <Phone size={18} />}
                     </div>
-                    <Input type="email" placeholder="name@company.com" {...field} className="pl-10 h-12 bg-white border-gray-200 rounded-xl placeholder:text-gray-300 focus-visible:ring-[#2faf2f]" disabled={isLoading} />
+                    <Input type="text" placeholder="name@company.com or +1234567890" {...field} className="pl-10 h-12 bg-white border-gray-200 rounded-xl placeholder:text-gray-300 focus-visible:ring-[#2faf2f]" disabled={isLoading} />
                   </div>
                 </FormControl>
                 <FormMessage />

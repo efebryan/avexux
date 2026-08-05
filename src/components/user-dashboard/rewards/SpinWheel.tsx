@@ -7,6 +7,8 @@ import { Trophy, HelpCircle, AlertCircle, Play, Coins, RefreshCw } from "lucide-
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 
+import { executeSpinAction } from "@/app/(dashboard)/user/rewards/actions";
+
 interface SpinWheelProps {
   balance: number;
   setBalance: React.Dispatch<React.SetStateAction<number>>;
@@ -36,6 +38,10 @@ export function SpinWheel({ balance, setBalance }: SpinWheelProps) {
   const [isSpinning, setIsSpinning] = useState(false);
   const [spinsLeft, setSpinsLeft] = useState(1);
   const spinCost = 500;
+
+  // Day Check
+  const currentDay = new Date().getDay();
+  const canSpinToday = currentDay === 2 || currentDay === 5; // 2 = Tuesday, 5 = Friday
 
   // Modal State
   const [modalOpen, setModalOpen] = useState(false);
@@ -138,26 +144,29 @@ export function SpinWheel({ balance, setBalance }: SpinWheelProps) {
     }
   };
 
-  const spin = () => {
+  const spin = async () => {
     if (isSpinning) return;
 
-    const currentSpins = spinsLeft;
-    const cost = currentSpins > 0 ? 0 : spinCost;
-
-    if (cost > balance) {
-      toast.error("Insufficient balance to buy a spin!");
+    setIsSpinning(true);
+    
+    // Call Secure Server Action
+    const res = await executeSpinAction();
+    
+    if (!res.success || res.targetIdx === undefined) {
+      toast.error(res.error || "Failed to process spin. Please try again.");
+      setIsSpinning(false);
       return;
     }
 
-    setIsSpinning(true);
-    if (cost > 0) {
-      setBalance((prev) => prev - cost);
-    } else {
+    // Update client UI state before spin if it cost anything
+    const currentSpins = spinsLeft;
+    if (currentSpins > 0) {
       setSpinsLeft((prev) => prev - 1);
+    } else {
+      setBalance((prev) => prev - spinCost);
     }
 
-    // Determine target slice randomly
-    const targetIdx = Math.floor(Math.random() * sectors.length);
+    const targetIdx = res.targetIdx;
     const arcAngle = (2 * Math.PI) / sectors.length;
 
     // Calculate angles
@@ -250,11 +259,11 @@ export function SpinWheel({ balance, setBalance }: SpinWheelProps) {
 
         <Button 
           onClick={spin}
-          disabled={isSpinning}
-          className="w-full max-w-[240px] bg-[#0f8538] hover:bg-[#0c6b2c] text-white font-bold rounded-xl shadow-md h-9 text-sm flex items-center justify-center gap-1.5 transition-all transform hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50"
+          disabled={isSpinning || !canSpinToday}
+          className={`w-full max-w-[240px] text-white font-bold rounded-xl shadow-md h-9 text-sm flex items-center justify-center gap-1.5 transition-all transform hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 ${canSpinToday ? 'bg-[#0f8538] hover:bg-[#0c6b2c]' : 'bg-gray-400'}`}
         >
           <Play className="w-4 h-4 fill-white" />
-          {isSpinning ? "Spinning..." : spinsLeft > 0 ? "Spin for FREE" : `Pay ₦${spinCost} & Spin`}
+          {!canSpinToday ? "Spins on Tue & Fri only" : isSpinning ? "Spinning..." : spinsLeft > 0 ? "Spin for FREE" : `Pay ₦${spinCost} & Spin`}
         </Button>
       </div>
 
