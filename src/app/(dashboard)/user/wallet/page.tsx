@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
+import { createClient } from "@/utils/supabase/client";
 import { Transaction, Withdrawal } from "./types";
 import { BalanceCards } from "@/components/user-dashboard/wallet/BalanceCards";
 import { WithdrawalModal } from "@/components/user-dashboard/wallet/WithdrawalModal";
@@ -34,11 +35,42 @@ export default function WalletPage() {
   // Mock State
   const [transactions, setTransactions] = useState<Transaction[]>(mockTransactions);
   const [withdrawals, setWithdrawals] = useState<Withdrawal[]>(mockWithdrawals);
-  const [availableBalance, setAvailableBalance] = useState(12500);
-  
-  const pendingBalance = 500;
-  const bonusEarnings = 1000;
-  const referralEarnings = 500;
+  const [availableBalance, setAvailableBalance] = useState(0);
+  const [pendingBalance, setPendingBalance] = useState(0);
+  const [bonusEarnings, setBonusEarnings] = useState(0);
+  const [referralEarnings, setReferralEarnings] = useState(0);
+
+  useEffect(() => {
+    async function fetchWallet() {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: walletData } = await supabase
+          .from("wallets")
+          .select("balance, pending_balance, total_earned")
+          .eq("user_id", user.id)
+          .single();
+        
+        if (walletData) {
+          setAvailableBalance(walletData.balance);
+          setPendingBalance(walletData.pending_balance);
+          setBonusEarnings(walletData.total_earned);
+        }
+
+        const { data: refData } = await supabase
+          .from("referrals")
+          .select("reward_amount")
+          .eq("referrer_id", user.id)
+          .eq("status", "completed");
+          
+        if (refData) {
+          const refSum = refData.reduce((acc, curr) => acc + Number(curr.reward_amount), 0);
+          setReferralEarnings(refSum);
+        }
+      }
+    }
+    fetchWallet();
+  }, []);
 
   const handleWithdrawRequest = (amount: number, method: string) => {
     // Deduct from available balance
