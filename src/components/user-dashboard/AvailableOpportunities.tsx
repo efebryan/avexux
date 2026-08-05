@@ -40,21 +40,6 @@ export function AvailableOpportunities() {
         <Link href="/user/tasks" className="text-[#0f8538] font-bold text-xs hover:underline">View All</Link>
       </div>
 
-      {/* Filter Chips */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-1.5 mb-3 scrollbar-hide">
-        {filters.map((filter, index) => (
-          <button
-            key={filter}
-            className={`whitespace-nowrap px-4 py-1.5 rounded-full text-xs font-semibold transition-colors ${
-              index === 0
-                ? "bg-[#0f8538] text-white"
-                : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-            }`}
-          >
-            {filter}
-          </button>
-        ))}
-      </div>
 
       {/* Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
