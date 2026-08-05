@@ -98,6 +98,10 @@ export default function AdminUsersPage() {
   // Edit Modal States
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null);
+
+  // View Modal States
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [userToView, setUserToView] = useState<AdminUser | null>(null);
   
   // Delete Modal States
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -116,8 +120,9 @@ export default function AdminUsersPage() {
     setUserToDelete(null);
   };
 
-  const handleViewDetails = (username: string) => {
-    toast.info(`Viewing details for ${username}.`);
+  const handleViewDetails = (user: AdminUser) => {
+    setUserToView(user);
+    setIsViewModalOpen(true);
   };
 
   const handleEditUser = (user: AdminUser) => {
@@ -362,7 +367,7 @@ export default function AdminUsersPage() {
                     <td className="px-6 py-4">
                       <div className="flex items-center justify-center gap-4 text-slate-400">
                         <button 
-                          onClick={() => handleViewDetails(user.username)}
+                          onClick={() => handleViewDetails(user)}
                           className="hover:text-primary transition-colors" 
                           title="View details"
                         >
@@ -596,6 +601,71 @@ export default function AdminUsersPage() {
                 className="bg-red-600 hover:bg-red-700 text-white px-6 font-semibold text-xs shadow-sm"
               >
                 Yes, Delete
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* View User Modal */}
+      {isViewModalOpen && userToView && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl shadow-xl border border-slate-200 w-full max-w-lg overflow-hidden transform transition-all duration-300 animate-in scale-in duration-300">
+            {/* Modal Header */}
+            <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-full bg-slate-200 overflow-hidden shrink-0 border border-slate-100 flex items-center justify-center text-lg font-bold text-slate-500">
+                  {userToView.initials}
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-slate-900">{userToView.username}</h3>
+                  <p className="text-xs text-slate-500 mt-1">{userToView.email}</p>
+                </div>
+              </div>
+              <button 
+                onClick={() => setIsViewModalOpen(false)}
+                className="text-slate-400 hover:text-slate-600 transition-colors text-xl font-bold self-start"
+              >
+                &times;
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6 space-y-6">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Role</p>
+                  <p className="font-semibold text-slate-900">{userToView.role}</p>
+                </div>
+                <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Status</p>
+                  <p className={`font-semibold ${userToView.status === 'ACTIVE' ? 'text-green-600' : userToView.status === 'PENDING' ? 'text-amber-600' : 'text-red-600'}`}>
+                    {userToView.status}
+                  </p>
+                </div>
+                <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Joined Date</p>
+                  <p className="font-semibold text-slate-900">{userToView.joined}</p>
+                </div>
+                <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Tasks Completed</p>
+                  <p className="font-semibold text-slate-900">{userToView.tasks}</p>
+                </div>
+                <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 col-span-2">
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Total Earnings</p>
+                  <p className="text-xl font-bold text-slate-900">₦{userToView.earnings.toLocaleString()}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-4 bg-slate-50 border-t border-slate-100 flex items-center justify-end gap-3 px-6">
+              <Button 
+                type="button" 
+                onClick={() => setIsViewModalOpen(false)}
+                className="px-6 font-semibold text-xs"
+              >
+                Close
               </Button>
             </div>
           </div>
