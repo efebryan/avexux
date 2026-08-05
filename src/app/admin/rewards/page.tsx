@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Settings, Save, ToggleLeft, ToggleRight, Edit2, Trash2, Plus } from "lucide-react";
+import { createClient } from "@/utils/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
@@ -18,18 +19,74 @@ export default function AdminRewardsPage() {
   const [sectors, setSectors] = useState(mockSectors);
   const [showCongratsModal, setShowCongratsModal] = useState(true);
   const [spinCost, setSpinCost] = useState(500);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Congrats Modal Config State
   const [congratsTitle, setCongratsTitle] = useState("Dear users, congratulations! 🥳");
   const [congratsAmount, setCongratsAmount] = useState("₦204,000");
 
-  const handleSaveWheelConfig = () => {
-    toast.success("Spin wheel configuration saved successfully!");
+  useEffect(() => {
+    async function loadSettings() {
+      const supabase = createClient();
+      
+      const { data: wheelData } = await supabase
+        .from("app_settings")
+        .select("value")
+        .eq("key", "spin_wheel_config")
+        .single();
+        
+      if (wheelData?.value) {
+        setSectors(wheelData.value.sectors);
+        setSpinCost(wheelData.value.cost);
+      }
+
+      const { data: modalData } = await supabase
+        .from("app_settings")
+        .select("value")
+        .eq("key", "congrats_modal_config")
+        .single();
+
+      if (modalData?.value) {
+        setShowCongratsModal(modalData.value.active);
+        setCongratsTitle(modalData.value.title);
+        setCongratsAmount(modalData.value.amount);
+      }
+      setIsLoading(false);
+    }
+    loadSettings();
+  }, []);
+
+  const handleSaveWheelConfig = async () => {
+    const supabase = createClient();
+    const payload = { cost: spinCost, sectors };
+    
+    const { error } = await supabase
+      .from("app_settings")
+      .upsert({ key: "spin_wheel_config", value: payload });
+
+    if (error) {
+      toast.error("Failed to save wheel configuration");
+    } else {
+      toast.success("Spin wheel configuration saved successfully!");
+    }
   };
 
-  const handleSaveModalConfig = () => {
-    toast.success("Congratulations popup configuration saved!");
+  const handleSaveModalConfig = async () => {
+    const supabase = createClient();
+    const payload = { active: showCongratsModal, title: congratsTitle, amount: congratsAmount };
+
+    const { error } = await supabase
+      .from("app_settings")
+      .upsert({ key: "congrats_modal_config", value: payload });
+
+    if (error) {
+      toast.error("Failed to save congratulations popup configuration");
+    } else {
+      toast.success("Congratulations popup configuration saved!");
+    }
   };
+
+  if (isLoading) return <div className="p-8 text-center text-gray-500">Loading settings...</div>;
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-5xl">

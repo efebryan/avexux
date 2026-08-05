@@ -1,6 +1,8 @@
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Trophy, Sparkles } from "lucide-react";
+import { createClient } from "@/utils/supabase/client";
 
 interface CongratulationsModalProps {
   isOpen: boolean;
@@ -8,8 +10,33 @@ interface CongratulationsModalProps {
 }
 
 export function CongratulationsModal({ isOpen, onClose }: CongratulationsModalProps) {
+  const [isActive, setIsActive] = useState(true);
+  const [title, setTitle] = useState("Dear users, congratulations! 🥳");
+  const [amount, setAmount] = useState("₦204,000");
+
+  useEffect(() => {
+    async function fetchConfig() {
+      const supabase = createClient();
+      const { data } = await supabase
+        .from("app_settings")
+        .select("value")
+        .eq("key", "congrats_modal_config")
+        .single();
+        
+      if (data?.value) {
+        setIsActive(data.value.active !== false);
+        if (data.value.title) setTitle(data.value.title);
+        if (data.value.amount) setAmount(data.value.amount);
+      }
+    }
+    fetchConfig();
+  }, []);
+
+  // If disabled by admin, never open
+  const showModal = isOpen && isActive;
+
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+    <Dialog open={showModal} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="max-w-md sm:rounded-2xl border-0 shadow-2xl p-6 text-center overflow-hidden bg-white">
         <div className="relative flex flex-col items-center py-4">
           {/* Confetti & Trophy Animation wrapper */}
@@ -30,13 +57,13 @@ export function CongratulationsModal({ isOpen, onClose }: CongratulationsModalPr
           </div>
 
           <DialogTitle className="text-xl font-bold text-gray-900 leading-tight mb-3">
-            Dear users, congratulations! 🥳
+            {title}
           </DialogTitle>
           
           <DialogDescription className="space-y-3 text-gray-600 text-sm leading-relaxed max-w-sm">
             <span>
               Thank you for trusting us! We are giving you the chance to win up to{" "}
-              <strong className="text-gray-900 font-extrabold text-base">₦204,000</strong> in bonuses! 🔥 🔥 🔥
+              <strong className="text-gray-900 font-extrabold text-base">{amount}</strong> in bonuses! 🔥 🔥 🔥
             </span>
             <span className="block font-medium text-[#0f8538] mt-2">
               Open the box and participate to win prizes!

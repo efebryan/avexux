@@ -245,3 +245,25 @@ CREATE POLICY "Users can update own notifications" ON public.notifications FOR U
 -- Support Tickets Policies
 CREATE POLICY "Users can view own tickets" ON public.support_tickets FOR SELECT USING (auth.uid() = user_id);
 CREATE POLICY "Anyone can create support ticket" ON public.support_tickets FOR INSERT WITH CHECK (true);
+
+
+
+CREATE TABLE IF NOT EXISTS public.app_settings (
+    key TEXT PRIMARY KEY,
+    value JSONB NOT NULL,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- Insert default spin wheel configuration
+INSERT INTO public.app_settings (key, value)
+VALUES (
+    'spin_wheel_config',
+    '{"cost": 500, "sectors": [{"id": "1", "label": "₦1,000 Cash", "type": "cash", "value": 1000, "color": "#10b981", "isWin": true}, {"id": "2", "label": "Try Again 😢", "type": "none", "value": 0, "color": "#64748b", "isWin": false}, {"id": "3", "label": "Premium Pro", "type": "premium", "value": 0, "color": "#3b82f6", "isWin": true}, {"id": "4", "label": "Better Luck 🍀", "type": "none", "value": 0, "color": "#475569", "isWin": false}]}'::jsonb
+) ON CONFLICT (key) DO NOTHING;
+
+-- Insert default congratulations modal configuration
+INSERT INTO public.app_settings (key, value)
+VALUES (
+    'congrats_modal_config',
+    '{"active": true, "title": "Dear users, congratulations! 🥳", "amount": "₦204,000"}'::jsonb
+) ON CONFLICT (key) DO NOTHING;

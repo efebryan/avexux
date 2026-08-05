@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/card";
 import { Trophy, HelpCircle, AlertCircle, Play, Coins, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { createClient } from "@/utils/supabase/client";
 
 import { executeSpinAction } from "@/app/(dashboard)/user/rewards/actions";
 
@@ -37,7 +38,9 @@ export function SpinWheel({ balance, setBalance }: SpinWheelProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isSpinning, setIsSpinning] = useState(false);
   const [spinsLeft, setSpinsLeft] = useState(1);
-  const spinCost = 500;
+  const [spinCost, setSpinCost] = useState(500);
+  const [wheelSectors, setWheelSectors] = useState<Sector[]>(sectors);
+  const [isReady, setIsReady] = useState(false);
 
   // Day Check
   const currentDay = new Date().getDay();
@@ -66,9 +69,9 @@ export function SpinWheel({ balance, setBalance }: SpinWheelProps) {
 
     ctx.clearRect(0, 0, width, height);
 
-    const arcAngle = (2 * Math.PI) / sectors.length;
+    const arcAngle = (2 * Math.PI) / wheelSectors.length;
 
-    sectors.forEach((sec, idx) => {
+    wheelSectors.forEach((sec, idx) => {
       const startAngle = angleRef.current + idx * arcAngle;
       const endAngle = startAngle + arcAngle;
 
@@ -122,8 +125,28 @@ export function SpinWheel({ balance, setBalance }: SpinWheelProps) {
   };
 
   useEffect(() => {
-    drawWheel();
+    async function loadConfig() {
+      const supabase = createClient();
+      const { data } = await supabase
+        .from("app_settings")
+        .select("value")
+        .eq("key", "spin_wheel_config")
+        .single();
+      
+      if (data?.value) {
+        setWheelSectors(data.value.sectors);
+        setSpinCost(data.value.cost);
+      }
+      setIsReady(true);
+    }
+    loadConfig();
   }, []);
+
+  useEffect(() => {
+    if (isReady) {
+      drawWheel();
+    }
+  }, [isReady, wheelSectors]);
 
   // Web Audio Ticking Sound
   const playTickSound = () => {
@@ -167,7 +190,7 @@ export function SpinWheel({ balance, setBalance }: SpinWheelProps) {
     }
 
     const targetIdx = res.targetIdx;
-    const arcAngle = (2 * Math.PI) / sectors.length;
+    const arcAngle = (2 * Math.PI) / wheelSectors.length;
 
     // Calculate angles
     // 0 index is at right (3 o'clock). Center pin is at top (12 o'clock / -90 deg / 1.5 * Math.PI)
@@ -209,7 +232,7 @@ export function SpinWheel({ balance, setBalance }: SpinWheelProps) {
         spinTimeoutRef.current = requestAnimationFrame(animateSpin);
       } else {
         setIsSpinning(false);
-        const wonItem = sectors[targetIdx];
+        const wonItem = wheelSectors[targetIdx];
         setResultSector(wonItem);
         setModalOpen(true);
 
