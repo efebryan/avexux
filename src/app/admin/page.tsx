@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { createClient } from "@/utils/supabase/client";
 
 import {
   Users,
@@ -236,6 +237,38 @@ function ChartComponent() {
 }
 
 export default function AdminOverviewPage() {
+  const [totalDeposits, setTotalDeposits] = useState(0);
+  const [totalWithdrawals, setTotalWithdrawals] = useState(0);
+
+  useEffect(() => {
+    async function fetchFinancials() {
+      const supabase = createClient();
+      
+      const { data: depositData } = await supabase
+        .from("transactions")
+        .select("amount")
+        .eq("type", "DEPOSIT")
+        .eq("status", "Completed");
+
+      if (depositData) {
+        const sum = depositData.reduce((acc, curr) => acc + Number(curr.amount), 0);
+        setTotalDeposits(sum);
+      }
+
+      const { data: withdrawalData } = await supabase
+        .from("transactions")
+        .select("amount")
+        .eq("type", "WITHDRAWAL")
+        .eq("status", "Completed");
+
+      if (withdrawalData) {
+        const sum = withdrawalData.reduce((acc, curr) => acc + Number(curr.amount), 0);
+        setTotalWithdrawals(sum);
+      }
+    }
+    fetchFinancials();
+  }, []);
+
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-10">
       
@@ -266,7 +299,11 @@ export default function AdminOverviewPage() {
             {/* Middle row: Large Value */}
             <div className="my-1.5">
               <h3 className="text-xl font-extrabold text-slate-900 tracking-tight truncate">
-                {stat.value}
+                {stat.title === "DEPOSITS RECEIVED" 
+                  ? `₦${totalDeposits.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` 
+                  : stat.title === "WITHDRAWALS PAID" 
+                  ? `₦${totalWithdrawals.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` 
+                  : stat.value}
               </h3>
             </div>
             

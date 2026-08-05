@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { createClient } from "@/utils/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -92,6 +93,38 @@ const pendingRequests = [
 
 export default function FinancialsPage() {
   const [requests, setRequests] = useState(pendingRequests);
+  const [totalDeposits, setTotalDeposits] = useState(0);
+  const [totalWithdrawals, setTotalWithdrawals] = useState(0);
+
+  useEffect(() => {
+    async function fetchFinancials() {
+      const supabase = createClient();
+      
+      const { data: depositData } = await supabase
+        .from("transactions")
+        .select("amount")
+        .eq("type", "DEPOSIT")
+        .eq("status", "Completed");
+
+      let deposits = 0;
+      if (depositData) {
+        deposits = depositData.reduce((acc, curr) => acc + Number(curr.amount), 0);
+        setTotalDeposits(deposits);
+      }
+
+      const { data: withdrawalData } = await supabase
+        .from("transactions")
+        .select("amount")
+        .eq("type", "WITHDRAWAL")
+        .eq("status", "Completed");
+
+      if (withdrawalData) {
+        const sum = withdrawalData.reduce((acc, curr) => acc + Number(curr.amount), 0);
+        setTotalWithdrawals(sum);
+      }
+    }
+    fetchFinancials();
+  }, []);
 
   const handleAction = (id: string, action: string) => {
     setRequests(requests.filter(req => req.id !== id));
@@ -116,7 +149,7 @@ export default function FinancialsPage() {
           </div>
           <div>
             <p className="text-slate-500 text-[11px] font-bold mb-0.5">Total Revenue</p>
-            <h3 className="text-2xl font-extrabold text-slate-900 tracking-tight">₦42.8M</h3>
+            <h3 className="text-2xl font-extrabold text-slate-900 tracking-tight">₦{totalDeposits.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</h3>
           </div>
         </Card>
 
@@ -132,7 +165,7 @@ export default function FinancialsPage() {
           </div>
           <div>
             <p className="text-slate-500 text-[11px] font-bold mb-0.5">Pending Withdrawals</p>
-            <h3 className="text-2xl font-extrabold text-slate-900 tracking-tight">₦2.4M</h3>
+            <h3 className="text-2xl font-extrabold text-slate-900 tracking-tight">₦{totalWithdrawals.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</h3>
           </div>
         </Card>
 
@@ -148,7 +181,7 @@ export default function FinancialsPage() {
           </div>
           <div>
             <p className="text-slate-500 text-[11px] font-bold mb-0.5">Total Deposits</p>
-            <h3 className="text-2xl font-extrabold text-slate-900 tracking-tight">₦85.1M</h3>
+            <h3 className="text-2xl font-extrabold text-slate-900 tracking-tight">₦{totalDeposits.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</h3>
           </div>
         </Card>
 
@@ -164,7 +197,7 @@ export default function FinancialsPage() {
           </div>
           <div>
             <p className="text-slate-500 text-[11px] font-bold mb-0.5">Net Profit</p>
-            <h3 className="text-2xl font-extrabold text-slate-900 tracking-tight">₦14.2M</h3>
+            <h3 className="text-2xl font-extrabold text-slate-900 tracking-tight">₦{(totalDeposits - totalWithdrawals).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</h3>
           </div>
         </Card>
 
