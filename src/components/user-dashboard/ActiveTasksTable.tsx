@@ -38,7 +38,7 @@ export function ActiveTasksTable() {
   return (
     <Card className="border border-gray-100 shadow-sm rounded-xl overflow-hidden mb-8">
       <div className="p-3.5 bg-white border-b border-gray-100 flex items-center justify-between">
-        <h2 className="text-base font-bold text-gray-900">My Active Tasks</h2>
+        <h2 className="text-base font-bold text-gray-900">My Tasks</h2>
         <span className="text-xs font-medium text-gray-500">3 In Progress</span>
       </div>
       

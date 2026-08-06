@@ -18,7 +18,6 @@ import { Button } from "@/components/ui/button";
 const navItems = [
   { name: "Dashboard", href: "/user", icon: LayoutDashboard },
   { name: "Task Center", href: "/user/tasks", icon: ClipboardList },
-  { name: "My Tasks", href: "/user/my-tasks", icon: ListTodo },
   { name: "Wallet", href: "/user/wallet", icon: Wallet },
   { name: "Rewards Store", href: "/user/rewards", icon: Gift },
   { name: "Referrals", href: "/user/referrals", icon: Users },
@@ -81,11 +80,7 @@ export function Sidebar() {
           </Link>
         ))}
         
-        <div className="pt-4">
-          <Button className="w-full bg-[#0f8538] hover:bg-[#0c6b2c] text-white rounded-xl shadow-md shadow-[#0f8538]/20 font-semibold py-5">
-            Upgrade Plan
-          </Button>
-        </div>
+
       </div>
     </div>
   );

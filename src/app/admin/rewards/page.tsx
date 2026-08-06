@@ -1,14 +1,15 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Settings, Save, ToggleLeft, ToggleRight, Edit2, Trash2, Plus } from "lucide-react";
+import { Settings, Save, ToggleLeft, ToggleRight, Edit2, Trash2, Plus, Target, Search } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
 import { DeleteModal } from "@/components/ui/delete-modal";
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 
-// Mock Sectors
+// Mock Sectors (Fallback)
 const mockSectors = [
   { id: "1", label: "₦1,000 Cash", type: "cash", value: 1000, color: "#10b981", isWin: true },
   { id: "2", label: "Try Again 😢", type: "none", value: 0, color: "#64748b", isWin: false },
@@ -17,7 +18,7 @@ const mockSectors = [
 ];
 
 export default function AdminRewardsPage() {
-  const [sectors, setSectors] = useState(mockSectors);
+  const [sectors, setSectors] = useState<any[]>(mockSectors);
   const [showCongratsModal, setShowCongratsModal] = useState(true);
   const [spinCost, setSpinCost] = useState(500);
   const [isLoading, setIsLoading] = useState(true);
@@ -27,18 +28,22 @@ export default function AdminRewardsPage() {
   const [congratsAmount, setCongratsAmount] = useState("₦204,000");
 
   const [sectorToDelete, setSectorToDelete] = useState<{id: string, label: string} | null>(null);
+  
+  // Sector Edit/Add State
+  const [isSectorModalOpen, setIsSectorModalOpen] = useState(false);
+  const [sectorForm, setSectorForm] = useState<any>({ id: "", label: "", type: "cash", value: 0, color: "#000000", isWin: false });
 
-  const confirmDeleteSector = () => {
-    if (!sectorToDelete) return;
-    setSectors(sectors.filter(s => s.id !== sectorToDelete.id));
-    setSectorToDelete(null);
-    toast.success("Sector removed. Remember to save your wheel config!");
-  };
+  // Rig Spins State
+  const [users, setUsers] = useState<any[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedUser, setSelectedUser] = useState<any | null>(null);
+  const [selectedRigSector, setSelectedRigSector] = useState<string>("");
 
   useEffect(() => {
-    async function loadSettings() {
+    async function loadData() {
       const supabase = createClient();
       
+      // Load Wheel Settings
       const { data: wheelData } = await supabase
         .from("app_settings")
         .select("value")
@@ -50,6 +55,7 @@ export default function AdminRewardsPage() {
         setSpinCost(wheelData.value.cost);
       }
 
+      // Load Congrats Modal Settings
       const { data: modalData } = await supabase
         .from("app_settings")
         .select("value")
@@ -61,9 +67,16 @@ export default function AdminRewardsPage() {
         setCongratsTitle(modalData.value.title);
         setCongratsAmount(modalData.value.amount);
       }
+
+      // Load Users for Rigging
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("id, full_name, email");
+      
+      if (profiles) setUsers(profiles);
       setIsLoading(false);
     }
-    loadSettings();
+    loadData();
   }, []);
 
   const handleSaveWheelConfig = async () => {
@@ -75,7 +88,16 @@ export default function AdminRewardsPage() {
       .upsert({ key: "spin_wheel_config", value: payload });
 
     if (error) {
-      toast.error("Failed to save wheel configuration");
+      const errDetails = {
+        message: error.message,
+        code: error.code,
+        details: error.details,
+        hint: error.hint,
+        keys: Object.keys(error),
+        stringified: JSON.stringify(error, Object.getOwnPropertyNames(error))
+      };
+      console.error("Save Wheel Error Details:", errDetails);
+      toast.error(`Debug Error: ${errDetails.stringified}`);
     } else {
       toast.success("Spin wheel configuration saved successfully!");
     }
@@ -90,16 +112,71 @@ export default function AdminRewardsPage() {
       .upsert({ key: "congrats_modal_config", value: payload });
 
     if (error) {
-      toast.error("Failed to save congratulations popup configuration");
+      console.error("Save Popup Error:", error);
+      toast.error(`Failed to save popup configuration: ${error.message || JSON.stringify(error)}`);
     } else {
       toast.success("Congratulations popup configuration saved!");
     }
   };
 
+  const confirmDeleteSector = () => {
+    if (!sectorToDelete) return;
+    setSectors(sectors.filter(s => s.id !== sectorToDelete.id));
+    setSectorToDelete(null);
+    toast.success("Sector removed. Remember to save your wheel config!");
+  };
+
+  const handleOpenSectorModal = (sector?: any) => {
+    if (sector) {
+      setSectorForm(sector);
+    } else {
+      setSectorForm({ id: Date.now().toString(), label: "", type: "cash", value: 0, color: "#10b981", isWin: true });
+    }
+    setIsSectorModalOpen(true);
+  };
+
+  const handleSaveSector = (e: React.FormEvent) => {
+    e.preventDefault();
+    const exists = sectors.find(s => s.id === sectorForm.id);
+    if (exists) {
+      setSectors(sectors.map(s => s.id === sectorForm.id ? sectorForm : s));
+    } else {
+      setSectors([...sectors, sectorForm]);
+    }
+    setIsSectorModalOpen(false);
+  };
+
+  const handleRigSpin = async () => {
+    if (!selectedUser || !selectedRigSector) {
+      toast.error("Please select a user and a prize");
+      return;
+    }
+    
+    const supabase = createClient();
+    const { error } = await supabase.from("spin_overrides").insert({
+      user_id: selectedUser.id,
+      reward_label: selectedRigSector
+    });
+
+    if (error) {
+      toast.error("Failed to assign rigged spin");
+    } else {
+      toast.success(`Spin successfully rigged for ${selectedUser.full_name || selectedUser.email}!`);
+      setSelectedUser(null);
+      setSelectedRigSector("");
+      setSearchQuery("");
+    }
+  };
+
+  const filteredUsers = users.filter(u => 
+    (u.full_name?.toLowerCase() || "").includes(searchQuery.toLowerCase()) || 
+    (u.email?.toLowerCase() || "").includes(searchQuery.toLowerCase())
+  ).slice(0, 5);
+
   if (isLoading) return <div className="p-8 text-center text-gray-500">Loading settings...</div>;
 
   return (
-    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-5xl">
+    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-5xl pb-10">
       
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 mb-2">
         <div>
@@ -170,7 +247,7 @@ export default function AdminRewardsPage() {
                     </td>
                     <td className="px-5 py-4 text-right">
                       <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-blue-600 hover:bg-blue-50 rounded-lg">
+                        <Button onClick={() => handleOpenSectorModal(sector)} variant="ghost" size="sm" className="h-8 w-8 p-0 text-blue-600 hover:bg-blue-50 rounded-lg">
                           <Edit2 className="w-4 h-4" />
                         </Button>
                         <Button onClick={() => setSectorToDelete({ id: sector.id, label: sector.label })} variant="ghost" size="sm" className="h-8 w-8 p-0 text-red-600 hover:bg-red-50 rounded-lg">
@@ -184,9 +261,85 @@ export default function AdminRewardsPage() {
             </table>
           </div>
           <div className="mt-5 relative z-10">
-             <Button variant="outline" className="w-full border-dashed border-gray-300 text-gray-500 hover:text-blue-600 hover:bg-blue-50 hover:border-blue-300 rounded-xl h-12 transition-all">
+             <Button onClick={() => handleOpenSectorModal()} variant="outline" className="w-full border-dashed border-gray-300 text-gray-500 hover:text-blue-600 hover:bg-blue-50 hover:border-blue-300 rounded-xl h-12 transition-all">
                <Plus className="w-4 h-4 mr-2" /> Add New Sector
              </Button>
+          </div>
+        </Card>
+
+        {/* Rigged Spins Configuration */}
+        <Card className="p-6 md:p-8 border border-purple-100 shadow-sm rounded-2xl bg-white relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-purple-500/5 rounded-full blur-[80px] pointer-events-none -translate-y-1/2 translate-x-1/4"></div>
+          
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4 relative z-10">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-100 to-purple-200 text-purple-700 flex items-center justify-center shadow-inner border border-purple-200">
+                <Target className="w-6 h-6" />
+              </div>
+              <div>
+                <h2 className="font-bold text-gray-900 text-xl tracking-tight">Rig Spins</h2>
+                <p className="text-sm text-gray-500">Guarantee a specific prize for a user's next spin.</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 relative z-10 bg-purple-50/50 p-6 rounded-xl border border-purple-100">
+            <div>
+               <label className="block text-sm font-bold text-gray-700 mb-1.5">Select User</label>
+               <div className="relative mb-2">
+                 <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                 <input 
+                   type="text" 
+                   value={searchQuery}
+                   onChange={(e) => {
+                     setSearchQuery(e.target.value);
+                     if (selectedUser) setSelectedUser(null);
+                   }}
+                   placeholder="Search by name or email..."
+                   className="w-full pl-9 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all bg-white"
+                 />
+               </div>
+               
+               {/* Search Results Dropdown-like area */}
+               {!selectedUser && searchQuery && (
+                 <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm max-h-40 overflow-y-auto">
+                   {filteredUsers.length > 0 ? filteredUsers.map(u => (
+                     <button
+                       key={u.id}
+                       onClick={() => {
+                         setSelectedUser(u);
+                         setSearchQuery(u.full_name || u.email);
+                       }}
+                       className="w-full text-left px-4 py-2 hover:bg-purple-50 text-sm font-medium border-b border-gray-50 last:border-0"
+                     >
+                       {u.full_name} <span className="text-xs text-gray-400 block">{u.email}</span>
+                     </button>
+                   )) : (
+                     <div className="px-4 py-3 text-sm text-gray-500 text-center">No users found</div>
+                   )}
+                 </div>
+               )}
+            </div>
+
+            <div>
+               <label className="block text-sm font-bold text-gray-700 mb-1.5">Guaranteed Prize (Sector)</label>
+               <select 
+                 value={selectedRigSector}
+                 onChange={(e) => setSelectedRigSector(e.target.value)}
+                 className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all bg-white"
+               >
+                 <option value="">-- Select a Sector --</option>
+                 {sectors.map((s, idx) => (
+                   <option key={idx} value={s.label}>{s.label}</option>
+                 ))}
+               </select>
+
+               <div className="mt-4 flex justify-end">
+                 <Button onClick={handleRigSpin} disabled={!selectedUser || !selectedRigSector} className="bg-purple-600 hover:bg-purple-700 text-white font-medium flex items-center gap-2 rounded-xl shadow-md transition-all w-full md:w-auto">
+                   <Target className="w-4 h-4" /> Force Win
+                 </Button>
+               </div>
+            </div>
           </div>
         </Card>
 
@@ -232,19 +385,6 @@ export default function AdminRewardsPage() {
                  className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all bg-gray-50 focus:bg-white"
                />
             </div>
-            <div className="p-5 bg-slate-50 rounded-2xl border border-slate-100 mt-6">
-               <p className="text-xs font-bold text-slate-400 mb-3 uppercase tracking-wider flex items-center gap-2">
-                 <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span> Live Preview
-               </p>
-               <div className="text-center p-6 bg-white rounded-xl shadow-md border border-gray-100 max-w-sm mx-auto">
-                  <h3 className="font-extrabold text-xl mb-3 text-slate-800">{congratsTitle}</h3>
-                  <p className="text-sm text-slate-600 leading-relaxed">
-                    Thank you for trusting us! We are giving you the chance to win up to 
-                    <strong className="text-emerald-600 mx-1 font-extrabold text-base bg-emerald-50 px-1.5 py-0.5 rounded">{congratsAmount}</strong> 
-                    in bonuses!
-                  </p>
-               </div>
-            </div>
           </div>
         </Card>
 
@@ -256,6 +396,62 @@ export default function AdminRewardsPage() {
         onConfirm={confirmDeleteSector}
         itemName={sectorToDelete?.label || ""}
       />
+
+      {/* Sector Edit/Add Modal */}
+      <Dialog open={isSectorModalOpen} onOpenChange={setIsSectorModalOpen}>
+        <DialogContent className="max-w-md sm:rounded-2xl border-0 shadow-2xl p-0 overflow-hidden bg-white">
+          <div className="p-6 bg-gradient-to-r from-slate-900 to-slate-800 text-white">
+             <DialogTitle className="text-xl font-bold flex items-center gap-2">
+               Sector Details
+             </DialogTitle>
+             <DialogDescription className="text-slate-300 text-sm mt-1">
+               Modify the wheel slice configuration.
+             </DialogDescription>
+          </div>
+          <form onSubmit={handleSaveSector} className="p-6 space-y-4">
+            <div>
+              <label className="block text-sm font-bold text-gray-700 mb-1">Label (Text on Wheel)</label>
+              <input type="text" required value={sectorForm.label} onChange={e => setSectorForm({...sectorForm, label: e.target.value})} className="w-full px-4 py-2.5 border rounded-xl text-sm focus:ring-2 focus:ring-blue-500/20 bg-gray-50" />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-1">Type</label>
+                <select value={sectorForm.type} onChange={e => setSectorForm({...sectorForm, type: e.target.value})} className="w-full px-4 py-2.5 border rounded-xl text-sm bg-gray-50">
+                  <option value="cash">Cash</option>
+                  <option value="premium">Premium</option>
+                  <option value="gift">Gift</option>
+                  <option value="none">None (Lose)</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-1">Color (Hex)</label>
+                <div className="flex gap-2">
+                  <input type="color" value={sectorForm.color} onChange={e => setSectorForm({...sectorForm, color: e.target.value})} className="h-10 w-10 rounded-lg cursor-pointer border-0 p-0" />
+                  <input type="text" value={sectorForm.color} onChange={e => setSectorForm({...sectorForm, color: e.target.value})} className="w-full px-3 py-2 border rounded-xl text-sm bg-gray-50 uppercase" />
+                </div>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-1">Value (₦ Amount)</label>
+                <input type="number" value={sectorForm.value} onChange={e => setSectorForm({...sectorForm, value: Number(e.target.value)})} className="w-full px-4 py-2.5 border rounded-xl text-sm bg-gray-50" />
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-1">Is Win?</label>
+                <select value={sectorForm.isWin ? "true" : "false"} onChange={e => setSectorForm({...sectorForm, isWin: e.target.value === "true"})} className="w-full px-4 py-2.5 border rounded-xl text-sm bg-gray-50">
+                  <option value="true">Yes</option>
+                  <option value="false">No</option>
+                </select>
+              </div>
+            </div>
+            <div className="pt-4 flex justify-end gap-3 border-t mt-6">
+              <Button type="button" variant="ghost" onClick={() => setIsSectorModalOpen(false)}>Cancel</Button>
+              <Button type="submit" className="bg-slate-900 text-white rounded-xl">Save Sector</Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+
     </div>
   );
 }

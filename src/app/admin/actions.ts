@@ -114,3 +114,51 @@ export async function adminCreateTaskAction(data: {
 
   return { success: true, task };
 }
+
+export async function adminEditTaskAction(
+  taskId: string,
+  data: {
+    title: string;
+    description: string;
+    category: string;
+    rewardAmount: number;
+    timerSeconds: number;
+    taskLink?: string;
+    images: string[];
+  }
+) {
+  const supabase = createSupabaseClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      auth: {
+        persistSession: false,
+        autoRefreshToken: false,
+      }
+    }
+  );
+
+  const { data: task, error } = await supabase
+    .from('tasks')
+    .update({
+      title: data.title,
+      description: data.description,
+      category: data.category,
+      reward_amount: data.rewardAmount,
+      timer_seconds: data.timerSeconds,
+      task_link: data.taskLink || null,
+      images: data.images,
+      status: 'Active',
+      updated_at: new Date().toISOString()
+    })
+    .eq('id', taskId)
+    .select()
+    .single();
+
+  if (error) {
+    console.error("Error editing task:", error);
+    return { success: false, error: error.message };
+  }
+
+  return { success: true, task };
+}

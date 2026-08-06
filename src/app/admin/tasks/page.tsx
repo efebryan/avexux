@@ -5,6 +5,7 @@ import { Plus, Search, CheckCircle, XCircle, Eye, Edit2, Trash2, Loader2 } from 
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { CreateTaskModal } from "@/components/admin/CreateTaskModal";
+import { EditTaskModal } from "@/components/admin/EditTaskModal";
 import { TaskPreviewModal } from "@/components/admin/TaskPreviewModal";
 import { createClient } from "@/utils/supabase/client";
 import { DeleteModal } from "@/components/ui/delete-modal";
@@ -16,6 +17,7 @@ export default function AdminTasksPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [selectedTaskForPreview, setSelectedTaskForPreview] = useState<any | null>(null);
+  const [selectedTaskForEdit, setSelectedTaskForEdit] = useState<any | null>(null);
   const [taskToDelete, setTaskToDelete] = useState<{id: string, title: string} | null>(null);
 
   const supabase = createClient();
@@ -38,12 +40,15 @@ export default function AdminTasksPage() {
         .order("created_at", { ascending: false });
 
       if (allTasks) {
-        setTasks(allTasks.map(t => ({
-          ...t,
-          created: new Date(t.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-          reward: Number(t.reward_amount),
-          submissions: t.submissions_count,
-        })));
+        setTasks(allTasks.map(t => {
+          const actualSubmissionsCount = allSubmissions ? allSubmissions.filter(s => s.task_id === t.id).length : 0;
+          return {
+            ...t,
+            created: new Date(t.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+            reward: Number(t.reward_amount),
+            submissions: actualSubmissionsCount,
+          };
+        }));
       }
 
       if (allSubmissions) {
@@ -74,17 +79,31 @@ export default function AdminTasksPage() {
   };
 
   const handleSubmissionAction = async (id: string, action: "Approved" | "Rejected") => {
-    const { error } = await supabase.from("task_submissions").update({ status: action }).eq("id", id);
+    let error;
+    
+    if (action === "Approved") {
+      const res = await supabase.rpc('approve_task_submission', { submission_id: id });
+      error = res.error;
+    } else {
+      const res = await supabase.from("task_submissions").update({ status: action }).eq("id", id);
+      error = res.error;
+    }
+
     if (!error) {
       setSubmissions(submissions.map(s => (s.id === id ? { ...s, status: action } : s)));
       toast.success(`Submission ${action.toLowerCase()}`);
     } else {
-      toast.error("Failed to update submission");
+      console.error("Submission Error:", error);
+      toast.error(`Error: ${error.message || "Failed to update submission"}`);
     }
   };
 
   const handleCreateTask = (newTask: any) => {
     setTasks([newTask, ...tasks]);
+  };
+
+  const handleUpdateTask = (updatedTask: any) => {
+    setTasks(tasks.map(t => (t.id === updatedTask.id ? updatedTask : t)));
   };
 
   const confirmDeleteTask = async () => {
@@ -99,8 +118,8 @@ export default function AdminTasksPage() {
     setTaskToDelete(null);
   };
 
-  const handleEditTask = (id: string) => {
-    toast.info("Task editor coming soon — for now use the Create modal.");
+  const handleEditTask = (task: any) => {
+    setSelectedTaskForEdit(task);
   };
 
   if (isLoading) {
@@ -176,7 +195,7 @@ export default function AdminTasksPage() {
                       ₦{task.reward.toLocaleString()}
                     </td>
                     <td className="px-6 py-4 font-medium text-slate-700">
-                      <span className="text-primary font-bold">{task.submissions}</span> completed
+                      <span className="text-primary font-bold">{task.submissions}</span> submitted
                     </td>
                     <td className="px-6 py-4">
                       <button 
@@ -202,7 +221,7 @@ export default function AdminTasksPage() {
                         <Button 
                           variant="ghost" 
                           size="sm" 
-                          onClick={() => handleEditTask(task.id)} 
+                          onClick={() => handleEditTask(task)} 
                           title="Edit Task"
                           className="h-8 w-8 p-0 text-slate-600 hover:text-primary hover:bg-slate-100 rounded-lg"
                         >
@@ -303,6 +322,13 @@ export default function AdminTasksPage() {
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
         onTaskCreate={handleCreateTask}
+      />
+
+      <EditTaskModal 
+        isOpen={!!selectedTaskForEdit}
+        onClose={() => setSelectedTaskForEdit(null)}
+        task={selectedTaskForEdit}
+        onTaskUpdate={handleUpdateTask}
       />
 
       <TaskPreviewModal 

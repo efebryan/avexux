@@ -18,8 +18,8 @@ interface Plan {
 const plans: Plan[] = [
   {
     name: "Lite Plan",
-    priceMonthly: 5000,
-    priceAnnually: 4000,
+    priceMonthly: 18000,
+    priceAnnually: 14400,
     description: "Ideal for individuals or micro-businesses testing task campaigns.",
     features: [
       "Up to 1,500 verified completions",
@@ -32,8 +32,8 @@ const plans: Plan[] = [
   },
   {
     name: "Growth Plan",
-    priceMonthly: 25000,
-    priceAnnually: 20000,
+    priceMonthly: 42000,
+    priceAnnually: 33600,
     description: "Perfect for growing brands needing consistent, verified reach.",
     features: [
       "Up to 8,000 verified completions",
@@ -47,8 +47,8 @@ const plans: Plan[] = [
   },
   {
     name: "Pro Business",
-    priceMonthly: 65000,
-    priceAnnually: 52000,
+    priceMonthly: 88000,
+    priceAnnually: 70400,
     description: "Designed for scaling businesses requiring rapid verified execution.",
     features: [
       "Up to 25,000 verified completions",
@@ -63,8 +63,8 @@ const plans: Plan[] = [
   },
   {
     name: "Enterprise Pro",
-    priceMonthly: 150000,
-    priceAnnually: 120000,
+    priceMonthly: 124000,
+    priceAnnually: 99200,
     description: "For large corporations and agencies requiring massive scale.",
     features: [
       "Unlimited verified completions",

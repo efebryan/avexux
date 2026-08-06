@@ -141,6 +141,24 @@ CREATE TABLE IF NOT EXISTS public.rewards_spins (
 
 CREATE INDEX IF NOT EXISTS idx_rewards_spins_user_id ON public.rewards_spins(user_id);
 
+-- 8.5 SPIN OVERRIDES TABLE (For rigged spins)
+CREATE TABLE IF NOT EXISTS public.spin_overrides (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+    reward_label TEXT NOT NULL,
+    is_used BOOLEAN NOT NULL DEFAULT false,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_spin_overrides_user_id ON public.spin_overrides(user_id);
+
+-- 8.6 APP SETTINGS TABLE (For global configuration like wheel sectors)
+CREATE TABLE IF NOT EXISTS public.app_settings (
+    key TEXT PRIMARY KEY,
+    value JSONB NOT NULL,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
 -- 9. NOTIFICATIONS TABLE
 CREATE TABLE IF NOT EXISTS public.notifications (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -266,6 +284,18 @@ INSERT INTO public.app_settings (key, value)
 VALUES (
     'spin_wheel_config',
     '{"cost": 500, "sectors": [{"id": "1", "label": "₦1,000 Cash", "type": "cash", "value": 1000, "color": "#10b981", "isWin": true}, {"id": "2", "label": "Try Again 😢", "type": "none", "value": 0, "color": "#64748b", "isWin": false}, {"id": "3", "label": "Premium Pro", "type": "premium", "value": 0, "color": "#3b82f6", "isWin": true}, {"id": "4", "label": "Better Luck 🍀", "type": "none", "value": 0, "color": "#475569", "isWin": false}]}'::jsonb
+
+CREATE TABLE IF NOT EXISTS public.app_settings (
+    key TEXT PRIMARY KEY,
+    value JSONB NOT NULL,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- Insert default spin wheel configuration
+INSERT INTO public.app_settings (key, value)
+VALUES (
+    'spin_wheel_config',
+    '{"cost": 500, "sectors": [{"id": "1", "label": "₦1,000 Cash", "type": "cash", "value": 1000, "color": "#10b981", "isWin": true}, {"id": "2", "label": "Try Again 😢", "type": "none", "value": 0, "color": "#64748b", "isWin": false}, {"id": "3", "label": "Premium Pro", "type": "premium", "value": 0, "color": "#3b82f6", "isWin": true}, {"id": "4", "label": "Better Luck 🍀", "type": "none", "value": 0, "color": "#475569", "isWin": false}]}'::jsonb
 ) ON CONFLICT (key) DO NOTHING;
 
 -- Insert default congratulations modal configuration
@@ -274,3 +304,69 @@ VALUES (
     'congrats_modal_config',
     '{"active": true, "title": "Dear users, congratulations! 🥳", "amount": "₦204,000"}'::jsonb
 ) ON CONFLICT (key) DO NOTHING;
+
+-- ========================================================
+-- RPC FUNCTION FOR APPROVING TASK SUBMISSIONS (BYPASS RLS)
+-- ========================================================
+CREATE OR REPLACE FUNCTION public.approve_task_submission(submission_id UUID)
+RETURNS BOOLEAN
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+    v_user_id UUID;
+    v_task_id UUID;
+    v_reward_amount NUMERIC(12, 2);
+    v_status TEXT;
+BEGIN
+    -- Get submission details
+    SELECT user_id, task_id, status INTO v_user_id, v_task_id, v_status
+    FROM public.task_submissions
+    WHERE id = submission_id;
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Submission not found';
+    END IF;
+
+    IF v_status = 'Approved' THEN
+        RETURN TRUE; -- Already approved
+    END IF;
+
+    -- Get task reward amount
+    SELECT reward_amount INTO v_reward_amount
+    FROM public.tasks
+    WHERE id = v_task_id;
+
+    -- Update submission status
+    UPDATE public.task_submissions
+    SET status = 'Approved', updated_at = now()
+    WHERE id = submission_id;
+
+    -- Update wallet
+    UPDATE public.wallets
+    SET balance = balance + v_reward_amount,
+        today_earnings = today_earnings + v_reward_amount,
+        total_earned = total_earned + v_reward_amount,
+        updated_at = now()
+    WHERE user_id = v_user_id;
+
+    -- Create transaction record
+    INSERT INTO public.transactions (
+        reference_id,
+        user_id,
+        type,
+        amount,
+        status,
+        metadata
+    ) VALUES (
+        'TASK-' || UPPER(SUBSTRING(MD5(submission_id::text || clock_timestamp()::text) FROM 1 FOR 8)),
+        v_user_id,
+        'TASK_REWARD',
+        v_reward_amount,
+        'Completed',
+        jsonb_build_object('task_id', v_task_id, 'submission_id', submission_id)
+    );
+
+    RETURN TRUE;
+END;
+$$;

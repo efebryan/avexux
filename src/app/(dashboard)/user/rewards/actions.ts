@@ -7,22 +7,16 @@ export interface Sector {
   color: string;
   isWin: boolean;
   value?: number;
-  type?: "cash" | "premium" | "gift";
+  type?: "cash" | "premium" | "gift" | "none";
 }
 
-// These must match the client-side sectors exactly
-const sectors: Sector[] = [
+// Fallback if DB not configured
+const defaultSectors: Sector[] = [
   { label: "₦1,000 Cash", color: "#10b981", isWin: true, value: 1000, type: "cash" },
-  { label: "Try Again 😢", color: "#64748b", isWin: false },
+  { label: "Try Again 😢", color: "#64748b", isWin: false, type: "none" },
   { label: "Premium Pro", color: "#3b82f6", isWin: true, type: "premium" },
-  { label: "Better Luck 🍀", color: "#475569", isWin: false },
-  { label: "₦5,000 Gift", color: "#8b5cf6", isWin: true, value: 5000, type: "gift" },
-  { label: "Try Again 😢", color: "#64748b", isWin: false },
-  { label: "₦10,000 Cash", color: "#eab308", isWin: true, value: 10000, type: "cash" },
-  { label: "Better Luck 🍀", color: "#475569", isWin: false },
+  { label: "Better Luck 🍀", color: "#475569", isWin: false, type: "none" },
 ];
-
-const SPIN_COST = 500;
 
 export async function executeSpinAction() {
   const supabase = await createClient();
@@ -36,6 +30,21 @@ export async function executeSpinAction() {
   const today = new Date().getDay();
   if (today !== 2 && today !== 5) {
     return { success: false, error: "Spins are only available on Tuesdays and Fridays!" };
+  }
+
+  // 0. Fetch Dynamic Config
+  let sectors = defaultSectors;
+  let SPIN_COST = 500;
+  
+  const { data: wheelData } = await supabase
+    .from("app_settings")
+    .select("value")
+    .eq("key", "spin_wheel_config")
+    .single();
+    
+  if (wheelData?.value) {
+    sectors = wheelData.value.sectors;
+    SPIN_COST = wheelData.value.cost || 500;
   }
 
   // 1. Check Wallet Balance & Free Spins
@@ -60,7 +69,7 @@ export async function executeSpinAction() {
     return { success: false, error: "Insufficient balance for a spin" };
   }
 
-  // 2. Check for Admin Overrides
+  // 2. Check for Admin Overrides (Rigged Spins)
   let targetSector: Sector | null = null;
   let targetIdx = -1;
 
@@ -77,7 +86,7 @@ export async function executeSpinAction() {
     // Mark override as used
     await supabase.from("spin_overrides").update({ is_used: true }).eq("id", override.id);
     
-    // Find matching sector by label, or default to lose
+    // Find matching sector by label
     targetIdx = sectors.findIndex((s) => s.label === override.reward_label);
     if (targetIdx !== -1) {
       targetSector = sectors[targetIdx];
@@ -86,24 +95,25 @@ export async function executeSpinAction() {
 
   // 3. Fallback to Randomness (if no override)
   if (targetIdx === -1) {
-    // Simple Probability logic
-    // 50% Lose (indices 1, 3, 5, 7)
-    // 30% 1,000 Cash (index 0)
-    // 15% Premium (index 2) or 5,000 Gift (index 4)
-    // 5% 10,000 Cash (index 6)
-    
     const rand = Math.random() * 100;
     
-    if (rand < 50) {
-      // Lose
-      const loseIndices = [1, 3, 5, 7];
-      targetIdx = loseIndices[Math.floor(Math.random() * loseIndices.length)];
-    } else if (rand < 80) {
-      targetIdx = 0; // 1k
-    } else if (rand < 95) {
-      targetIdx = Math.random() > 0.5 ? 2 : 4; // Premium or 5k
+    // Split dynamic sectors into wins and losses
+    const winSectors: number[] = [];
+    const loseSectors: number[] = [];
+    sectors.forEach((s, i) => {
+      if (s.isWin) winSectors.push(i);
+      else loseSectors.push(i);
+    });
+
+    if (rand < 50 && loseSectors.length > 0) {
+      // 50% chance to lose
+      targetIdx = loseSectors[Math.floor(Math.random() * loseSectors.length)];
+    } else if (winSectors.length > 0) {
+      // 50% chance to win something
+      targetIdx = winSectors[Math.floor(Math.random() * winSectors.length)];
     } else {
-      targetIdx = 6; // 10k
+      // Absolute fallback
+      targetIdx = Math.floor(Math.random() * sectors.length);
     }
 
     targetSector = sectors[targetIdx];
@@ -134,7 +144,7 @@ export async function executeSpinAction() {
 
   // 5. Apply the Reward if Win
   if (targetSector?.isWin && targetSector.value && targetSector.type === "cash") {
-    // Re-fetch to ensure atomicity, or just increment
+    // Re-fetch to ensure atomicity
     const { data: updatedWallet } = await supabase
       .from("wallets")
       .select("balance, total_earned")

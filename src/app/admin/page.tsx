@@ -241,6 +241,8 @@ export default function AdminOverviewPage() {
   const [totalWithdrawals, setTotalWithdrawals] = useState(0);
   const [totalUsers, setTotalUsers] = useState(0);
   const [activeUsers, setActiveUsers] = useState(0);
+  const [totalTasks, setTotalTasks] = useState(0);
+  const [activeTasks, setActiveTasks] = useState(0);
   const [totalReferrals, setTotalReferrals] = useState(0);
 
   useEffect(() => {
@@ -284,6 +286,17 @@ export default function AdminOverviewPage() {
         .from("referrals")
         .select("*", { count: "exact", head: true });
       if (referralsCount !== null) setTotalReferrals(referralsCount);
+
+      const { count: tasksCount } = await supabase
+        .from("tasks")
+        .select("*", { count: "exact", head: true });
+      if (tasksCount !== null) setTotalTasks(tasksCount);
+
+      const { count: activeTasksCount } = await supabase
+        .from("tasks")
+        .select("*", { count: "exact", head: true })
+        .eq("status", "Active");
+      if (activeTasksCount !== null) setActiveTasks(activeTasksCount);
     }
     fetchFinancials();
   }, []);
@@ -326,6 +339,8 @@ export default function AdminOverviewPage() {
                   ? totalUsers.toLocaleString()
                   : stat.title === "ACTIVE USERS"
                   ? activeUsers.toLocaleString()
+                  : stat.title === "TOTAL TASKS"
+                  ? totalTasks.toLocaleString()
                   : stat.title === "TOTAL REFERRALS"
                   ? totalReferrals.toLocaleString()
                   : stat.value}
@@ -344,9 +359,9 @@ export default function AdminOverviewPage() {
                 </p>
               ) : i === 2 ? (
                 <p className="text-[10px] font-bold flex items-center gap-1 whitespace-nowrap">
-                  <span className="text-green-600">32 active</span>
+                  <span className="text-green-600">{activeTasks} active</span>
                   <span className="text-slate-300">•</span>
-                  <span className="text-slate-400">13 paused</span>
+                  <span className="text-slate-400">{totalTasks - activeTasks} paused</span>
                 </p>
               ) : i === 3 ? (
                 <p className="text-[10px] font-bold text-slate-500 truncate">

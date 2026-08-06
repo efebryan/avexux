@@ -9,6 +9,8 @@ export function DashboardStats() {
   const [walletBalance, setWalletBalance] = useState(0);
   const [todayEarnings, setTodayEarnings] = useState(0);
   const [activeReferrals, setActiveReferrals] = useState(0);
+  const [totalCompleted, setTotalCompleted] = useState(0);
+  const [todayCompleted, setTodayCompleted] = useState(0);
 
   useEffect(() => {
     async function fetchStats() {
@@ -33,6 +35,30 @@ export function DashboardStats() {
         
         if (count !== null) {
           setActiveReferrals(count);
+        }
+
+        const { count: totalTasksCount } = await supabase
+          .from("task_submissions")
+          .select("*", { count: "exact", head: true })
+          .eq("user_id", user.id)
+          .eq("status", "Approved");
+
+        if (totalTasksCount !== null) {
+          setTotalCompleted(totalTasksCount);
+        }
+
+        const startOfToday = new Date();
+        startOfToday.setHours(0, 0, 0, 0);
+
+        const { count: todayTasksCount } = await supabase
+          .from("task_submissions")
+          .select("*", { count: "exact", head: true })
+          .eq("user_id", user.id)
+          .eq("status", "Approved")
+          .gte("updated_at", startOfToday.toISOString());
+
+        if (todayTasksCount !== null) {
+          setTodayCompleted(todayTasksCount);
         }
       }
     }
@@ -73,7 +99,7 @@ export function DashboardStats() {
         <div>
           <p className="text-gray-500 text-[11px] font-medium mb-0">Today's Earnings</p>
           <h3 className="text-lg font-bold text-gray-900 leading-tight">₦{todayEarnings.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</h3>
-          <p className="text-[10px] text-gray-400 mt-0.5">6 tasks completed</p>
+          <p className="text-[10px] text-gray-400 mt-0.5">{todayCompleted} tasks completed</p>
         </div>
       </Card>
 
@@ -86,8 +112,8 @@ export function DashboardStats() {
         </div>
         <div>
           <p className="text-gray-500 text-[11px] font-medium mb-0">Total Completed</p>
-          <h3 className="text-lg font-bold text-gray-900 leading-tight">156</h3>
-          <p className="text-[10px] text-gray-400 mt-0.5">Top 5% of earners this month</p>
+          <h3 className="text-lg font-bold text-gray-900 leading-tight">{totalCompleted}</h3>
+          <p className="text-[10px] text-gray-400 mt-0.5">Lifetime approved tasks</p>
         </div>
       </Card>
 

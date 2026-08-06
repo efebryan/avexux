@@ -44,10 +44,16 @@ export default function AdminUsersPage() {
       .order('created_at', { ascending: false });
 
     if (error) {
+      console.error(error);
       toast.error("Failed to load users from database");
       setIsLoading(false);
       return;
     }
+
+    const { data: submissions } = await supabase
+      .from("task_submissions")
+      .select("user_id")
+      .eq("status", "Approved");
 
     const formattedUsers: AdminUser[] = (profiles || []).map((p: any) => {
       // Calculate initials
@@ -57,13 +63,17 @@ export default function AdminUsersPage() {
         : (p.full_name || "U").substring(0, 2).toUpperCase();
 
       // Extract earnings
-      const earnings = p.wallets && p.wallets.length > 0 
-        ? Number(p.wallets[0].total_earned) 
+      const earnings = p.wallets 
+        ? (Array.isArray(p.wallets) ? Number(p.wallets[0]?.total_earned || 0) : Number(p.wallets.total_earned || 0))
         : 0;
 
       // Format Date
       const dateObj = new Date(p.created_at);
       const joined = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      // Count approved tasks
+      const completedTasks = submissions 
+        ? submissions.filter((s: any) => s.user_id === p.id).length 
+        : 0;
 
       return {
         id: p.id,
@@ -72,7 +82,7 @@ export default function AdminUsersPage() {
         joined,
         status: p.status || "ACTIVE",
         earnings,
-        tasks: 0,
+        tasks: completedTasks,
         initials,
         role: p.role === "admin" ? "Admin" : p.role === "moderator" ? "Moderator" : "User"
       };

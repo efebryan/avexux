@@ -33,7 +33,7 @@ export function WeeklyGoal() {
       </div>
 
       <Button className="w-full h-9 bg-[#f1f5f9] hover:bg-gray-200 text-[#0f8538] text-xs font-bold rounded-lg shadow-none border border-transparent transition-colors">
-        Adjust Goal
+        Upgrade
       </Button>
     </Card>
   );
