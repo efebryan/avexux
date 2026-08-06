@@ -1,88 +1,110 @@
 "use client";
 
-import { useState } from "react";
-import { Task } from "@/app/(dashboard)/user/tasks/types";
+import { useState, useEffect } from "react";
+import { Task, TaskStatus } from "@/app/(dashboard)/user/tasks/types";
 import { TaskCard } from "@/components/user-dashboard/tasks/TaskCard";
-import { TaskDetailsModal } from "@/components/user-dashboard/tasks/TaskDetailsModal";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-
-// Reusing the same mock data structure for consistency
-const mockTasks: Task[] = [
-  {
-    id: "3",
-    title: "Complete Survey on E-commerce Habits",
-    description: "Fill out a 10-minute survey regarding your online shopping habits, preferred payment methods, and delivery experiences.",
-    reward: 500,
-    timeEstimate: "10 mins",
-    category: "Surveys",
-    status: "In Progress",
-    advertiser: "MarketResearch Inc.",
-    requirements: ["Must be a frequent online shopper"]
-  },
-  {
-    id: "4",
-    title: "Leave a Review on Google Maps",
-    description: "Visit our local coffee shop page on Google Maps and leave an honest 5-star review about your experience.",
-    reward: 350,
-    timeEstimate: "5 mins",
-    category: "Reviews",
-    status: "Pending Review",
-    advertiser: "Daily Brew Coffee",
-    requirements: ["Must be physically located in the same city", "Local Guide badge is a plus"]
-  },
-  {
-    id: "5",
-    title: "Watch & Like YouTube Video",
-    description: "Watch our latest promotional video all the way through, drop a like, and leave a positive comment.",
-    reward: 150,
-    timeEstimate: "5 mins",
-    category: "Video Review",
-    status: "Approved",
-    advertiser: "Tech Reviews Channel",
-    requirements: ["Must watch at least 80% of the video"]
-  },
-  {
-    id: "6",
-    title: "Signup for Newsletter",
-    description: "Simply navigate to our landing page and subscribe to our weekly newsletter using a valid email address.",
-    reward: 100,
-    timeEstimate: "2 mins",
-    category: "Website Visit",
-    status: "Rejected",
-    advertiser: "Health & Fitness Weekly",
-    requirements: ["Use a valid, active email address", "Confirm the subscription in your inbox"]
-  }
-];
+import { createClient } from "@/utils/supabase/client";
+import { Loader2 } from "lucide-react";
 
 export default function MyTasksPage() {
-  const [tasks, setTasks] = useState<Task[]>(mockTasks);
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<"active" | "pending" | "completed" | "rejected">("active");
-  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const router = useRouter();
+
+  const supabase = createClient();
+
+  useEffect(() => {
+    async function fetchTasks() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setIsLoading(false);
+        return;
+      }
+
+      // Fetch user's submissions
+      const { data: submissions, error: subError } = await supabase
+        .from("task_submissions")
+        .select("task_id, status, created_at")
+        .eq("user_id", user.id);
+
+      if (!submissions || submissions.length === 0) {
+        setTasks([]);
+        setIsLoading(false);
+        return;
+      }
+
+      const taskIds = submissions.map(s => s.task_id);
+
+      // Fetch the tasks for those submissions
+      const { data: userTasks, error: tasksError } = await supabase
+        .from("tasks")
+        .select("*")
+        .in("id", taskIds);
+
+      const submissionMap = new Map();
+      submissions.forEach(sub => {
+        submissionMap.set(sub.task_id, { status: sub.status, createdAt: sub.created_at });
+      });
+
+      const formattedTasks: Task[] = (userTasks || []).map(t => {
+        const userSub = submissionMap.get(t.id);
+        let currentStatus = userSub ? userSub.status : "Available";
+        const acceptedAt = userSub ? userSub.createdAt : undefined;
+
+        // Auto-expire check
+        if (currentStatus === "In Progress" && acceptedAt && t.timer_seconds) {
+          const expiresAt = new Date(acceptedAt).getTime() + (t.timer_seconds * 1000);
+          if (Date.now() > expiresAt) {
+            currentStatus = "Expired";
+          }
+        }
+
+        return {
+          id: t.id,
+          title: t.title,
+          description: t.description,
+          reward: Number(t.reward_amount),
+          timeEstimate: t.timer_seconds ? `${t.timer_seconds}s` : "30s",
+          timerSeconds: t.timer_seconds,
+          taskLink: t.task_link,
+          acceptedAt,
+          category: t.category,
+          status: currentStatus as TaskStatus,
+          advertiser: t.advertiser,
+          requirements: t.requirements || []
+        };
+      });
+
+      // Filter out tasks that are still "Available" (should not happen if they have submissions)
+      setTasks(formattedTasks.filter(t => t.status !== "Available"));
+      setIsLoading(false);
+    }
+    fetchTasks();
+  }, []);
 
   // Filter tasks based on the active tab
   const filteredTasks = tasks.filter(task => {
     if (activeTab === "active" && task.status !== "In Progress") return false;
     if (activeTab === "pending" && task.status !== "Pending Review") return false;
     if (activeTab === "completed" && task.status !== "Approved") return false;
-    if (activeTab === "rejected" && task.status !== "Rejected") return false;
+    if (activeTab === "rejected" && !["Rejected", "Expired"].includes(task.status)) return false;
     return true;
   });
 
   const handleTaskClick = (task: Task) => {
-    setSelectedTask(task);
-    setIsModalOpen(true);
+    router.push("/user/tasks/" + task.id);
   };
 
-  const handleTaskAction = (taskId: string, action: "accept" | "submit") => {
-    if (action === "submit") {
-      setTasks(prev => prev.map(t => 
-        t.id === taskId ? { ...t, status: "Pending Review" } : t
-      ));
-      setIsModalOpen(false);
-      toast.success("Proof submitted successfully! It is now Pending Review.");
-    }
-  };
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center p-12">
+        <Loader2 className="w-8 h-8 animate-spin text-[#0f8538]" />
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-6xl mx-auto pb-8">
@@ -115,7 +137,7 @@ export default function MyTasksPage() {
           onClick={() => setActiveTab("rejected")}
           className={`pb-4 text-sm font-bold border-b-2 transition-colors whitespace-nowrap ${activeTab === "rejected" ? "border-[#0f8538] text-[#0f8538]" : "border-transparent text-gray-500 hover:text-gray-700"}`}
         >
-          Rejected
+          Rejected / Expired
         </button>
       </div>
 
@@ -130,13 +152,6 @@ export default function MyTasksPage() {
           </div>
         )}
       </div>
-
-      <TaskDetailsModal 
-        task={selectedTask}
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onAction={handleTaskAction}
-      />
     </div>
   );
 }

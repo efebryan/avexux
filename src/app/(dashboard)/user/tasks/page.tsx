@@ -3,23 +3,16 @@
 import { useState, useEffect } from "react";
 import { Task, TaskStatus } from "./types";
 import { TaskCard } from "@/components/user-dashboard/tasks/TaskCard";
-import { TaskFilters } from "@/components/user-dashboard/tasks/TaskFilters";
-import { TaskDetailsModal } from "@/components/user-dashboard/tasks/TaskDetailsModal";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { createClient } from "@/utils/supabase/client";
 import { Loader2 } from "lucide-react";
-
-const categories = ["Social Media", "Reviews", "Video Review", "Website Visit"];
 
 export default function TaskCenterPage() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<"available" | "active" | "history">("available");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [categoryFilter, setCategoryFilter] = useState("All");
-  
-  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const router = useRouter();
 
   const supabase = createClient();
 
@@ -46,27 +39,41 @@ export default function TaskCenterPage() {
       // 2. Fetch user's submissions
       const { data: submissions, error: subError } = await supabase
         .from("task_submissions")
-        .select("task_id, status")
+        .select("task_id, status, created_at")
         .eq("user_id", user.id);
 
       const submissionMap = new Map();
       if (submissions && !subError) {
         submissions.forEach(sub => {
-          submissionMap.set(sub.task_id, sub.status);
+          submissionMap.set(sub.task_id, { status: sub.status, createdAt: sub.created_at });
         });
       }
 
       // 3. Map database records to UI Task type
       const formattedTasks: Task[] = (allTasks || []).map(t => {
-        const userStatus = submissionMap.get(t.id) || "Available";
+        const userSub = submissionMap.get(t.id);
+        let currentStatus = userSub ? userSub.status : "Available";
+        const acceptedAt = userSub ? userSub.createdAt : undefined;
+
+        // Auto-expire check
+        if (currentStatus === "In Progress" && acceptedAt && t.timer_seconds) {
+          const expiresAt = new Date(acceptedAt).getTime() + (t.timer_seconds * 1000);
+          if (Date.now() > expiresAt) {
+            currentStatus = "Expired";
+          }
+        }
+
         return {
           id: t.id,
           title: t.title,
           description: t.description,
           reward: Number(t.reward_amount),
-          timeEstimate: t.time_estimate || "5 mins",
+          timeEstimate: t.timer_seconds ? `${t.timer_seconds}s` : "30s",
+          timerSeconds: t.timer_seconds,
+          taskLink: t.task_link,
+          acceptedAt,
           category: t.category,
-          status: userStatus as TaskStatus,
+          status: currentStatus as TaskStatus,
           advertiser: t.advertiser,
           requirements: t.requirements || []
         };
@@ -80,70 +87,16 @@ export default function TaskCenterPage() {
 
   // Filter Logic
   const filteredTasks = tasks.filter(task => {
-    // 1. Tab Filter
+    // Tab Filter
     if (activeTab === "available" && task.status !== "Available") return false;
     if (activeTab === "active" && !["In Progress", "Pending Review"].includes(task.status)) return false;
-    if (activeTab === "history" && !["Approved", "Rejected"].includes(task.status)) return false;
-
-    // 2. Search Filter
-    if (searchQuery && !task.title.toLowerCase().includes(searchQuery.toLowerCase()) && !task.description.toLowerCase().includes(searchQuery.toLowerCase())) {
-      return false;
-    }
-
-    // 3. Category Filter
-    if (categoryFilter !== "All" && task.category !== categoryFilter) {
-      return false;
-    }
+    if (activeTab === "history" && !["Approved", "Rejected", "Expired"].includes(task.status)) return false;
 
     return true;
   });
 
   const handleTaskClick = (task: Task) => {
-    setSelectedTask(task);
-    setIsModalOpen(true);
-  };
-
-  const handleTaskAction = async (taskId: string, action: "accept" | "submit") => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-
-    if (action === "accept") {
-      const { error } = await supabase.from("task_submissions").insert({
-        task_id: taskId,
-        user_id: user.id,
-        status: "In Progress"
-      });
-
-      if (error) {
-        toast.error("Failed to accept task.");
-        return;
-      }
-      toast.success("Task accepted! Moved to your Active tab.");
-    } else if (action === "submit") {
-      const { error } = await supabase.from("task_submissions")
-        .update({ status: "Pending Review" })
-        .eq("task_id", taskId)
-        .eq("user_id", user.id);
-
-      if (error) {
-        toast.error("Failed to submit proof.");
-        return;
-      }
-      toast.success("Proof submitted successfully! It is now Pending Review.");
-    }
-
-    setTasks(prev => prev.map(t => {
-      if (t.id === taskId) {
-        if (action === "accept") {
-          return { ...t, status: "In Progress" };
-        } else if (action === "submit") {
-          return { ...t, status: "Pending Review" };
-        }
-      }
-      return t;
-    }));
-    
-    setIsModalOpen(false);
+    router.push("/user/tasks/" + task.id);
   };
 
   if (isLoading) {
@@ -183,14 +136,6 @@ export default function TaskCenterPage() {
         </button>
       </div>
 
-      <TaskFilters 
-        searchQuery={searchQuery}
-        setSearchQuery={setSearchQuery}
-        categoryFilter={categoryFilter}
-        setCategoryFilter={setCategoryFilter}
-        categories={categories}
-      />
-
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 animate-in fade-in duration-500">
         {filteredTasks.length > 0 ? (
           filteredTasks.map(task => (
@@ -198,23 +143,10 @@ export default function TaskCenterPage() {
           ))
         ) : (
           <div className="col-span-full py-16 text-center bg-gray-50 rounded-2xl border border-gray-100 border-dashed">
-            <p className="text-gray-500 font-medium">No tasks found matching your criteria.</p>
-            <button 
-              onClick={() => { setSearchQuery(""); setCategoryFilter("All"); }}
-              className="mt-4 text-[#0f8538] font-bold hover:underline"
-            >
-              Clear filters
-            </button>
+            <p className="text-gray-500 font-medium">No tasks found for this tab.</p>
           </div>
         )}
       </div>
-
-      <TaskDetailsModal 
-        task={selectedTask}
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onAction={handleTaskAction}
-      />
     </div>
   );
 }

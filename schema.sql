@@ -44,7 +44,9 @@ CREATE TABLE IF NOT EXISTS public.tasks (
     category TEXT NOT NULL,
     advertiser TEXT NOT NULL,
     reward_amount NUMERIC(12, 2) NOT NULL CHECK (reward_amount >= 0),
-    time_estimate TEXT NOT NULL DEFAULT '5 mins',
+    timer_seconds INTEGER NOT NULL DEFAULT 30 CHECK (timer_seconds >= 0),
+    task_link TEXT,
+    images JSONB DEFAULT '[]'::jsonb,
     requirements JSONB NOT NULL DEFAULT '[]'::jsonb,
     max_submissions INTEGER,
     submissions_count INTEGER NOT NULL DEFAULT 0 CHECK (submissions_count >= 0),
@@ -65,6 +67,8 @@ CREATE TABLE IF NOT EXISTS public.task_submissions (
     status TEXT NOT NULL DEFAULT 'Pending Review' CHECK (status IN ('In Progress', 'Pending Review', 'Approved', 'Rejected')),
     proof_notes TEXT,
     proof_attachments JSONB DEFAULT '[]'::jsonb,
+    rating INTEGER CHECK (rating >= 1 AND rating <= 5),
+    comment TEXT,
     rejection_reason TEXT,
     reviewed_by UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
     reviewed_at TIMESTAMPTZ,
@@ -225,6 +229,9 @@ CREATE POLICY "Users can view own wallet" ON public.wallets FOR SELECT USING (au
 
 -- Tasks Policies
 CREATE POLICY "Tasks viewable by all authenticated users" ON public.tasks FOR SELECT USING (true);
+CREATE POLICY "Admins can insert tasks" ON public.tasks FOR INSERT WITH CHECK (true);
+CREATE POLICY "Admins can update tasks" ON public.tasks FOR UPDATE USING (true);
+CREATE POLICY "Admins can delete tasks" ON public.tasks FOR DELETE USING (true);
 
 -- Task Submissions Policies
 CREATE POLICY "Users can view own task submissions" ON public.task_submissions FOR SELECT USING (auth.uid() = user_id);

@@ -1,11 +1,14 @@
-export type TaskStatus = "Available" | "In Progress" | "Pending Review" | "Approved" | "Rejected";
+export type TaskStatus = "Available" | "In Progress" | "Pending Review" | "Approved" | "Rejected" | "Expired";
 
 export interface Task {
   id: string;
   title: string;
   description: string;
   reward: number;
-  timeEstimate: string; // e.g., "10 mins"
+  timeEstimate: string; // fallback if timerSeconds is missing
+  timerSeconds?: number;
+  taskLink?: string;
+  acceptedAt?: string; // ISO string when user accepted task
   category: string;
   status: TaskStatus;
   advertiser: string;

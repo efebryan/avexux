@@ -6,6 +6,7 @@ import { createClient } from "@/utils/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
+import { DeleteModal } from "@/components/ui/delete-modal";
 
 // Mock Sectors
 const mockSectors = [
@@ -24,6 +25,15 @@ export default function AdminRewardsPage() {
   // Congrats Modal Config State
   const [congratsTitle, setCongratsTitle] = useState("Dear users, congratulations! 🥳");
   const [congratsAmount, setCongratsAmount] = useState("₦204,000");
+
+  const [sectorToDelete, setSectorToDelete] = useState<{id: string, label: string} | null>(null);
+
+  const confirmDeleteSector = () => {
+    if (!sectorToDelete) return;
+    setSectors(sectors.filter(s => s.id !== sectorToDelete.id));
+    setSectorToDelete(null);
+    toast.success("Sector removed. Remember to save your wheel config!");
+  };
 
   useEffect(() => {
     async function loadSettings() {
@@ -163,7 +173,7 @@ export default function AdminRewardsPage() {
                         <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-blue-600 hover:bg-blue-50 rounded-lg">
                           <Edit2 className="w-4 h-4" />
                         </Button>
-                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-red-600 hover:bg-red-50 rounded-lg">
+                        <Button onClick={() => setSectorToDelete({ id: sector.id, label: sector.label })} variant="ghost" size="sm" className="h-8 w-8 p-0 text-red-600 hover:bg-red-50 rounded-lg">
                           <Trash2 className="w-4 h-4" />
                         </Button>
                       </div>
@@ -239,6 +249,13 @@ export default function AdminRewardsPage() {
         </Card>
 
       </div>
+
+      <DeleteModal 
+        isOpen={!!sectorToDelete}
+        onClose={() => setSectorToDelete(null)}
+        onConfirm={confirmDeleteSector}
+        itemName={sectorToDelete?.label || ""}
+      />
     </div>
   );
 }

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { createClient } from "@/utils/supabase/client";
 import { CreateUserModal } from "@/components/admin/CreateUserModal";
+import { DeleteModal } from "@/components/ui/delete-modal";
 
 // UI User Type
 type AdminUser = {
@@ -568,44 +569,12 @@ export default function AdminUsersPage() {
       )}
 
       {/* Delete User Confirmation Modal */}
-      {isDeleteModalOpen && userToDelete && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
-          <div className="bg-white rounded-2xl shadow-xl border border-slate-200 w-full max-w-md overflow-hidden transform transition-all duration-300 animate-in scale-in duration-300">
-            <div className="p-6 text-center space-y-4">
-              <div className="mx-auto w-12 h-12 rounded-full bg-red-50 border border-red-100 flex items-center justify-center text-red-500">
-                <Trash2 className="w-5 h-5" />
-              </div>
-              <div>
-                <h3 className="text-lg font-bold text-slate-900">Confirm Delete</h3>
-                <p className="text-sm text-slate-500 mt-2">
-                  Are you sure you want to permanently delete <span className="font-semibold text-slate-700">{userToDelete.username}</span>? This action cannot be undone.
-                </p>
-              </div>
-            </div>
-
-            <div className="p-4 bg-slate-50 border-t border-slate-100 flex items-center justify-center gap-3 px-6">
-              <Button 
-                type="button" 
-                variant="outline" 
-                size="lg"
-                onClick={() => setIsDeleteModalOpen(false)}
-                className="px-5 font-semibold text-xs"
-              >
-                No, Cancel
-              </Button>
-              <Button 
-                type="button" 
-                variant="default"
-                size="lg"
-                onClick={handleConfirmDelete}
-                className="bg-red-600 hover:bg-red-700 text-white px-6 font-semibold text-xs shadow-sm"
-              >
-                Yes, Delete
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
+      <DeleteModal 
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={handleConfirmDelete}
+        itemName={userToDelete?.username || ""}
+      />
 
       {/* View User Modal */}
       {isViewModalOpen && userToView && (

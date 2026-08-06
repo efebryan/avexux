@@ -66,3 +66,51 @@ export async function adminCreateUserAction(data: {
 
   return { success: true, user: authData.user };
 }
+
+export async function adminCreateTaskAction(data: {
+  title: string;
+  description: string;
+  category: string;
+  rewardAmount: number;
+  timerSeconds: number;
+  taskLink?: string;
+  images: string[];
+}) {
+  const supabase = createSupabaseClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      auth: {
+        persistSession: false,
+        autoRefreshToken: false,
+      }
+    }
+  );
+
+  // Note: in a real production app, we would enforce admin authentication check here
+  // before inserting, e.g. using a service role key or checking user role
+
+  const { data: task, error } = await supabase
+    .from('tasks')
+    .insert([{
+      title: data.title,
+      description: data.description,
+      category: data.category,
+      advertiser: "Platform Admin",
+      reward_amount: data.rewardAmount,
+      timer_seconds: data.timerSeconds,
+      task_link: data.taskLink || null,
+      images: data.images,
+      status: 'Active',
+      submissions_count: 0
+    }])
+    .select()
+    .single();
+
+  if (error) {
+    console.error("Error creating task:", error);
+    return { success: false, error: error.message };
+  }
+
+  return { success: true, task };
+}

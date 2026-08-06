@@ -1,67 +1,115 @@
 "use client";
 
-import { useState } from "react";
-import { Plus, Search, CheckCircle, XCircle, Eye, Edit2, Trash2 } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Plus, Search, CheckCircle, XCircle, Eye, Edit2, Trash2, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { CreateTaskModal } from "@/components/admin/CreateTaskModal";
 import { TaskPreviewModal } from "@/components/admin/TaskPreviewModal";
-
-// Mock Data
-const mockTasks = [
-  { id: "1", title: "Test our new Banking App UI", category: "App Testing", advertiser: "FinTech Corp", reward: 1500, submissions: 45, status: "Active", created: "Oct 20, 2023", description: "Download and review our new mobile banking application. Test transfer flows and submit a screenshot of your successful transaction." },
-  { id: "2", title: "Follow & Retweet Crypto Campaign", category: "Social Media", advertiser: "CryptoLaunch", reward: 200, submissions: 120, status: "Active", created: "Oct 21, 2023", description: "Follow @CryptoLaunch on X (Twitter), like and retweet our pinned announcement post. Submit your profile handle and screenshot." },
-  { id: "3", title: "Complete Survey on E-commerce", category: "Surveys", advertiser: "MarketResearch Inc.", reward: 500, submissions: 8, status: "Paused", created: "Oct 22, 2023", description: "Answer 10 short questions regarding your online shopping habits in Nigeria. Takes under 3 minutes to complete." },
-];
-
-const mockSubmissions = [
-  { id: "s1", taskId: "1", taskTitle: "Test our new Banking App UI", user: "john_doe99", date: "2 hours ago", status: "Pending" },
-  { id: "s2", taskId: "2", taskTitle: "Follow & Retweet Crypto Campaign", user: "sarah_tasks", date: "5 hours ago", status: "Pending" },
-  { id: "s3", taskId: "2", taskTitle: "Follow & Retweet Crypto Campaign", user: "mike_hustle", date: "1 day ago", status: "Approved" },
-];
+import { createClient } from "@/utils/supabase/client";
+import { DeleteModal } from "@/components/ui/delete-modal";
 
 export default function AdminTasksPage() {
   const [activeTab, setActiveTab] = useState<"manage" | "review">("manage");
-  const [tasks, setTasks] = useState(mockTasks);
-  const [submissions, setSubmissions] = useState(mockSubmissions);
+  const [tasks, setTasks] = useState<any[]>([]);
+  const [submissions, setSubmissions] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [selectedTaskForPreview, setSelectedTaskForPreview] = useState<any | null>(null);
+  const [taskToDelete, setTaskToDelete] = useState<{id: string, title: string} | null>(null);
 
-  const toggleTaskStatus = (id: string) => {
-    setTasks(tasks.map(t => {
-      if (t.id === id) {
-        const newStatus = t.status === "Active" ? "Paused" : "Active";
-        toast.success(`Task status changed to ${newStatus}`);
-        return { ...t, status: newStatus };
+  const supabase = createClient();
+
+  useEffect(() => {
+    async function fetchData() {
+      // Fetch all tasks
+      const { data: allTasks, error: tasksError } = await supabase
+        .from("tasks")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      // Fetch all submissions with user details
+      const { data: allSubmissions, error: subError } = await supabase
+        .from("task_submissions")
+        .select(`
+          *,
+          profiles:user_id ( full_name )
+        `)
+        .order("created_at", { ascending: false });
+
+      if (allTasks) {
+        setTasks(allTasks.map(t => ({
+          ...t,
+          created: new Date(t.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+          reward: Number(t.reward_amount),
+          submissions: t.submissions_count,
+        })));
       }
-      return t;
-    }));
+
+      if (allSubmissions) {
+        setSubmissions(allSubmissions.map(s => ({
+          id: s.id,
+          taskId: s.task_id,
+          taskTitle: allTasks?.find(t => t.id === s.task_id)?.title || "Unknown Task",
+          user: s.profiles?.full_name || "Unknown User",
+          date: new Date(s.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+          status: s.status,
+        })));
+      }
+
+      setIsLoading(false);
+    }
+    fetchData();
+  }, []);
+
+  const toggleTaskStatus = async (id: string, currentStatus: string) => {
+    const newStatus = currentStatus === "Active" ? "Paused" : "Active";
+    const { error } = await supabase.from("tasks").update({ status: newStatus }).eq("id", id);
+    if (!error) {
+      setTasks(tasks.map(t => (t.id === id ? { ...t, status: newStatus } : t)));
+      toast.success(`Task status changed to ${newStatus}`);
+    } else {
+      toast.error("Failed to update status");
+    }
   };
 
-  const handleSubmissionAction = (id: string, action: "Approved" | "Rejected") => {
-    setSubmissions(submissions.map(s => {
-      if (s.id === id) {
-        toast.success(`Submission ${action.toLowerCase()}`);
-        return { ...s, status: action };
-      }
-      return s;
-    }));
+  const handleSubmissionAction = async (id: string, action: "Approved" | "Rejected") => {
+    const { error } = await supabase.from("task_submissions").update({ status: action }).eq("id", id);
+    if (!error) {
+      setSubmissions(submissions.map(s => (s.id === id ? { ...s, status: action } : s)));
+      toast.success(`Submission ${action.toLowerCase()}`);
+    } else {
+      toast.error("Failed to update submission");
+    }
   };
 
   const handleCreateTask = (newTask: any) => {
     setTasks([newTask, ...tasks]);
   };
 
-  const handleDeleteTask = (id: string, title: string) => {
-    if (confirm(`Delete task "${title}"? This cannot be undone.`)) {
-      setTasks(prev => prev.filter(t => t.id !== id));
+  const confirmDeleteTask = async () => {
+    if (!taskToDelete) return;
+    const { error } = await supabase.from("tasks").delete().eq("id", taskToDelete.id);
+    if (!error) {
+      setTasks(prev => prev.filter(t => t.id !== taskToDelete.id));
       toast.success("Task deleted successfully.");
+    } else {
+      toast.error("Failed to delete task.");
     }
+    setTaskToDelete(null);
   };
 
   const handleEditTask = (id: string) => {
     toast.info("Task editor coming soon — for now use the Create modal.");
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center p-12">
+        <Loader2 className="w-8 h-8 animate-spin text-[#0f8538]" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -92,7 +140,7 @@ export default function AdminTasksPage() {
         >
           Review Submissions
           <span className="bg-primary/10 text-primary text-[10px] px-2 py-0.5 rounded-full font-extrabold">
-            {submissions.filter(s => s.status === "Pending").length}
+            {submissions.filter(s => s.status === "Pending Review").length}
           </span>
         </button>
       </div>
@@ -113,7 +161,7 @@ export default function AdminTasksPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50">
-                {tasks.map((task) => (
+                {tasks.length > 0 ? tasks.map((task) => (
                   <tr key={task.id} className="hover:bg-primary/5 transition-colors group">
                     <td className="px-6 py-4">
                       <p className="font-bold text-slate-900 leading-tight">{task.title}</p>
@@ -132,7 +180,7 @@ export default function AdminTasksPage() {
                     </td>
                     <td className="px-6 py-4">
                       <button 
-                        onClick={() => toggleTaskStatus(task.id)}
+                        onClick={() => toggleTaskStatus(task.id, task.status)}
                         className={`text-[10px] font-bold px-2.5 py-1 rounded-md uppercase tracking-wider transition-colors border ${
                           task.status === "Active" ? "bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100" : "bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100"
                         }`}
@@ -163,7 +211,7 @@ export default function AdminTasksPage() {
                         <Button 
                           variant="ghost" 
                           size="sm" 
-                          onClick={() => handleDeleteTask(task.id, task.title)} 
+                          onClick={() => setTaskToDelete({ id: task.id, title: task.title })} 
                           title="Delete Task"
                           className="h-8 w-8 p-0 text-red-600 hover:bg-red-50 rounded-lg"
                         >
@@ -172,7 +220,11 @@ export default function AdminTasksPage() {
                       </div>
                     </td>
                   </tr>
-                ))}
+                )) : (
+                  <tr>
+                    <td colSpan={6} className="text-center py-10 text-slate-500 font-medium">No tasks found. Create one to get started!</td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
@@ -191,21 +243,21 @@ export default function AdminTasksPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50">
-                {submissions.map((sub) => (
+                {submissions.length > 0 ? submissions.map((sub) => (
                   <tr key={sub.id} className="hover:bg-primary/5 transition-colors">
                     <td className="px-6 py-4 font-bold text-slate-900">{sub.user}</td>
                     <td className="px-6 py-4 text-slate-700 font-medium">{sub.taskTitle}</td>
                     <td className="px-6 py-4 text-slate-400 text-xs font-medium">{sub.date}</td>
                     <td className="px-6 py-4">
                       <span className={`text-[10px] font-bold px-2.5 py-1 rounded-md uppercase tracking-wider border ${
-                        sub.status === "Pending" ? "bg-amber-50 text-amber-700 border-amber-200" :
+                        sub.status === "Pending Review" ? "bg-amber-50 text-amber-700 border-amber-200" :
                         sub.status === "Approved" ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-red-50 text-red-700 border-red-200"
                       }`}>
                         {sub.status}
                       </span>
                     </td>
                     <td className="px-6 py-4 text-right">
-                      {sub.status === "Pending" ? (
+                      {sub.status === "Pending Review" ? (
                         <div className="flex items-center justify-end gap-2">
                           <Button 
                             variant="outline" 
@@ -236,7 +288,11 @@ export default function AdminTasksPage() {
                       )}
                     </td>
                   </tr>
-                ))}
+                )) : (
+                  <tr>
+                    <td colSpan={5} className="text-center py-10 text-slate-500 font-medium">No submissions found.</td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
@@ -253,6 +309,13 @@ export default function AdminTasksPage() {
         isOpen={!!selectedTaskForPreview}
         onClose={() => setSelectedTaskForPreview(null)}
         task={selectedTaskForPreview}
+      />
+
+      <DeleteModal 
+        isOpen={!!taskToDelete}
+        onClose={() => setTaskToDelete(null)}
+        onConfirm={confirmDeleteTask}
+        itemName={taskToDelete?.title || ""}
       />
     </div>
   );
