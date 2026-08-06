@@ -132,7 +132,7 @@ export default function WalletPage() {
       id: `tx${Date.now()}`,
       date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
       description: `Deposit: ${method}`,
-      type: "Bonus",
+      type: "deposit",
       amount,
       status: "Completed"
     };
@@ -195,6 +195,11 @@ export default function WalletPage() {
         isOpen={isDepositModalOpen}
         onClose={() => setIsDepositModalOpen(false)}
         onDeposit={handleDepositRequest}
+        highestDeposit={
+          transactions
+            .filter(tx => tx.type.toLowerCase() === 'deposit' || tx.description.toLowerCase().includes('deposit'))
+            .reduce((max, tx) => Math.max(max, tx.amount), 0)
+        }
       />
     </div>
   );

@@ -1,7 +1,41 @@
+"use client";
+
+import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { DepositModal } from "@/components/user-dashboard/wallet/DepositModal";
+import { createClient } from "@/utils/supabase/client";
+import { toast } from "sonner";
 
 export function WeeklyGoal() {
+  const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
+  const [highestDeposit, setHighestDeposit] = useState(0);
+
+  useEffect(() => {
+    async function fetchHighestDeposit() {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: txData } = await supabase
+          .from("transactions")
+          .select("*")
+          .eq("user_id", user.id);
+        
+        if (txData) {
+          const maxDeposit = txData
+            .filter((tx: any) => tx.type?.toLowerCase() === 'deposit' || (tx.metadata?.description || "").toLowerCase().includes('deposit') || (tx.description || "").toLowerCase().includes('deposit'))
+            .reduce((max: number, tx: any) => Math.max(max, Number(tx.amount)), 0);
+          setHighestDeposit(maxDeposit);
+        }
+      }
+    }
+    fetchHighestDeposit();
+  }, []);
+
+  const handleDeposit = (amount: number, method: string) => {
+    toast.success(`Successfully upgraded plan with ₦${amount.toLocaleString()}!`);
+    setIsUpgradeModalOpen(false);
+  };
   return (
     <Card className="p-3.5 border border-gray-100 shadow-sm rounded-xl mb-4">
       <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Weekly Goal</h3>
@@ -32,9 +66,19 @@ export function WeeklyGoal() {
         </div>
       </div>
 
-      <Button className="w-full h-9 bg-[#f1f5f9] hover:bg-gray-200 text-[#0f8538] text-xs font-bold rounded-lg shadow-none border border-transparent transition-colors">
+      <Button 
+        onClick={() => setIsUpgradeModalOpen(true)}
+        className="w-full h-9 bg-[#f1f5f9] hover:bg-gray-200 text-[#0f8538] text-xs font-bold rounded-lg shadow-none border border-transparent transition-colors"
+      >
         Upgrade
       </Button>
+
+      <DepositModal 
+        isOpen={isUpgradeModalOpen}
+        onClose={() => setIsUpgradeModalOpen(false)}
+        onDeposit={handleDeposit}
+        highestDeposit={highestDeposit}
+      />
     </Card>
   );
 }

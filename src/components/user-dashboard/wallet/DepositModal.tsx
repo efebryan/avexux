@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Landmark, CreditCard, AlertCircle, Loader2 } from "lucide-react";
+import { Landmark, CreditCard, AlertCircle, Loader2, Lock } from "lucide-react";
 import { usePaystackPayment } from "react-paystack";
 import { toast } from "sonner";
 import { verifyDepositAction } from "@/app/(dashboard)/user/wallet/paystack-actions";
@@ -12,12 +12,13 @@ interface DepositModalProps {
   isOpen: boolean;
   onClose: () => void;
   onDeposit: (amount: number, method: string) => void;
+  highestDeposit?: number;
 }
 
-export function DepositModal({ isOpen, onClose, onDeposit }: DepositModalProps) {
+export function DepositModal({ isOpen, onClose, onDeposit, highestDeposit = 0 }: DepositModalProps) {
   const [amount, setAmount] = useState<string>("");
   const [isProcessing, setIsProcessing] = useState(false);
-  const minDeposit = 1000;
+  const minDeposit = 18000;
 
   // Use a fallback public key for local dev if environment variable is missing
   const publicKey = process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY || "pk_test_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx";
@@ -75,22 +76,41 @@ export function DepositModal({ isOpen, onClose, onDeposit }: DepositModalProps) 
 
         <form onSubmit={handlePay}>
           <div className="p-4 space-y-4">
-            {/* Amount */}
-            <div className="space-y-1">
-              <Label className="text-xs text-gray-900 font-semibold">Amount to Deposit (₦)</Label>
-              <Input 
-                type="number" 
-                placeholder={`Min: ₦${minDeposit.toLocaleString()}`}
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                required
-                className={`h-9 rounded-lg text-sm ${parseFloat(amount) < minDeposit && amount ? "border-red-500 focus-visible:ring-red-200" : ""}`}
-              />
-              {amount && parseFloat(amount) < minDeposit && (
-                <p className="text-red-500 text-[10px] flex items-center gap-1 mt-0.5">
-                  <AlertCircle className="w-3 h-3" /> Minimum deposit is ₦{minDeposit.toLocaleString()}
-                </p>
-              )}
+            {/* Amount Selection */}
+            <div className="space-y-2">
+              <Label className="text-xs text-gray-900 font-semibold">Select Deposit Package</Label>
+              <div className="grid grid-cols-2 gap-2">
+                {[
+                  { label: "Lite Plan", amount: 18000 },
+                  { label: "Growth Plan", amount: 42000 },
+                  { label: "Pro Business", amount: 88000 },
+                  { label: "Enterprise Pro", amount: 124000 },
+                ].map((plan) => {
+                  const isLocked = plan.amount <= highestDeposit;
+                  return (
+                  <button
+                    key={plan.label}
+                    type="button"
+                    disabled={isLocked}
+                    onClick={() => setAmount(plan.amount.toString())}
+                    className={`p-2.5 rounded-xl border text-left transition-all ${
+                      isLocked
+                        ? "border-gray-100 bg-gray-50 opacity-50 cursor-not-allowed"
+                        : amount === plan.amount.toString() 
+                          ? "border-[#2faf2f] bg-[#e6f7e6] ring-2 ring-[#2faf2f]/20" 
+                          : "border-gray-200 hover:border-[#2faf2f]/50 hover:bg-gray-50 bg-white"
+                    }`}
+                  >
+                    <div className="flex justify-between items-start">
+                      <div className="text-[11px] font-bold text-gray-900">{plan.label}</div>
+                      {isLocked && <Lock className="w-3 h-3 text-gray-400" />}
+                    </div>
+                    <div className={`text-sm font-extrabold mt-0.5 ${isLocked ? "text-gray-400" : "text-[#2faf2f]"}`}>
+                      ₦{plan.amount.toLocaleString()}
+                    </div>
+                  </button>
+                )})}
+              </div>
             </div>
 
             {/* Bank Transfer Details */}
