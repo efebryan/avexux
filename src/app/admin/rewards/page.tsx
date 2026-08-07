@@ -23,10 +23,8 @@ const daysOfWeek = [
 const planLabels: Record<string, string> = {
   bronze: "Bronze Starter",
   silver: "Silver Earner",
-  gold: "Gold Master",
   platinum: "Platinum Pro",
-  diamond: "Diamond Elite",
-  apex: "Apex Legend"
+  diamond: "Diamond Elite"
 };
 
 // Mock Sectors (Fallback)
@@ -47,10 +45,8 @@ export default function AdminRewardsPage() {
   const [spinsPerPlanConfig, setSpinsPerPlanConfig] = useState<Record<string, number[]>>({
     bronze: [5],
     silver: [1, 5],
-    gold: [1, 3, 5],
     platinum: [1, 2, 3, 4, 5],
-    diamond: [1, 2, 3, 4, 5],
-    apex: [1, 2, 3, 4, 5]
+    diamond: [1, 2, 3, 4, 5]
   });
 
   // Congrats Modal Config State

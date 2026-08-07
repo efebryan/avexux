@@ -11,8 +11,8 @@ import { Trophy } from "lucide-react";
 const ranksConfig = [
   { id: "bronze", threshold: 0 },
   { id: "silver", threshold: 18000 },
-  { id: "gold", threshold: 42000 },
-  { id: "Premium", threshold: 88000 }, // Matches platinum/diamond/apex
+  { id: "platinum", threshold: 88000 },
+  { id: "diamond", threshold: 124000 },
 ];
 
 const DepositModal = dynamic(() => import("@/components/user-dashboard/wallet/DepositModal").then(mod => mod.DepositModal), {

@@ -22,14 +22,7 @@ const ranksConfig = [
       current: { bg: "bg-slate-50 border-slate-300 ring-2 ring-slate-400/20", text: "text-slate-800" }
     }
   },
-  { 
-    id: "gold", name: "Gold Master", level: "Tier 3", threshold: 42000,
-    icon: <Crown className="w-4 h-4 text-amber-500" />,
-    colors: {
-      unlocked: { bg: "bg-amber-50 border-amber-200", text: "text-amber-900" },
-      current: { bg: "bg-amber-50 border-amber-300 ring-2 ring-amber-400/20", text: "text-amber-900" }
-    }
-  },
+
   { 
     id: "platinum", name: "Platinum Pro", level: "Tier 4", threshold: 88000,
     icon: <Trophy className="w-4 h-4 text-cyan-500" />,
@@ -46,14 +39,7 @@ const ranksConfig = [
       current: { bg: "bg-indigo-50 border-indigo-300 ring-2 ring-indigo-400/20", text: "text-indigo-900" }
     }
   },
-  { 
-    id: "apex", name: "Apex Legend", level: "Tier 6", threshold: 200000,
-    icon: <Flame className="w-4 h-4 text-rose-500" />,
-    colors: {
-      unlocked: { bg: "bg-rose-50 border-rose-200", text: "text-rose-800" },
-      current: { bg: "bg-rose-50 border-rose-300 ring-2 ring-rose-400/20", text: "text-rose-900" }
-    }
-  },
+
 ];
 
 export function RankAchievements() {
@@ -106,7 +92,7 @@ export function RankAchievements() {
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider flex items-center gap-1.5">
           <Trophy className="w-3.5 h-3.5 text-[#2faf2f]" />
-          Rank Achievements (6 Tiers)
+          Rank Achievements (4 Tiers)
         </h3>
         <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-[#e6f7e6] text-[#2faf2f] uppercase tracking-wide">
           {currentRankName}

@@ -8,10 +8,10 @@ import { useRouter } from "next/navigation";
 const ranksConfig = [
   { id: "bronze", threshold: 0 },
   { id: "silver", threshold: 18000 },
-  { id: "gold", threshold: 42000 },
+
   { id: "platinum", threshold: 88000 },
   { id: "diamond", threshold: 124000 },
-  { id: "apex", threshold: 200000 },
+
 ];
 
 interface CongratulationsModalProps {

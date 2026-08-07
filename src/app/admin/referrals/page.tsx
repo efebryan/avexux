@@ -26,10 +26,8 @@ import { Input } from "@/components/ui/input";
 const planLabels: Record<string, string> = {
   bronze: "Bronze Starter",
   silver: "Silver Earner",
-  gold: "Gold Master",
   platinum: "Platinum Pro",
-  diamond: "Diamond Elite",
-  apex: "Apex Legend"
+  diamond: "Diamond Elite"
 };
 
 export default function ReferralsPage() {
@@ -52,10 +50,8 @@ export default function ReferralsPage() {
   const [commissionConfig, setCommissionConfig] = useState<Record<string, number>>({
     bronze: 0,
     silver: 1000,
-    gold: 2500,
-    platinum: 5000,
-    diamond: 8000,
-    apex: 12000
+    platinum: 4500,
+    diamond: 7500
   });
 
   useEffect(() => {
@@ -468,8 +464,8 @@ export default function ReferralsPage() {
             <div className="space-y-6">
               <div>
                 <div className="flex justify-between items-center mb-2">
-                  <span className="text-sm font-bold text-slate-900">Tier 1 (Diamond)</span>
-                  <span className="text-sm font-bold text-green-600">12%</span>
+                  <span className="text-sm font-bold text-slate-900">Tier 3 (Diamond)</span>
+                  <span className="text-sm font-bold text-green-500">12%</span>
                 </div>
                 <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden mb-1">
                   <div className="h-full bg-green-500 rounded-full" style={{ width: '12%' }}></div>
@@ -479,7 +475,7 @@ export default function ReferralsPage() {
 
               <div>
                 <div className="flex justify-between items-center mb-2">
-                  <span className="text-sm font-bold text-slate-900">Tier 2 (Gold)</span>
+                  <span className="text-sm font-bold text-slate-900">Tier 2 (Platinum)</span>
                   <span className="text-sm font-bold text-amber-500">34%</span>
                 </div>
                 <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden mb-1">
@@ -490,7 +486,7 @@ export default function ReferralsPage() {
 
               <div>
                 <div className="flex justify-between items-center mb-2">
-                  <span className="text-sm font-bold text-slate-900">Tier 3 (Silver)</span>
+                  <span className="text-sm font-bold text-slate-900">Tier 1 (Silver)</span>
                   <span className="text-sm font-bold text-indigo-500">54%</span>
                 </div>
                 <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden mb-1">

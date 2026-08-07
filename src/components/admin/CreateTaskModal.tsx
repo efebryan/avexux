@@ -154,8 +154,8 @@ export function CreateTaskModal({ isOpen, onClose, onTaskCreate }: CreateTaskMod
                 <option value="All">All Plans</option>
                 <option value="bronze">Bronze Starter</option>
                 <option value="silver">Silver Earner</option>
-                <option value="gold">Gold Master</option>
-                <option value="Premium">Premium (Platinum, Diamond, Apex)</option>
+                <option value="platinum">Platinum Pro</option>
+                <option value="diamond">Diamond Elite</option>
               </select>
             </div>
           </div>

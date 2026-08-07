@@ -8,10 +8,10 @@ import { createClient } from "@/utils/supabase/client";
 const ranksConfig = [
   { id: "bronze", threshold: 0 },
   { id: "silver", threshold: 18000 },
-  { id: "gold", threshold: 42000 },
+
   { id: "platinum", threshold: 88000 },
   { id: "diamond", threshold: 124000 },
-  { id: "apex", threshold: 200000 },
+
 ];
 
 export interface NotificationItem {
@@ -101,8 +101,7 @@ export function NotificationDropdown() {
       if (settingsData?.value?.planDays && settingsData.value.planDays[userPlan]) {
         spinDays = settingsData.value.planDays[userPlan];
       } else {
-        if (["platinum", "diamond", "apex"].includes(userPlan)) spinDays = [1, 2, 3, 4, 5];
-        else if (userPlan === "gold") spinDays = [1, 3, 5];
+        if (["platinum", "diamond"].includes(userPlan)) spinDays = [1, 2, 3, 4, 5];
         else if (userPlan === "silver") spinDays = [1, 5];
       }
 
