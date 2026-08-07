@@ -244,6 +244,12 @@ export default function AdminOverviewPage() {
   const [totalTasks, setTotalTasks] = useState(0);
   const [activeTasks, setActiveTasks] = useState(0);
   const [totalReferrals, setTotalReferrals] = useState(0);
+  
+  // Real data for subtexts
+  const [pendingWithdrawalsCount, setPendingWithdrawalsCount] = useState(0);
+  const [totalReferralsPayout, setTotalReferralsPayout] = useState(0);
+  const [depositsToday, setDepositsToday] = useState(0);
+  const [usersThisWeek, setUsersThisWeek] = useState(0);
 
   useEffect(() => {
     async function fetchFinancials() {
@@ -297,6 +303,44 @@ export default function AdminOverviewPage() {
         .select("*", { count: "exact", head: true })
         .eq("status", "Active");
       if (activeTasksCount !== null) setActiveTasks(activeTasksCount);
+
+      // Fetch Subtext Real Data
+      const { count: pWithdrawals } = await supabase
+        .from("transactions")
+        .select("*", { count: "exact", head: true })
+        .eq("type", "WITHDRAWAL")
+        .eq("status", "Pending");
+      if (pWithdrawals !== null) setPendingWithdrawalsCount(pWithdrawals);
+
+      const { data: refPayout } = await supabase
+        .from("referrals")
+        .select("commission_earned")
+        .eq("status", "Completed");
+      if (refPayout) {
+        const refSum = refPayout.reduce((acc, r) => acc + (Number(r.commission_earned) || 0), 0);
+        setTotalReferralsPayout(refSum);
+      }
+
+      const startOfDay = new Date();
+      startOfDay.setHours(0,0,0,0);
+      const { data: depsToday } = await supabase
+        .from("transactions")
+        .select("amount")
+        .eq("type", "DEPOSIT")
+        .eq("status", "Completed")
+        .gte("created_at", startOfDay.toISOString());
+      if (depsToday) {
+        const depSum = depsToday.reduce((acc, r) => acc + (Number(r.amount) || 0), 0);
+        setDepositsToday(depSum);
+      }
+
+      const startOfWeek = new Date();
+      startOfWeek.setDate(startOfWeek.getDate() - 7);
+      const { count: uThisWeek } = await supabase
+        .from("profiles")
+        .select("*", { count: "exact", head: true })
+        .gte("created_at", startOfWeek.toISOString());
+      if (uThisWeek !== null) setUsersThisWeek(uThisWeek);
     }
     fetchFinancials();
   }, []);
@@ -351,29 +395,29 @@ export default function AdminOverviewPage() {
             <div className="mt-auto pt-1 border-t border-slate-50">
               {i === 0 ? (
                 <p className="text-[10px] text-green-600 font-bold flex items-center gap-1">
-                  <TrendingUp className="w-3 h-3 shrink-0" /> <span className="truncate">{stat.subtext}</span>
+                  <TrendingUp className="w-3 h-3 shrink-0" /> <span className="truncate">+{usersThisWeek} this week</span>
                 </p>
               ) : i === 1 ? (
                 <p className="text-[10px] text-slate-400 font-medium flex items-center gap-1">
-                  <Activity className="w-3 h-3 shrink-0" /> <span className="truncate">{stat.subtext}</span>
+                  <Activity className="w-3 h-3 shrink-0" /> <span className="truncate">Active accounts</span>
                 </p>
               ) : i === 2 ? (
                 <p className="text-[10px] font-bold flex items-center gap-1 whitespace-nowrap">
                   <span className="text-green-600">{activeTasks} active</span>
                   <span className="text-slate-300">•</span>
-                  <span className="text-slate-400">{totalTasks - activeTasks} paused</span>
+                  <span className="text-slate-400">{Math.max(0, totalTasks - activeTasks)} inactive</span>
                 </p>
               ) : i === 3 ? (
                 <p className="text-[10px] font-bold text-slate-500 truncate">
-                  <span className="text-slate-900">₦145k</span> paid out
+                  <span className="text-slate-900">₦{totalReferralsPayout.toLocaleString()}</span> paid out
                 </p>
               ) : i === 4 ? (
                 <p className="text-[10px] text-green-600 font-bold flex items-center gap-0.5 truncate">
-                  <span className="text-sm leading-none">+</span> {stat.subtext.replace('+ ', '')}
+                  <span className="text-sm leading-none">+</span> ₦{depositsToday.toLocaleString()} today
                 </p>
               ) : (
                 <p className="text-[10px] text-amber-500 font-bold flex items-center gap-1 truncate">
-                  <Calendar className="w-3 h-3 shrink-0" /> {stat.subtext}
+                  <AlertCircle className="w-3 h-3 shrink-0" /> {pendingWithdrawalsCount} pending requests
                 </p>
               )}
             </div>
