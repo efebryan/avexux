@@ -14,7 +14,8 @@ import {
   FileText,
   LogOut,
   Gift,
-  History
+  History,
+  Coins
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -22,6 +23,7 @@ const navItems = [
   { name: "Overview", href: "/admin", icon: LayoutDashboard },
   { name: "Users", href: "/admin/users", icon: Users },
   { name: "Tasks", href: "/admin/tasks", icon: ClipboardList },
+  { name: "Earning Configs", href: "/admin/earning-configs", icon: Coins },
   { name: "Financials", href: "/admin/financials", icon: Wallet },
   { name: "Referrals", href: "/admin/referrals", icon: RefreshCw },
   { name: "Rewards", href: "/admin/rewards", icon: Gift },
