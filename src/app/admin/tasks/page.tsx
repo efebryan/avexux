@@ -12,7 +12,7 @@ import { DeleteModal } from "@/components/ui/delete-modal";
 import { adminNotifyUserAction } from "../actions";
 
 export default function AdminTasksPage() {
-  const [activeTab, setActiveTab] = useState<"manage" | "review">("manage");
+  const [activeTab, setActiveTab] = useState<"manage" | "archived" | "review">("manage");
   const [tasks, setTasks] = useState<any[]>([]);
   const [submissions, setSubmissions] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -182,6 +182,12 @@ export default function AdminTasksPage() {
           Manage Tasks
         </button>
         <button 
+          onClick={() => setActiveTab("archived")}
+          className={`pb-4 text-sm font-bold border-b-2 transition-all whitespace-nowrap ${activeTab === "archived" ? "border-primary text-primary" : "border-transparent text-slate-500 hover:text-slate-700"}`}
+        >
+          Archived Tasks
+        </button>
+        <button 
           onClick={() => setActiveTab("review")}
           className={`pb-4 text-sm font-bold border-b-2 transition-all flex items-center gap-2 whitespace-nowrap ${activeTab === "review" ? "border-primary text-primary" : "border-transparent text-slate-500 hover:text-slate-700"}`}
         >
@@ -193,7 +199,7 @@ export default function AdminTasksPage() {
       </div>
 
       {/* Content based on Tab */}
-      {activeTab === "manage" ? (
+      {activeTab === "manage" || activeTab === "archived" ? (
         <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-sm text-left">
@@ -209,80 +215,100 @@ export default function AdminTasksPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50">
-                {tasks.length > 0 ? tasks.map((task) => (
-                  <tr key={task.id} className="hover:bg-primary/5 transition-colors group">
-                    <td className="px-6 py-4">
-                      <p className="font-bold text-slate-900 leading-tight">{task.title}</p>
-                      <p className="text-[11px] text-slate-500 mt-1">{task.advertiser} • {task.created}</p>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex flex-col gap-1 items-start">
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-600 bg-slate-100/80 px-2.5 py-1 rounded-md border border-slate-200/50">
-                          {task.category}
+                {(() => {
+                  const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+                  const currentDayIndex = new Date().getDay();
+                  
+                  const filteredTasks = tasks.filter(task => {
+                    const taskDay = task.day_of_week || 'Friday';
+                    const taskDayIndex = dayNames.indexOf(taskDay);
+                    // If index not found (e.g. invalid day), assume it's upcoming to be safe
+                    const index = taskDayIndex === -1 ? 7 : taskDayIndex;
+                    
+                    if (activeTab === "manage") {
+                      return index >= currentDayIndex; // Today or upcoming
+                    } else {
+                      return index < currentDayIndex; // Passed days
+                    }
+                  });
+
+                  return filteredTasks.length > 0 ? filteredTasks.map((task) => (
+                    <tr key={task.id} className="hover:bg-primary/5 transition-colors group">
+                      <td className="px-6 py-4">
+                        <p className="font-bold text-slate-900 leading-tight">{task.title}</p>
+                        <p className="text-[11px] text-slate-500 mt-1">{task.advertiser} • {task.created}</p>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex flex-col gap-1 items-start">
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-600 bg-slate-100/80 px-2.5 py-1 rounded-md border border-slate-200/50">
+                            {task.category}
+                          </span>
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-primary bg-primary/10 px-2.5 py-1 rounded-md">
+                            {task.day_of_week || 'Friday'}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="text-[11px] font-bold text-slate-700 bg-slate-100 px-2 py-1 rounded-md">
+                          {task.target_plan === "Premium" ? "Premium" : task.target_plan === "All" ? "All Plans" : task.target_plan?.charAt(0).toUpperCase() + task.target_plan?.slice(1)}
                         </span>
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-primary bg-primary/10 px-2.5 py-1 rounded-md">
-                          {task.day_of_week || 'Friday'}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="text-[11px] font-bold text-slate-700 bg-slate-100 px-2 py-1 rounded-md">
-                        {task.target_plan === "Premium" ? "Premium" : task.target_plan === "All" ? "All Plans" : task.target_plan?.charAt(0).toUpperCase() + task.target_plan?.slice(1)}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 font-extrabold text-emerald-600">
-                      ₦{task.reward.toLocaleString()}
-                    </td>
-                    <td className="px-6 py-4 font-medium text-slate-700">
-                      <span className="text-primary font-bold">{task.submissions}</span> submitted
-                    </td>
-                    <td className="px-6 py-4">
-                      <button 
-                        onClick={() => toggleTaskStatus(task.id, task.status)}
-                        className={`text-[10px] font-bold px-2.5 py-1 rounded-md uppercase tracking-wider transition-colors border ${
-                          task.status === "Active" ? "bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100" : "bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100"
-                        }`}
-                      >
-                        {task.status}
-                      </button>
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <div className="flex items-center justify-end gap-1 opacity-90 hover:opacity-100 transition-opacity">
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          onClick={() => setSelectedTaskForPreview(task)} 
-                          title="Preview Task Details"
-                          className="h-8 w-8 p-0 text-slate-600 hover:text-primary hover:bg-slate-100 rounded-lg"
+                      </td>
+                      <td className="px-6 py-4 font-extrabold text-emerald-600">
+                        ₦{task.reward.toLocaleString()}
+                      </td>
+                      <td className="px-6 py-4 font-medium text-slate-700">
+                        <span className="text-primary font-bold">{task.submissions}</span> submitted
+                      </td>
+                      <td className="px-6 py-4">
+                        <button 
+                          onClick={() => toggleTaskStatus(task.id, task.status)}
+                          className={`text-[10px] font-bold px-2.5 py-1 rounded-md uppercase tracking-wider transition-colors border ${
+                            task.status === "Active" ? "bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100" : "bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100"
+                          }`}
                         >
-                          <Eye className="w-4 h-4" />
-                        </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          onClick={() => handleEditTask(task)} 
-                          title="Edit Task"
-                          className="h-8 w-8 p-0 text-slate-600 hover:text-primary hover:bg-slate-100 rounded-lg"
-                        >
-                          <Edit2 className="w-4 h-4" />
-                        </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          onClick={() => setTaskToDelete({ id: task.id, title: task.title })} 
-                          title="Delete Task"
-                          className="h-8 w-8 p-0 text-red-600 hover:bg-red-50 rounded-lg"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                )) : (
-                  <tr>
-                    <td colSpan={6} className="text-center py-10 text-slate-500 font-medium">No tasks found. Create one to get started!</td>
-                  </tr>
-                )}
+                          {task.status}
+                        </button>
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <div className="flex items-center justify-end gap-1 opacity-90 hover:opacity-100 transition-opacity">
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            onClick={() => setSelectedTaskForPreview(task)} 
+                            title="Preview Task Details"
+                            className="h-8 w-8 p-0 text-slate-600 hover:text-primary hover:bg-slate-100 rounded-lg"
+                          >
+                            <Eye className="w-4 h-4" />
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            onClick={() => handleEditTask(task)} 
+                            title="Edit Task"
+                            className="h-8 w-8 p-0 text-slate-600 hover:text-primary hover:bg-slate-100 rounded-lg"
+                          >
+                            <Edit2 className="w-4 h-4" />
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            onClick={() => setTaskToDelete({ id: task.id, title: task.title })} 
+                            title="Delete Task"
+                            className="h-8 w-8 p-0 text-red-600 hover:bg-red-50 rounded-lg"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  )) : (
+                    <tr>
+                      <td colSpan={7} className="text-center py-10 text-slate-500 font-medium">
+                        {activeTab === "manage" ? "No upcoming tasks found. Create one to get started!" : "No archived tasks found."}
+                      </td>
+                    </tr>
+                  );
+                })()}
               </tbody>
             </table>
           </div>
