@@ -32,6 +32,7 @@ export default function WalletPage() {
   const [pendingBalance, setPendingBalance] = useState(0);
   const [bonusEarnings, setBonusEarnings] = useState(0);
   const [referralEarnings, setReferralEarnings] = useState(0);
+  const [bankDetails, setBankDetails] = useState<{ bankName: string; accountNumber: string; accountName: string } | null>(null);
 
   useEffect(() => {
     async function fetchWallet() {
@@ -43,6 +44,20 @@ export default function WalletPage() {
           .select("balance, pending_balance, total_earned")
           .eq("user_id", user.id)
           .single();
+          
+        const { data: profileData } = await supabase
+          .from("profiles")
+          .select("bank_name, account_number, account_name")
+          .eq("id", user.id)
+          .single();
+          
+        if (profileData && profileData.bank_name) {
+          setBankDetails({
+            bankName: profileData.bank_name,
+            accountNumber: profileData.account_number,
+            accountName: profileData.account_name || ""
+          });
+        }
         
         if (walletData) {
           setAvailableBalance(walletData.balance);
@@ -130,7 +145,7 @@ export default function WalletPage() {
         id: `w${Date.now()}`,
         date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
         method,
-        accountDetails: method === "Bank Transfer" ? "Local Bank - 1234567890" : "0801***456",
+        accountDetails: bankDetails ? `${bankDetails.bankName} - ${bankDetails.accountNumber}` : "Local Bank - 1234567890",
         amount,
         status: "Pending"
       };
@@ -208,6 +223,7 @@ export default function WalletPage() {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         availableBalance={withdrawableBalance}
+        bankDetails={bankDetails}
         onWithdraw={handleWithdrawRequest}
       />
 

@@ -12,14 +12,20 @@ export async function requestWithdrawalAction(amount: number, method: string, ac
     return { success: false, error: "Unauthorized" };
   }
 
-  // Define placeholders based on method
-  let bankName = method;
-  let accountNumber = "N/A";
+  // Fetch user's saved bank details
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("bank_name, account_number, account_name")
+    .eq("id", user.id)
+    .single();
 
-  if (method === "Bank Transfer") {
-    bankName = "Local Bank";
-    accountNumber = "1234567890"; // We can prompt user for this later, for now we use a placeholder or they will submit it.
+  if (!profile || !profile.bank_name || !profile.account_number) {
+    return { success: false, error: "Please set up your Bank Details in settings first." };
   }
+
+  const bankName = profile.bank_name;
+  const accountNumber = profile.account_number;
+  const actualAccountName = profile.account_name || accountName;
 
   const { data: rpcResult, error: rpcError } = await supabase.rpc(
     "request_withdrawal",
@@ -28,7 +34,7 @@ export async function requestWithdrawalAction(amount: number, method: string, ac
       p_amount: amount,
       p_bank_name: bankName,
       p_account_number: accountNumber,
-      p_account_name: accountName,
+      p_account_name: actualAccountName,
     }
   );
 

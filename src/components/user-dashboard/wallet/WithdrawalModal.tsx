@@ -9,12 +9,13 @@ interface WithdrawalModalProps {
   isOpen: boolean;
   onClose: () => void;
   availableBalance: number;
+  bankDetails: { bankName: string; accountNumber: string; accountName: string } | null;
   onWithdraw: (amount: number, method: string) => void;
 }
 
 const withdrawalAmounts = [5000, 10000, 20000, 50000, 100000, 200000, 500000];
 
-export function WithdrawalModal({ isOpen, onClose, availableBalance, onWithdraw }: WithdrawalModalProps) {
+export function WithdrawalModal({ isOpen, onClose, availableBalance, bankDetails, onWithdraw }: WithdrawalModalProps) {
   const [amount, setAmount] = useState<string>("5000");
 
   const handleWithdraw = () => {
@@ -24,7 +25,7 @@ export function WithdrawalModal({ isOpen, onClose, availableBalance, onWithdraw 
     }
   };
 
-  const isInvalid = parseFloat(amount) > availableBalance || !amount;
+  const isInvalid = parseFloat(amount) > availableBalance || !amount || !bankDetails;
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -38,11 +39,35 @@ export function WithdrawalModal({ isOpen, onClose, availableBalance, onWithdraw 
 
         <div className="p-4 space-y-4">
           <div className="space-y-1.5">
-            <Label className="text-xs text-gray-900 font-semibold">Payment Method</Label>
-            <div className="p-3 bg-gray-50 rounded-lg border border-gray-100 flex items-center gap-2">
-              <Landmark className="w-4 h-4 text-[#0f8538]" />
-              <span className="text-xs font-bold text-gray-700">Bank Transfer Only</span>
-            </div>
+            <Label className="text-xs text-gray-900 font-semibold">Payment Destination</Label>
+            
+            {!bankDetails ? (
+              <div className="p-3 bg-rose-50 rounded-lg border border-rose-100 flex flex-col gap-2">
+                <div className="flex items-center gap-2 text-rose-600">
+                  <AlertCircle className="w-4 h-4" />
+                  <span className="text-xs font-bold">Bank Details Missing</span>
+                </div>
+                <p className="text-[11px] text-rose-500 font-medium">You must set up your bank details in your account settings before you can withdraw funds.</p>
+                <Button 
+                  variant="outline" 
+                  className="mt-1 h-8 text-xs font-bold bg-white border-rose-200 text-rose-600 hover:bg-rose-50"
+                  onClick={() => window.location.href = '/user/settings?tab=bank'}
+                >
+                  Set up Bank Details
+                </Button>
+              </div>
+            ) : (
+              <div className="p-3 bg-gray-50 rounded-lg border border-gray-200 flex flex-col gap-1">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Landmark className="w-4 h-4 text-[#0f8538]" />
+                    <span className="text-xs font-bold text-gray-700">{bankDetails.bankName}</span>
+                  </div>
+                  <span className="text-xs font-bold text-gray-500">{bankDetails.accountNumber}</span>
+                </div>
+                <p className="text-[11px] text-gray-500 pl-6 font-medium uppercase tracking-wide">{bankDetails.accountName}</p>
+              </div>
+            )}
           </div>
 
           <div className="space-y-1.5">

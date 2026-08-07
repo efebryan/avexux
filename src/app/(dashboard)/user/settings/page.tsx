@@ -5,6 +5,8 @@ import { User, Shield, Bell } from "lucide-react";
 import { ProfileSettings } from "@/components/user-dashboard/settings/ProfileSettings";
 import { SecuritySettings } from "@/components/user-dashboard/settings/SecuritySettings";
 import { NotificationSettings } from "@/components/user-dashboard/settings/NotificationSettings";
+import { BankSettings } from "@/components/user-dashboard/settings/BankSettings";
+import { Landmark } from "lucide-react";
 
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState("profile");
@@ -13,7 +15,7 @@ export default function SettingsPage() {
     if (typeof window !== "undefined") {
       const params = new URLSearchParams(window.location.search);
       const tab = params.get("tab");
-      if (tab && ["profile", "security", "notifications"].includes(tab)) {
+      if (tab && ["profile", "security", "notifications", "bank"].includes(tab)) {
         setActiveTab(tab);
       }
     }
@@ -21,6 +23,7 @@ export default function SettingsPage() {
 
   const tabs = [
     { id: "profile", label: "Profile Management", icon: User },
+    { id: "bank", label: "Bank Details", icon: Landmark },
     { id: "security", label: "Security", icon: Shield },
     { id: "notifications", label: "Notifications", icon: Bell },
   ];
@@ -56,6 +59,7 @@ export default function SettingsPage() {
       {/* Main Content Area */}
       <div className="bg-white rounded-xl border border-gray-100 p-4 md:p-6 shadow-sm">
         {activeTab === "profile" && <ProfileSettings />}
+        {activeTab === "bank" && <BankSettings />}
         {activeTab === "security" && <SecuritySettings />}
         {activeTab === "notifications" && <NotificationSettings />}
       </div>
