@@ -3,6 +3,15 @@
 import { createClient } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
 
+const ranksConfig = [
+  { id: "bronze", threshold: 0 },
+  { id: "silver", threshold: 18000 },
+  { id: "gold", threshold: 42000 },
+  { id: "platinum", threshold: 88000 },
+  { id: "diamond", threshold: 124000 },
+  { id: "apex", threshold: 200000 },
+];
+
 export async function verifyDepositAction(reference: string, expectedAmount: number) {
   try {
     const supabase = await createClient();
@@ -42,6 +51,53 @@ export async function verifyDepositAction(reference: string, expectedAmount: num
 
     if (rpcData && rpcData.success === false) {
       return { success: false, error: rpcData.error };
+    }
+
+    // 4. Referral Commission Logic
+    // Check if the user was referred and if the referral is still 'Pending'
+    const { data: referral } = await supabase
+      .from("referrals")
+      .select("id, referrer_id, status")
+      .eq("referred_id", user.id)
+      .eq("status", "Pending")
+      .single();
+
+    if (referral) {
+      // Calculate user's new total deposit to determine their plan
+      const { data: txData } = await supabase
+        .from("transactions")
+        .select("amount")
+        .eq("user_id", user.id)
+        .eq("type", "DEPOSIT")
+        .eq("status", "Completed");
+
+      let highestDep = 0;
+      if (txData) {
+        highestDep = txData.reduce((max: number, tx: any) => Math.max(max, Number(tx.amount)), 0);
+      }
+
+      // Determine rank
+      const rankIndex = Math.max(0, ranksConfig.findLastIndex(r => highestDep >= r.threshold));
+      const userPlanId = ranksConfig[rankIndex].id;
+
+      // Fetch commission config
+      const { data: configData } = await supabase
+        .from("app_settings")
+        .select("value")
+        .eq("key", "referral_commission_config")
+        .single();
+      
+      let commissionAmount = 0;
+      if (configData?.value && typeof configData.value[userPlanId] === 'number') {
+        commissionAmount = configData.value[userPlanId];
+      }
+
+      // Process commission via RPC securely
+      await supabase.rpc('process_referral_commission', {
+        p_referral_id: referral.id,
+        p_referrer_id: referral.referrer_id,
+        p_commission_amount: commissionAmount
+      });
     }
 
     // Refresh wallet page data

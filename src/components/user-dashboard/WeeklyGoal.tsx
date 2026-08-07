@@ -3,9 +3,13 @@
 import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { DepositModal } from "@/components/user-dashboard/wallet/DepositModal";
+import dynamic from "next/dynamic";
 import { createClient } from "@/utils/supabase/client";
 import { toast } from "sonner";
+
+const DepositModal = dynamic(() => import("@/components/user-dashboard/wallet/DepositModal").then(mod => mod.DepositModal), {
+  ssr: false,
+});
 
 export function WeeklyGoal() {
   const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);

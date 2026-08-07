@@ -10,6 +10,15 @@ export interface Sector {
   type?: "cash" | "premium" | "gift" | "none";
 }
 
+const ranksConfig = [
+  { id: "bronze", threshold: 0 },
+  { id: "silver", threshold: 18000 },
+  { id: "gold", threshold: 42000 },
+  { id: "platinum", threshold: 88000 },
+  { id: "diamond", threshold: 124000 },
+  { id: "apex", threshold: 200000 },
+];
+
 // Fallback if DB not configured
 const defaultSectors: Sector[] = [
   { label: "₦1,000 Cash", color: "#10b981", isWin: true, value: 1000, type: "cash" },
@@ -26,50 +35,60 @@ export async function executeSpinAction() {
     return { success: false, error: "Unauthorized" };
   }
 
-  // Check if today is Tuesday (2) or Friday (5)
-  const today = new Date().getDay();
-  if (today !== 2 && today !== 5) {
-    return { success: false, error: "Spins are only available on Tuesdays and Fridays!" };
-  }
-
-  // 0. Fetch Dynamic Config
+  // 0. Fetch Dynamic Configs (Sectors and Spins Per Plan)
   let sectors = defaultSectors;
   let SPIN_COST = 500;
+  let planConfig: Record<string, number[]> | null = null;
   
-  const { data: wheelData } = await supabase
+  const { data: appSettings } = await supabase
     .from("app_settings")
-    .select("value")
-    .eq("key", "spin_wheel_config")
-    .single();
+    .select("key, value")
+    .in("key", ["spin_wheel_config", "spins_per_plan_config"]);
     
-  if (wheelData?.value) {
-    sectors = wheelData.value.sectors;
-    SPIN_COST = wheelData.value.cost || 500;
+  if (appSettings) {
+    const wheelConf = appSettings.find(s => s.key === "spin_wheel_config");
+    if (wheelConf?.value) {
+      sectors = wheelConf.value.sectors;
+      SPIN_COST = wheelConf.value.cost || 500;
+    }
+    
+    const planConf = appSettings.find(s => s.key === "spins_per_plan_config");
+    if (planConf?.value) {
+      planConfig = planConf.value;
+    }
   }
 
-  // 1. Check Wallet Balance & Free Spins
-  const { data: wallet, error: walletError } = await supabase
-    .from("wallets")
-    .select("balance, free_spins")
-    .eq("user_id", user.id)
-    .single();
-
-  if (walletError || !wallet) {
-    return { success: false, error: "Could not retrieve wallet" };
+  // 1. Determine User Plan based on highest deposit
+  const { data: txData } = await supabase
+    .from("transactions")
+    .select("*")
+    .eq("user_id", user.id);
+  
+  let highestDep = 0;
+  if (txData) {
+    highestDep = txData
+      .filter((tx: any) => tx.type?.toLowerCase() === 'deposit' || (tx.metadata?.description || "").toLowerCase().includes('deposit'))
+      .reduce((max: number, tx: any) => Math.max(max, Number(tx.amount)), 0);
   }
+  
+  const rankIndex = Math.max(0, ranksConfig.findLastIndex(r => highestDep >= r.threshold));
+  const userPlanId = ranksConfig[rankIndex].id;
 
-  let costToDeduct = 0;
-  let isFreeSpin = false;
-
-  if (wallet.free_spins > 0) {
-    isFreeSpin = true;
-  } else if (wallet.balance >= SPIN_COST) {
-    costToDeduct = SPIN_COST;
+  // 2. Check if today is a valid spin day for this plan
+  const today = new Date().getDay();
+  let isValidDay = false;
+  if (planConfig && planConfig[userPlanId]) {
+    isValidDay = planConfig[userPlanId].includes(today);
   } else {
-    return { success: false, error: "Insufficient balance for a spin" };
+    // Fallback: Tue/Fri
+    isValidDay = today === 2 || today === 5;
   }
 
-  // 2. Check for Admin Overrides (Rigged Spins)
+  if (!isValidDay) {
+    return { success: false, error: "Spins are not available today for your current plan." };
+  }
+
+  // 3. Check for Admin Overrides (Rigged Spins)
   let targetSector: Sector | null = null;
   let targetIdx = -1;
 
@@ -93,7 +112,7 @@ export async function executeSpinAction() {
     }
   }
 
-  // 3. Fallback to Randomness (if no override)
+  // 4. Fallback to Randomness (if no override)
   if (targetIdx === -1) {
     const rand = Math.random() * 100;
     
@@ -119,65 +138,23 @@ export async function executeSpinAction() {
     targetSector = sectors[targetIdx];
   }
 
-  // 4. Perform the Transaction
-  if (isFreeSpin) {
-    await supabase
-      .from("wallets")
-      .update({ free_spins: wallet.free_spins - 1 })
-      .eq("user_id", user.id);
-  } else if (costToDeduct > 0) {
-    await supabase
-      .from("wallets")
-      .update({ balance: wallet.balance - costToDeduct })
-      .eq("user_id", user.id);
-      
-    // Record spin transaction
-    await supabase.from("transactions").insert({
-      user_id: user.id,
-      reference_id: `SPIN_COST_${Date.now()}`,
-      type: "SPIN_COST",
-      amount: costToDeduct,
-      status: "Completed",
-      metadata: { note: "Paid for wheel spin" }
-    });
-  }
-
-  // 5. Apply the Reward if Win
-  if (targetSector?.isWin && targetSector.value && targetSector.type === "cash") {
-    // Re-fetch to ensure atomicity
-    const { data: updatedWallet } = await supabase
-      .from("wallets")
-      .select("balance, total_earned")
-      .eq("user_id", user.id)
-      .single();
-
-    if (updatedWallet) {
-      await supabase
-        .from("wallets")
-        .update({ 
-          balance: updatedWallet.balance + targetSector.value,
-          total_earned: updatedWallet.total_earned + targetSector.value
-        })
-        .eq("user_id", user.id);
-        
-      await supabase.from("transactions").insert({
-        user_id: user.id,
-        reference_id: `SPIN_WIN_${Date.now()}`,
-        type: "SPIN_REWARD",
-        amount: targetSector.value,
-        status: "Completed"
-      });
-    }
-  }
-
-  // 6. Log the Reward Spin
-  await supabase.from("rewards_spins").insert({
-    user_id: user.id,
-    reward_label: targetSector?.label || "Unknown",
-    reward_type: targetSector?.type || "none",
-    reward_value: targetSector?.value || 0,
-    cost_paid: costToDeduct
+  // 5. Perform the Transaction via Atomic RPC
+  const { data: rpcResult, error: rpcError } = await supabase.rpc("execute_spin_transaction", {
+    p_user_id: user.id,
+    p_cost: SPIN_COST,
+    p_reward_amount: targetSector?.value || 0,
+    p_reward_label: targetSector?.label || "Unknown",
+    p_reward_type: targetSector?.type || "none"
   });
+
+  if (rpcError) {
+    console.error("RPC Spin Error:", rpcError);
+    // Standardize error message
+    if (rpcError.message.includes("Insufficient balance")) {
+      return { success: false, error: "Insufficient balance for a spin" };
+    }
+    return { success: false, error: "Failed to process spin. Please try again later." };
+  }
 
   return { success: true, targetIdx, wonItem: targetSector };
 }

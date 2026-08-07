@@ -12,19 +12,51 @@ import {
   TrendingDown,
   Banknote,
   LineChart,
-  Loader2
+  Loader2,
+  Wallet,
+  Save,
+  ChevronLeft,
+  ChevronRight
 } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { toast } from "sonner";
+import { Input } from "@/components/ui/input";
+
+const planLabels: Record<string, string> = {
+  bronze: "Bronze Starter",
+  silver: "Silver Earner",
+  gold: "Gold Master",
+  platinum: "Platinum Pro",
+  diamond: "Diamond Elite",
+  apex: "Apex Legend"
+};
 
 export default function ReferralsPage() {
   const [recentPayouts, setRecentPayouts] = useState<any[]>([]);
   const [topReferrers, setTopReferrers] = useState<any[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+  
   const [stats, setStats] = useState({
     totalReferrals: 0,
-    activeAffiliates: 0,
-    totalPayouts: 0
+    activeReferrals: 0,
+    totalEarnings: 0,
+    totalPaidOut: 0,
+    conversionRate: "0.0"
   });
   const [isLoading, setIsLoading] = useState(true);
+
+  // Commission Config State
+  const [commissionModalOpen, setCommissionModalOpen] = useState(false);
+  const [commissionConfig, setCommissionConfig] = useState<Record<string, number>>({
+    bronze: 0,
+    silver: 1000,
+    gold: 2500,
+    platinum: 5000,
+    diamond: 8000,
+    apex: 12000
+  });
 
   useEffect(() => {
     async function fetchData() {
@@ -43,15 +75,59 @@ export default function ReferralsPage() {
         `)
         .order("created_at", { ascending: false });
 
+      // Fetch Commission Config
+      const { data: configData } = await supabase
+        .from("app_settings")
+        .select("value")
+        .eq("key", "referral_commission_config")
+        .single();
+        
+      if (configData?.value) {
+        setCommissionConfig(configData.value);
+      }
+
       if (!error && data) {
-        setStats({
-          totalReferrals: data.length,
-          activeAffiliates: new Set(data.map((r: any) => r.referrer?.id).filter(Boolean)).size,
-          totalPayouts: data.reduce((sum: number, r: any) => sum + Number(r.commission_earned || 0), 0)
+        // Fetch DEPOSIT transactions to find active subscribers
+        const { data: deposits } = await supabase
+          .from("transactions")
+          .select("user_id")
+          .eq("type", "DEPOSIT")
+          .eq("status", "Completed");
+
+        const activeSubscribers = new Set(deposits?.map((d: any) => d.user_id) || []);
+
+        // Count active referrals
+        let activeReferralsCount = 0;
+        data.forEach((r: any) => {
+          if (r.referred?.id && activeSubscribers.has(r.referred.id)) {
+            activeReferralsCount++;
+          }
         });
 
-        // Recent Payouts
-        const recent = data.slice(0, 10).map((r: any) => {
+        // Calculate conversion rate
+        const conversionRate = data.length > 0 
+          ? ((activeReferralsCount / data.length) * 100).toFixed(1) 
+          : "0.0";
+
+        // Fetch REFERRAL_BONUS transactions to calculate total paid out
+        const { data: payouts } = await supabase
+          .from("transactions")
+          .select("amount")
+          .eq("type", "REFERRAL_BONUS")
+          .eq("status", "Completed");
+        
+        const totalPaidOutAmt = payouts?.reduce((sum: number, tx: any) => sum + Number(tx.amount || 0), 0) || 0;
+
+        setStats({
+          totalReferrals: data.length,
+          activeReferrals: activeReferralsCount,
+          totalEarnings: data.reduce((sum: number, r: any) => sum + Number(r.commission_earned || 0), 0),
+          totalPaidOut: totalPaidOutAmt,
+          conversionRate: conversionRate
+        });
+
+        // All Referrals List
+        const recent = data.map((r: any) => {
           const name = r.referrer?.full_name || "Unknown";
           const nameParts = name.split(" ");
           const initials = nameParts.length > 1 
@@ -94,7 +170,7 @@ export default function ReferralsPage() {
 
         const top = Array.from(referrerMap.values())
           .sort((a, b) => b.earnings - a.earnings)
-          .slice(0, 5)
+          .slice(0, 10)
           .map((t, index) => ({
             rank: index + 1,
             name: t.name,
@@ -111,6 +187,20 @@ export default function ReferralsPage() {
 
     fetchData();
   }, []);
+
+  const handleSaveCommissionConfig = async () => {
+    const supabase = createClient();
+    const { error } = await supabase
+      .from("app_settings")
+      .upsert({ key: "referral_commission_config", value: commissionConfig });
+
+    if (error) {
+      toast.error(`Failed to save config: ${error.message}`);
+    } else {
+      toast.success("Referral commission configuration saved!");
+      setCommissionModalOpen(false);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -135,15 +225,19 @@ export default function ReferralsPage() {
             <Download className="w-4 h-4 mr-2 text-slate-500" />
             Export Referral Data
           </Button>
-          <Button variant="outline" className="bg-white hover:bg-slate-50 text-slate-700 font-semibold border-slate-200 rounded-lg px-4 flex shadow-sm h-11">
+          <Button 
+            onClick={() => setCommissionModalOpen(true)}
+            variant="outline" 
+            className="bg-white hover:bg-slate-50 text-slate-700 font-semibold border-slate-200 rounded-lg px-4 flex shadow-sm h-11"
+          >
             <Settings className="w-4 h-4 mr-2 text-slate-500" />
             Adjust Referral Commission
           </Button>
         </div>
       </div>
 
-      {/* Four Cards Top Row */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* Five Cards Top Row */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
         
         <Card className="p-5 border border-slate-200 shadow-sm rounded-xl bg-white flex flex-col justify-between">
           <div className="flex justify-between items-start mb-4">
@@ -164,8 +258,8 @@ export default function ReferralsPage() {
             </div>
           </div>
           <div>
-            <p className="text-slate-500 text-[13px] font-medium mb-1">Active Affiliates</p>
-            <h3 className="text-3xl font-extrabold text-slate-900 tracking-tight">{stats.activeAffiliates.toLocaleString()}</h3>
+            <p className="text-slate-500 text-[13px] font-medium mb-1">Active Referrals</p>
+            <h3 className="text-3xl font-extrabold text-slate-900 tracking-tight">{stats.activeReferrals.toLocaleString()}</h3>
           </div>
         </Card>
 
@@ -177,7 +271,7 @@ export default function ReferralsPage() {
           </div>
           <div>
             <p className="text-slate-500 text-[13px] font-medium mb-1">Conversion Rate</p>
-            <h3 className="text-3xl font-extrabold text-slate-900 tracking-tight">12.4%</h3>
+            <h3 className="text-3xl font-extrabold text-slate-900 tracking-tight">{stats.conversionRate}%</h3>
           </div>
         </Card>
 
@@ -188,8 +282,20 @@ export default function ReferralsPage() {
             </div>
           </div>
           <div>
-            <p className="text-slate-500 text-[13px] font-medium mb-1">Total Referral Payouts</p>
-            <h3 className="text-3xl font-extrabold text-slate-900 tracking-tight">₦{stats.totalPayouts.toLocaleString()}</h3>
+            <p className="text-slate-500 text-[13px] font-medium mb-1">Total Referral Earnings</p>
+            <h3 className="text-3xl font-extrabold text-slate-900 tracking-tight">₦{stats.totalEarnings.toLocaleString()}</h3>
+          </div>
+        </Card>
+
+        <Card className="p-5 border border-slate-200 shadow-sm rounded-xl bg-white flex flex-col justify-between">
+          <div className="flex justify-between items-start mb-4">
+            <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600">
+              <Wallet className="w-5 h-5" strokeWidth={2.5} />
+            </div>
+          </div>
+          <div>
+            <p className="text-slate-500 text-[13px] font-medium mb-1">Total Paid Out Referral</p>
+            <h3 className="text-3xl font-extrabold text-slate-900 tracking-tight">₦{stats.totalPaidOut.toLocaleString()}</h3>
           </div>
         </Card>
 
@@ -278,7 +384,7 @@ export default function ReferralsPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100/70 border-t border-slate-100">
-                  {recentPayouts.length > 0 ? recentPayouts.map((txn, i) => (
+                  {recentPayouts.length > 0 ? recentPayouts.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((txn, i) => (
                     <tr key={i} className="hover:bg-slate-50/50 transition-colors">
                       <td className="px-6 py-4">
                         <span className="text-[13px] text-green-600 font-medium">{txn.id}</span>
@@ -320,6 +426,34 @@ export default function ReferralsPage() {
                 </tbody>
               </table>
             </div>
+
+            {/* Pagination Footer */}
+            {recentPayouts.length > itemsPerPage && (
+              <div className="p-4 border-t border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-4">
+                <span className="text-xs text-slate-500 font-medium">
+                  Showing <span className="font-bold text-slate-700">{(currentPage - 1) * itemsPerPage + 1}</span> to <span className="font-bold text-slate-700">{Math.min(currentPage * itemsPerPage, recentPayouts.length)}</span> of <span className="font-bold text-slate-700">{recentPayouts.length}</span> entries
+                </span>
+                <div className="flex items-center gap-1.5">
+                  <button 
+                    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                    disabled={currentPage === 1}
+                    className="w-8 h-8 flex items-center justify-center rounded-md border border-slate-200 text-slate-400 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </button>
+                  <button className="w-8 h-8 flex items-center justify-center rounded-md bg-primary text-white font-bold text-xs">
+                    {currentPage}
+                  </button>
+                  <button 
+                    onClick={() => setCurrentPage(prev => prev + 1)}
+                    disabled={currentPage * itemsPerPage >= recentPayouts.length}
+                    className="w-8 h-8 flex items-center justify-center rounded-md border border-slate-200 text-slate-400 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            )}
           </Card>
           
         </div>
@@ -432,6 +566,40 @@ export default function ReferralsPage() {
 
         </div>
       </div>
+
+      {/* Adjust Referral Commission Modal */}
+      <Dialog open={commissionModalOpen} onOpenChange={setCommissionModalOpen}>
+        <DialogContent className="sm:max-w-[425px] bg-white rounded-2xl">
+          <DialogTitle className="text-xl font-bold text-gray-900">Referral Commissions</DialogTitle>
+          <DialogDescription className="text-gray-500 text-sm">
+            Set the monetary amount a referrer receives when their invited user deposits and enters a specific plan.
+          </DialogDescription>
+          
+          <div className="space-y-4 py-4">
+            {Object.keys(commissionConfig).map((plan) => (
+              <div key={plan} className="flex flex-col gap-1.5">
+                <label className="text-sm font-bold text-gray-700">{planLabels[plan] || plan}</label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-medium">₦</span>
+                  <Input
+                    type="number"
+                    value={commissionConfig[plan]}
+                    onChange={(e) => setCommissionConfig({...commissionConfig, [plan]: Number(e.target.value)})}
+                    className="pl-8 rounded-xl bg-gray-50 border-gray-200"
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="flex justify-end gap-3 mt-4">
+            <Button variant="outline" onClick={() => setCommissionModalOpen(false)} className="rounded-xl">Cancel</Button>
+            <Button onClick={handleSaveCommissionConfig} className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl gap-2">
+              <Save className="w-4 h-4" /> Save
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

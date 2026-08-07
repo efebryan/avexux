@@ -1,11 +1,28 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { createClient } from "@/utils/supabase/client";
 import { StoreHeader } from "@/components/user-dashboard/rewards/StoreHeader";
 import { SpinWheel } from "@/components/user-dashboard/rewards/SpinWheel";
 
 export default function RewardsStorePage() {
-  const [balance, setBalance] = useState(12500); // Mock starting balance
+  const [balance, setBalance] = useState(0);
+
+  useEffect(() => {
+    async function loadWallet() {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data } = await supabase
+          .from("wallets")
+          .select("balance")
+          .eq("user_id", user.id)
+          .single();
+        if (data) setBalance(data.balance);
+      }
+    }
+    loadWallet();
+  }, []);
 
   return (
     <div className="max-w-4xl mx-auto pb-8 space-y-6">

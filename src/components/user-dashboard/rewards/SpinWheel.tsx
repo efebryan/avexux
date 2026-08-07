@@ -7,8 +7,16 @@ import { Trophy, HelpCircle, AlertCircle, Play, Coins, RefreshCw } from "lucide-
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { createClient } from "@/utils/supabase/client";
-
 import { executeSpinAction } from "@/app/(dashboard)/user/rewards/actions";
+
+const ranksConfig = [
+  { id: "bronze", threshold: 0 },
+  { id: "silver", threshold: 18000 },
+  { id: "gold", threshold: 42000 },
+  { id: "platinum", threshold: 88000 },
+  { id: "diamond", threshold: 124000 },
+  { id: "apex", threshold: 200000 },
+];
 
 interface SpinWheelProps {
   balance: number;
@@ -42,9 +50,11 @@ export function SpinWheel({ balance, setBalance }: SpinWheelProps) {
   const [wheelSectors, setWheelSectors] = useState<Sector[]>(sectors);
   const [isReady, setIsReady] = useState(false);
 
-  // Day Check
+  // Day Check Configuration
+  const [canSpinToday, setCanSpinToday] = useState(false);
+  const [activeDaysList, setActiveDaysList] = useState<number[]>([]);
+  
   const currentDay = new Date().getDay();
-  const canSpinToday = currentDay === 2 || currentDay === 5; // 2 = Tuesday, 5 = Friday
 
   // Modal State
   const [modalOpen, setModalOpen] = useState(false);
@@ -127,6 +137,9 @@ export function SpinWheel({ balance, setBalance }: SpinWheelProps) {
   useEffect(() => {
     async function loadConfig() {
       const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+
+      // Load Wheel Sectors Config
       const { data } = await supabase
         .from("app_settings")
         .select("value")
@@ -137,6 +150,49 @@ export function SpinWheel({ balance, setBalance }: SpinWheelProps) {
         setWheelSectors(data.value.sectors);
         setSpinCost(data.value.cost);
       }
+
+      // Determine Plan and Spin Days
+      if (user) {
+        const { data: wallet } = await supabase
+          .from("wallets")
+          .select("free_spins")
+          .eq("user_id", user.id)
+          .single();
+        if (wallet) {
+          setSpinsLeft(wallet.free_spins);
+        }
+
+        const { data: txData } = await supabase
+          .from("transactions")
+          .select("*")
+          .eq("user_id", user.id);
+        
+        let highestDep = 0;
+        if (txData) {
+          highestDep = txData
+            .filter((tx: any) => tx.type?.toLowerCase() === 'deposit' || (tx.metadata?.description || "").toLowerCase().includes('deposit'))
+            .reduce((max: number, tx: any) => Math.max(max, Number(tx.amount)), 0);
+        }
+        
+        const rankIndex = Math.max(0, ranksConfig.findLastIndex(r => highestDep >= r.threshold));
+        const userPlanId = ranksConfig[rankIndex].id;
+
+        const { data: planData } = await supabase
+          .from("app_settings")
+          .select("value")
+          .eq("key", "spins_per_plan_config")
+          .single();
+        
+        if (planData?.value && planData.value[userPlanId]) {
+          const allowedDays = planData.value[userPlanId];
+          setActiveDaysList(allowedDays);
+          setCanSpinToday(allowedDays.includes(new Date().getDay()));
+        } else {
+          // Fallback to Tuesday/Friday if missing config
+          setCanSpinToday(new Date().getDay() === 2 || new Date().getDay() === 5);
+        }
+      }
+
       setIsReady(true);
     }
     loadConfig();
@@ -286,7 +342,7 @@ export function SpinWheel({ balance, setBalance }: SpinWheelProps) {
           className={`w-full max-w-[240px] text-white font-bold rounded-xl shadow-md h-9 text-sm flex items-center justify-center gap-1.5 transition-all transform hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 ${canSpinToday ? 'bg-[#0f8538] hover:bg-[#0c6b2c]' : 'bg-gray-400'}`}
         >
           <Play className="w-4 h-4 fill-white" />
-          {!canSpinToday ? "Spins on Tue & Fri only" : isSpinning ? "Spinning..." : spinsLeft > 0 ? "Spin for FREE" : `Pay ₦${spinCost} & Spin`}
+          {!canSpinToday ? "Not a spin day for your plan" : isSpinning ? "Spinning..." : spinsLeft > 0 ? "Spin for FREE" : `Pay ₦${spinCost} & Spin`}
         </Button>
       </div>
 

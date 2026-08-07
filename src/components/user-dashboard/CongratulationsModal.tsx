@@ -3,6 +3,7 @@ import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/compone
 import { Button } from "@/components/ui/button";
 import { Trophy, Sparkles } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
+import { useRouter } from "next/navigation";
 
 interface CongratulationsModalProps {
   isOpen: boolean;
@@ -10,9 +11,11 @@ interface CongratulationsModalProps {
 }
 
 export function CongratulationsModal({ isOpen, onClose }: CongratulationsModalProps) {
-  const [isActive, setIsActive] = useState(true);
-  const [title, setTitle] = useState("Dear users, congratulations! 🥳");
-  const [amount, setAmount] = useState("₦204,000");
+  const router = useRouter();
+  const [isActive, setIsActive] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [title, setTitle] = useState("");
+  const [amount, setAmount] = useState("");
 
   useEffect(() => {
     async function fetchConfig() {
@@ -28,12 +31,13 @@ export function CongratulationsModal({ isOpen, onClose }: CongratulationsModalPr
         if (data.value.title) setTitle(data.value.title);
         if (data.value.amount) setAmount(data.value.amount);
       }
+      setIsLoaded(true);
     }
     fetchConfig();
   }, []);
 
-  // If disabled by admin, never open
-  const showModal = isOpen && isActive;
+  // Only show the modal once config is loaded and if it's active
+  const showModal = isOpen && isLoaded && isActive;
 
   return (
     <Dialog open={showModal} onOpenChange={(open) => !open && onClose()}>
@@ -73,7 +77,10 @@ export function CongratulationsModal({ isOpen, onClose }: CongratulationsModalPr
 
         <div className="mt-4 pb-2">
           <Button 
-            onClick={onClose}
+            onClick={() => {
+              onClose();
+              router.push("/user/rewards");
+            }}
             className="w-full max-w-[200px] bg-[#0f8538] hover:bg-[#0c6b2c] text-white font-bold rounded-xl shadow-md h-10 transition-all transform hover:-translate-y-0.5"
           >
             Okay

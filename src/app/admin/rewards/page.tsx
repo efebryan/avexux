@@ -8,6 +8,26 @@ import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
 import { DeleteModal } from "@/components/ui/delete-modal";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Checkbox } from "@/components/ui/checkbox";
+
+const daysOfWeek = [
+  { id: 1, label: "Mon" },
+  { id: 2, label: "Tue" },
+  { id: 3, label: "Wed" },
+  { id: 4, label: "Thu" },
+  { id: 5, label: "Fri" },
+  { id: 6, label: "Sat" },
+  { id: 0, label: "Sun" },
+];
+
+const planLabels: Record<string, string> = {
+  bronze: "Bronze Starter",
+  silver: "Silver Earner",
+  gold: "Gold Master",
+  platinum: "Platinum Pro",
+  diamond: "Diamond Elite",
+  apex: "Apex Legend"
+};
 
 // Mock Sectors (Fallback)
 const mockSectors = [
@@ -22,6 +42,16 @@ export default function AdminRewardsPage() {
   const [showCongratsModal, setShowCongratsModal] = useState(true);
   const [spinCost, setSpinCost] = useState(500);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Plan Spin Days Config State
+  const [spinsPerPlanConfig, setSpinsPerPlanConfig] = useState<Record<string, number[]>>({
+    bronze: [5],
+    silver: [1, 5],
+    gold: [1, 3, 5],
+    platinum: [1, 2, 3, 4, 5],
+    diamond: [1, 2, 3, 4, 5],
+    apex: [1, 2, 3, 4, 5]
+  });
 
   // Congrats Modal Config State
   const [congratsTitle, setCongratsTitle] = useState("Dear users, congratulations! 🥳");
@@ -66,6 +96,17 @@ export default function AdminRewardsPage() {
         setShowCongratsModal(modalData.value.active);
         setCongratsTitle(modalData.value.title);
         setCongratsAmount(modalData.value.amount);
+      }
+
+      // Load Plan Spin Days Settings
+      const { data: planData } = await supabase
+        .from("app_settings")
+        .select("value")
+        .eq("key", "spins_per_plan_config")
+        .single();
+      
+      if (planData?.value) {
+        setSpinsPerPlanConfig(planData.value);
       }
 
       // Load Users for Rigging
@@ -116,6 +157,19 @@ export default function AdminRewardsPage() {
       toast.error(`Failed to save popup configuration: ${error.message || JSON.stringify(error)}`);
     } else {
       toast.success("Congratulations popup configuration saved!");
+    }
+  };
+
+  const handleSavePlanConfig = async () => {
+    const supabase = createClient();
+    const { error } = await supabase
+      .from("app_settings")
+      .upsert({ key: "spins_per_plan_config", value: spinsPerPlanConfig });
+
+    if (error) {
+      toast.error(`Failed to save plan config: ${error.message}`);
+    } else {
+      toast.success("Plan spin days configuration saved!");
     }
   };
 
@@ -384,7 +438,53 @@ export default function AdminRewardsPage() {
                  onChange={(e) => setCongratsAmount(e.target.value)}
                  className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all bg-gray-50 focus:bg-white"
                />
+             </div>
+          </div>
+        </Card>
+
+        {/* Plan Spin Days Configuration */}
+        <Card className="p-6 md:p-8 border border-gray-100 shadow-sm rounded-2xl bg-white relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/5 rounded-full blur-[80px] pointer-events-none -translate-y-1/2 translate-x-1/4"></div>
+
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-8 gap-4 relative z-10">
+            <div>
+              <h2 className="font-bold text-gray-900 text-xl tracking-tight">Plan Spin Days</h2>
+              <p className="text-sm text-gray-500 mt-1">Configure which days of the week each membership plan can spin.</p>
             </div>
+            <Button onClick={handleSavePlanConfig} className="bg-emerald-600 hover:bg-emerald-700 text-white font-medium flex items-center gap-2 h-10 rounded-xl shadow-md">
+              <Save className="w-4 h-4" /> Save Schedule
+            </Button>
+          </div>
+
+          <div className="space-y-4 relative z-10">
+            {Object.keys(spinsPerPlanConfig).map((plan) => (
+              <div key={plan} className="flex flex-col md:flex-row md:items-center justify-between p-4 border border-gray-100 rounded-xl bg-gray-50/50">
+                <div className="font-bold text-gray-800 w-48 mb-3 md:mb-0">
+                  {planLabels[plan] || plan}
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {daysOfWeek.map((day) => {
+                    const isChecked = spinsPerPlanConfig[plan]?.includes(day.id) || false;
+                    return (
+                      <label key={day.id} className="flex items-center gap-2 bg-white px-3 py-1.5 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                        <Checkbox 
+                          checked={isChecked}
+                          onCheckedChange={(checked) => {
+                            setSpinsPerPlanConfig(prev => {
+                              const newPlanDays = checked 
+                                ? [...(prev[plan] || []), day.id]
+                                : (prev[plan] || []).filter(d => d !== day.id);
+                              return { ...prev, [plan]: newPlanDays };
+                            });
+                          }}
+                        />
+                        <span className="text-sm font-medium text-gray-600">{day.label}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
           </div>
         </Card>
 

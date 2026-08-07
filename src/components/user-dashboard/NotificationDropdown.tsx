@@ -3,43 +3,111 @@
 import { useState, useRef, useEffect } from "react";
 import { Bell, CheckCircle2, AlertCircle, Info, Check } from "lucide-react";
 import Link from "next/link";
+import { createClient } from "@/utils/supabase/client";
 
 export interface NotificationItem {
   id: string;
   title: string;
   message: string;
   time: string;
-  type: "success" | "warning" | "info";
+  type: string;
   isRead: boolean;
-  category: "Task" | "Account" | "System";
 }
 
-// Mock Data
-export const mockNotifications: NotificationItem[] = [
-  { id: "n1", title: "Task Approved", message: "Your submission for 'UI Testing' was approved! ₦1,500 has been added to your wallet.", time: "2 hours ago", type: "success", isRead: false, category: "Task" },
-  { id: "n2", title: "New Task Available", message: "A new premium task 'Review E-commerce App' matches your profile.", time: "5 hours ago", type: "info", isRead: false, category: "Task" },
-  { id: "n3", title: "Security Alert", message: "New login detected from Chrome on Windows.", time: "1 day ago", type: "warning", isRead: true, category: "Account" },
-  { id: "n4", title: "Platform Update", message: "We've added new gift cards to the Rewards Store!", time: "2 days ago", type: "info", isRead: true, category: "System" },
-];
+function timeAgo(dateString: string) {
+  const date = new Date(dateString);
+  const seconds = Math.floor((new Date().getTime() - date.getTime()) / 1000);
+  
+  let interval = seconds / 31536000;
+  if (interval > 1) return Math.floor(interval) + " years ago";
+  
+  interval = seconds / 2592000;
+  if (interval > 1) return Math.floor(interval) + " months ago";
+  
+  interval = seconds / 86400;
+  if (interval > 1) return Math.floor(interval) + " days ago";
+  
+  interval = seconds / 3600;
+  if (interval > 1) return Math.floor(interval) + " hours ago";
+  
+  interval = seconds / 60;
+  if (interval > 1) return Math.floor(interval) + " minutes ago";
+  
+  return Math.floor(seconds) + " seconds ago";
+}
 
 export function NotificationDropdown() {
   const [isOpen, setIsOpen] = useState(false);
-  const [notifications, setNotifications] = useState(mockNotifications);
+  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const supabase = createClient();
+
+  useEffect(() => {
+    async function fetchNotifications() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data } = await supabase
+        .from("notifications")
+        .select("*")
+        .or(`user_id.eq.${user.id},user_id.is.null`)
+        .order("created_at", { ascending: false });
+
+      if (data) {
+        const formatted = data.map((n: any) => ({
+          id: n.id,
+          title: n.title,
+          message: n.message,
+          time: timeAgo(n.created_at),
+          type: n.type,
+          isRead: n.is_read
+        }));
+        setNotifications(formatted);
+      }
+    }
+    
+    fetchNotifications();
+
+    // Set up realtime subscription
+    const channel = supabase
+      .channel('public:notifications')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'notifications' },
+        (payload) => {
+          fetchNotifications(); // Refresh on new notification
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
 
   const unreadCount = notifications.filter(n => !n.isRead).length;
-  const recentNotifications = notifications.slice(0, 3); // Show top 3 in dropdown
+  const recentNotifications = notifications.slice(0, 5); // Show top 5 in dropdown
 
   const getIcon = (type: string) => {
-    switch (type) {
+    switch (type.toLowerCase()) {
       case "success": return <CheckCircle2 className="w-5 h-5 text-green-500" />;
       case "warning": return <AlertCircle className="w-5 h-5 text-yellow-500" />;
       default: return <Info className="w-5 h-5 text-blue-500" />;
     }
   };
 
-  const markAllAsRead = () => {
+  const markAllAsRead = async () => {
+    const unreadIds = notifications.filter(n => !n.isRead).map(n => n.id);
+    if (unreadIds.length === 0) return;
+
+    // Optimistic update
     setNotifications(notifications.map(n => ({ ...n, isRead: true })));
+
+    // Update DB
+    await supabase
+      .from("notifications")
+      .update({ is_read: true })
+      .in('id', unreadIds);
   };
 
   // Close dropdown when clicking outside
