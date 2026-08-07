@@ -82,7 +82,7 @@ export default function FinancialsPage() {
         .from("withdrawal_requests")
         .select(`
           id, amount, bank_name, account_number, account_name, created_at, status,
-          profiles!inner(full_name, email)
+          profiles!withdrawal_requests_user_id_fkey(full_name, email)
         `)
         .eq("status", "Pending")
         .order("created_at", { ascending: true });
