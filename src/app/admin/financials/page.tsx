@@ -88,15 +88,19 @@ export default function FinancialsPage() {
         .order("created_at", { ascending: true });
 
       if (wData) {
-        setRequests(wData.map(w => ({
-          id: w.id,
-          name: w.profiles?.full_name || "Unknown User",
-          img: `https://ui-avatars.com/api/?name=${encodeURIComponent(w.profiles?.full_name || "Unknown")}&background=E2E8F0&color=333`,
-          method: "BANK TRANSFER",
-          amount: `₦${Number(w.amount).toLocaleString()}`,
-          bank: w.bank_name,
-          account: w.account_number
-        })));
+        setRequests(wData.map((w: any) => {
+          const profile = Array.isArray(w.profiles) ? w.profiles[0] : w.profiles;
+          const fullName = profile?.full_name || "Unknown User";
+          return {
+            id: w.id,
+            name: fullName,
+            img: `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=E2E8F0&color=333`,
+            method: "BANK TRANSFER",
+            amount: `₦${Number(w.amount).toLocaleString()}`,
+            bank: w.bank_name,
+            account: w.account_number
+          };
+        }));
       }
 
       // Fetch actual recent transactions
@@ -110,7 +114,9 @@ export default function FinancialsPage() {
         .limit(10);
 
       if (txData) {
-        setTransactions(txData.map(tx => {
+        setTransactions(txData.map((tx: any) => {
+          const profile = Array.isArray(tx.profiles) ? tx.profiles[0] : tx.profiles;
+          const fullName = profile?.full_name || "Unknown";
           const typeColor = tx.type === "DEPOSIT" ? "bg-blue-100 text-blue-700" : 
                             tx.type === "WITHDRAWAL" ? "bg-rose-100 text-rose-700" : "bg-slate-100 text-slate-700";
           
@@ -124,7 +130,7 @@ export default function FinancialsPage() {
             statusColor = "bg-red-50 text-red-700"; dotColor = "bg-red-500";
           }
 
-          const initials = (tx.profiles?.full_name || "U").substring(0,2).toUpperCase();
+          const initials = fullName.substring(0,2).toUpperCase();
 
           return {
             id: tx.reference_id,
