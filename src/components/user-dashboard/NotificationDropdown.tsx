@@ -12,6 +12,7 @@ export interface NotificationItem {
   time: string;
   type: string;
   isRead: boolean;
+  category?: string;
 }
 
 function timeAgo(dateString: string) {
