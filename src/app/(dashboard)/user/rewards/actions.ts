@@ -37,7 +37,8 @@ export async function executeSpinAction() {
 
   // 0. Fetch Dynamic Configs (Sectors and Spins Per Plan)
   let sectors = defaultSectors;
-  let SPIN_COST = 500;
+  // Paid spin cost is strictly 1800
+  let SPIN_COST = 1800;
   let planConfig: Record<string, number[]> | null = null;
   
   const { data: appSettings } = await supabase
@@ -49,7 +50,6 @@ export async function executeSpinAction() {
     const wheelConf = appSettings.find(s => s.key === "spin_wheel_config");
     if (wheelConf?.value) {
       sectors = wheelConf.value.sectors;
-      SPIN_COST = wheelConf.value.cost || 500;
     }
     
     const planConf = appSettings.find(s => s.key === "spins_per_plan_config");
@@ -86,6 +86,26 @@ export async function executeSpinAction() {
 
   if (!isValidDay) {
     return { success: false, error: "Spins are not available today for your current plan." };
+  }
+
+  // 2.5 Pre-check for Paid Spin limit
+  // Only check if they don't have free spins (we must query wallet first)
+  const { data: wallet } = await supabase.from("wallets").select("free_spins").eq("user_id", user.id).single();
+  if (wallet && wallet.free_spins <= 0) {
+    // If no free spins, check if they already had a paid spin today
+    const startOfDay = new Date();
+    startOfDay.setHours(0, 0, 0, 0);
+    
+    const { count: paidSpinsToday } = await supabase
+      .from("rewards_spins")
+      .select("*", { count: "exact", head: true })
+      .eq("user_id", user.id)
+      .gt("cost_paid", 0)
+      .gte("created_at", startOfDay.toISOString());
+      
+    if (paidSpinsToday && paidSpinsToday > 0) {
+      return { success: false, error: "You have already used your extra paid spin for today." };
+    }
   }
 
   // 3. Check for Admin Overrides (Rigged Spins)
@@ -152,6 +172,9 @@ export async function executeSpinAction() {
     // Standardize error message
     if (rpcError.message.includes("Insufficient balance")) {
       return { success: false, error: "Insufficient balance for a spin" };
+    }
+    if (rpcError.message.includes("already used your extra paid spin")) {
+      return { success: false, error: "You have already used your extra paid spin for today." };
     }
     return { success: false, error: "Failed to process spin. Please try again later." };
   }

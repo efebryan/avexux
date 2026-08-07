@@ -46,9 +46,10 @@ export function SpinWheel({ balance, setBalance }: SpinWheelProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isSpinning, setIsSpinning] = useState(false);
   const [spinsLeft, setSpinsLeft] = useState(1);
-  const [spinCost, setSpinCost] = useState(500);
+  const [spinCost, setSpinCost] = useState(1800);
   const [wheelSectors, setWheelSectors] = useState<Sector[]>(sectors);
   const [isReady, setIsReady] = useState(false);
+  const [hasUsedPaidSpin, setHasUsedPaidSpin] = useState(false);
 
   // Day Check Configuration
   const [canSpinToday, setCanSpinToday] = useState(false);
@@ -148,10 +149,11 @@ export function SpinWheel({ balance, setBalance }: SpinWheelProps) {
       
       if (data?.value) {
         setWheelSectors(data.value.sectors);
-        setSpinCost(data.value.cost);
+        // We now enforce a strict 1800 paid spin cost
+        setSpinCost(1800);
       }
 
-      // Determine Plan and Spin Days
+      // Determine Plan, Spin Days, and Limits
       if (user) {
         const { data: wallet } = await supabase
           .from("wallets")
@@ -190,6 +192,21 @@ export function SpinWheel({ balance, setBalance }: SpinWheelProps) {
         } else {
           // Fallback to Tuesday/Friday if missing config
           setCanSpinToday(new Date().getDay() === 2 || new Date().getDay() === 5);
+        }
+
+        // Check Paid Spin Limit
+        const startOfDay = new Date();
+        startOfDay.setHours(0, 0, 0, 0);
+        
+        const { count: paidSpinsToday } = await supabase
+          .from("rewards_spins")
+          .select("*", { count: "exact", head: true })
+          .eq("user_id", user.id)
+          .gt("cost_paid", 0)
+          .gte("created_at", startOfDay.toISOString());
+          
+        if (paidSpinsToday && paidSpinsToday > 0) {
+          setHasUsedPaidSpin(true);
         }
       }
 
@@ -243,6 +260,7 @@ export function SpinWheel({ balance, setBalance }: SpinWheelProps) {
       setSpinsLeft((prev) => prev - 1);
     } else {
       setBalance((prev) => prev - spinCost);
+      setHasUsedPaidSpin(true); // they just used their 1 paid spin
     }
 
     const targetIdx = res.targetIdx;
@@ -338,11 +356,19 @@ export function SpinWheel({ balance, setBalance }: SpinWheelProps) {
 
         <Button 
           onClick={spin}
-          disabled={isSpinning || !canSpinToday}
-          className={`w-full max-w-[240px] text-white font-bold rounded-xl shadow-md h-9 text-sm flex items-center justify-center gap-1.5 transition-all transform hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 ${canSpinToday ? 'bg-[#0f8538] hover:bg-[#0c6b2c]' : 'bg-gray-400'}`}
+          disabled={isSpinning || !canSpinToday || (spinsLeft <= 0 && hasUsedPaidSpin)}
+          className={`w-full max-w-[240px] text-white font-bold rounded-xl shadow-md h-9 text-sm flex items-center justify-center gap-1.5 transition-all transform hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 ${canSpinToday && !(spinsLeft <= 0 && hasUsedPaidSpin) ? 'bg-[#0f8538] hover:bg-[#0c6b2c]' : 'bg-gray-400'}`}
         >
           <Play className="w-4 h-4 fill-white" />
-          {!canSpinToday ? "Not a spin day for your plan" : isSpinning ? "Spinning..." : spinsLeft > 0 ? "Spin for FREE" : `Pay ₦${spinCost} & Spin`}
+          {!canSpinToday 
+            ? "Not a spin day for your plan" 
+            : isSpinning 
+              ? "Spinning..." 
+              : spinsLeft > 0 
+                ? "Spin for FREE" 
+                : hasUsedPaidSpin 
+                  ? "Next Spin Available Soon" 
+                  : `Pay ₦${spinCost} & Spin`}
         </Button>
       </div>
 

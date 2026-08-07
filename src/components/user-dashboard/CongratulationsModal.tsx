@@ -5,6 +5,15 @@ import { Trophy, Sparkles } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
 import { useRouter } from "next/navigation";
 
+const ranksConfig = [
+  { id: "bronze", threshold: 0 },
+  { id: "silver", threshold: 18000 },
+  { id: "gold", threshold: 42000 },
+  { id: "platinum", threshold: 88000 },
+  { id: "diamond", threshold: 124000 },
+  { id: "apex", threshold: 200000 },
+];
+
 interface CongratulationsModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -16,6 +25,8 @@ export function CongratulationsModal({ isOpen, onClose }: CongratulationsModalPr
   const [isLoaded, setIsLoaded] = useState(false);
   const [title, setTitle] = useState("");
   const [amount, setAmount] = useState("");
+  const [hasFreeSpins, setHasFreeSpins] = useState(false);
+  const [isValidSpinDay, setIsValidSpinDay] = useState(false);
 
   useEffect(() => {
     async function fetchConfig() {
@@ -31,13 +42,60 @@ export function CongratulationsModal({ isOpen, onClose }: CongratulationsModalPr
         if (data.value.title) setTitle(data.value.title);
         if (data.value.amount) setAmount(data.value.amount);
       }
+
+      // Check User Eligibility (Free Spins & Spin Days)
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        // 1. Check free spins
+        const { data: wallet } = await supabase
+          .from("wallets")
+          .select("free_spins")
+          .eq("user_id", user.id)
+          .single();
+        
+        if (wallet && wallet.free_spins > 0) {
+          setHasFreeSpins(true);
+        }
+
+        // 2. Determine Plan
+        const { data: txData } = await supabase
+          .from("transactions")
+          .select("*")
+          .eq("user_id", user.id);
+        
+        let highestDep = 0;
+        if (txData) {
+          highestDep = txData
+            .filter((tx: any) => tx.type?.toLowerCase() === 'deposit' || (tx.metadata?.description || "").toLowerCase().includes('deposit'))
+            .reduce((max: number, tx: any) => Math.max(max, Number(tx.amount)), 0);
+        }
+        
+        const rankIndex = Math.max(0, ranksConfig.findLastIndex(r => highestDep >= r.threshold));
+        const userPlanId = ranksConfig[rankIndex].id;
+
+        // 3. Check Spin Days Config
+        const { data: planData } = await supabase
+          .from("app_settings")
+          .select("value")
+          .eq("key", "spins_per_plan_config")
+          .single();
+        
+        if (planData?.value && planData.value[userPlanId]) {
+          const allowedDays: number[] = planData.value[userPlanId];
+          setIsValidSpinDay(allowedDays.includes(new Date().getDay()));
+        } else {
+          // Fallback to Tuesday/Friday if missing config
+          setIsValidSpinDay(new Date().getDay() === 2 || new Date().getDay() === 5);
+        }
+      }
+
       setIsLoaded(true);
     }
     fetchConfig();
   }, []);
 
-  // Only show the modal once config is loaded and if it's active
-  const showModal = isOpen && isLoaded && isActive;
+  // Only show the modal once config is loaded, if it's active, on a valid spin day, and if user has free spins
+  const showModal = isOpen && isLoaded && isActive && isValidSpinDay && hasFreeSpins;
 
   return (
     <Dialog open={showModal} onOpenChange={(open) => !open && onClose()}>

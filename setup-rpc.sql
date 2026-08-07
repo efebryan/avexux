@@ -15,6 +15,7 @@ AS $$
 DECLARE
     v_balance NUMERIC;
     v_free_spins INTEGER;
+    v_paid_spins_today INTEGER;
 BEGIN
     -- 1. Lock the wallet row to prevent race conditions (FOR UPDATE)
     SELECT balance, free_spins INTO v_balance, v_free_spins
@@ -33,6 +34,17 @@ BEGIN
             updated_at = now()
         WHERE user_id = p_user_id;
     ELSE
+        -- Verify daily paid spin limit
+        SELECT count(*) INTO v_paid_spins_today
+        FROM public.rewards_spins
+        WHERE user_id = p_user_id 
+          AND cost_paid > 0 
+          AND created_at >= current_date;
+          
+        IF v_paid_spins_today > 0 THEN
+            RAISE EXCEPTION 'You have already used your extra paid spin for today.';
+        END IF;
+
         IF v_balance < p_cost THEN
             RAISE EXCEPTION 'Insufficient balance for spin';
         END IF;
