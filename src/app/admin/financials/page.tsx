@@ -95,6 +95,7 @@ export default function FinancialsPage() {
   const [requests, setRequests] = useState(pendingRequests);
   const [totalDeposits, setTotalDeposits] = useState(0);
   const [totalWithdrawals, setTotalWithdrawals] = useState(0);
+  const [pendingWithdrawalsSum, setPendingWithdrawalsSum] = useState(0);
   const [totalEarnings, setTotalEarnings] = useState(0);
 
   useEffect(() => {
@@ -124,6 +125,17 @@ export default function FinancialsPage() {
         setTotalWithdrawals(sum);
       }
 
+      const { data: pendingWithdrawalData } = await supabase
+        .from("transactions")
+        .select("amount")
+        .eq("type", "WITHDRAWAL")
+        .eq("status", "Pending");
+
+      if (pendingWithdrawalData) {
+        const sum = pendingWithdrawalData.reduce((acc, curr) => acc + Number(curr.amount), 0);
+        setPendingWithdrawalsSum(sum);
+      }
+
       const { data: earningsData } = await supabase
         .from("transactions")
         .select("amount")
@@ -149,19 +161,35 @@ export default function FinancialsPage() {
       {/* 1. Four Cards Top Row */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         
-        {/* Total Revenue */}
+        {/* Total Deposits */}
         <Card className="p-3.5 border border-slate-200 shadow-sm rounded-2xl bg-white flex flex-col justify-between">
           <div className="flex justify-between items-start mb-3">
             <div className="w-8 h-8 rounded-lg bg-green-50 flex items-center justify-center text-green-600">
               <Wallet className="w-4 h-4" strokeWidth={2.5} />
             </div>
             <div className="bg-green-50 text-green-700 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-0.5">
-              <TrendingUp className="w-2.5 h-2.5" /> 12.5%
+              <TrendingUp className="w-2.5 h-2.5" />
             </div>
           </div>
           <div>
-            <p className="text-slate-500 text-[11px] font-bold mb-0.5">Total Revenue</p>
+            <p className="text-slate-500 text-[11px] font-bold mb-0.5">Total Deposits</p>
             <h3 className="text-2xl font-extrabold text-slate-900 tracking-tight">₦{totalDeposits.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</h3>
+          </div>
+        </Card>
+
+        {/* Total Withdrawals */}
+        <Card className="p-3.5 border border-slate-200 shadow-sm rounded-2xl bg-white flex flex-col justify-between">
+          <div className="flex justify-between items-start mb-3">
+            <div className="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-500">
+              <PiggyBank className="w-4 h-4" strokeWidth={2.5} />
+            </div>
+            <div className="bg-rose-50 text-rose-600 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-0.5">
+              <TrendingUp className="w-2.5 h-2.5" />
+            </div>
+          </div>
+          <div>
+            <p className="text-slate-500 text-[11px] font-bold mb-0.5">Total Withdrawals</p>
+            <h3 className="text-2xl font-extrabold text-slate-900 tracking-tight">₦{totalWithdrawals.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</h3>
           </div>
         </Card>
 
@@ -171,29 +199,13 @@ export default function FinancialsPage() {
             <div className="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center text-amber-500">
               <ClipboardList className="w-4 h-4" strokeWidth={2.5} />
             </div>
-            <div className="bg-rose-50 text-rose-600 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-0.5">
-              <TrendingUp className="w-2.5 h-2.5" /> 4.2%
+            <div className="bg-amber-50 text-amber-600 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-0.5">
+              <TrendingUp className="w-2.5 h-2.5" />
             </div>
           </div>
           <div>
             <p className="text-slate-500 text-[11px] font-bold mb-0.5">Pending Withdrawals</p>
-            <h3 className="text-2xl font-extrabold text-slate-900 tracking-tight">₦{totalWithdrawals.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</h3>
-          </div>
-        </Card>
-
-        {/* Total Deposits */}
-        <Card className="p-3.5 border border-slate-200 shadow-sm rounded-2xl bg-white flex flex-col justify-between">
-          <div className="flex justify-between items-start mb-3">
-            <div className="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-500">
-              <PiggyBank className="w-4 h-4" strokeWidth={2.5} />
-            </div>
-            <div className="bg-green-50 text-green-700 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-0.5">
-              <TrendingUp className="w-2.5 h-2.5" /> 18.5%
-            </div>
-          </div>
-          <div>
-            <p className="text-slate-500 text-[11px] font-bold mb-0.5">Total Deposits</p>
-            <h3 className="text-2xl font-extrabold text-slate-900 tracking-tight">₦{totalDeposits.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</h3>
+            <h3 className="text-2xl font-extrabold text-slate-900 tracking-tight">₦{pendingWithdrawalsSum.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</h3>
           </div>
         </Card>
 
