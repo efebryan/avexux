@@ -6,13 +6,25 @@ import { Sidebar } from "@/components/user-dashboard/Sidebar";
 import { Header } from "@/components/user-dashboard/Header";
 import { Menu, X } from "lucide-react";
 
+import { createClient } from "@/utils/supabase/client";
+
 export default function UserDashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  const [settings, setSettings] = useState<any>(null);
   const pathname = usePathname();
+
+  useEffect(() => {
+    async function loadSettings() {
+      const supabase = createClient();
+      const { data } = await supabase.from("app_settings").select("*").limit(1).single();
+      if (data) setSettings(data);
+    }
+    loadSettings();
+  }, []);
 
   // Close sidebar on route change on mobile
   useEffect(() => {
@@ -70,7 +82,7 @@ export default function UserDashboardLayout({
 
         {/* Fixed Footer */}
         <footer className="shrink-0 py-3 px-4 md:px-6 border-t border-gray-200 bg-[#f8fafc] text-xs text-gray-400 flex justify-center items-center z-10">
-          <p>&copy; {new Date().getFullYear()} Avexux. All rights reserved.</p>
+          <p>{settings?.copyright_text || `© ${new Date().getFullYear()} Avexux. All rights reserved.`}</p>
         </footer>
       </div>
     </div>

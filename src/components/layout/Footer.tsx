@@ -4,9 +4,12 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { MessageCircle, Globe, Link as LinkIcon, Send } from "lucide-react";
+import type { SiteSettings } from "@/utils/settings";
 
-export function Footer() {
+export function Footer({ settings }: { settings?: SiteSettings }) {
   const currentYear = new Date().getFullYear();
+  const siteTitle = settings?.site_title || "Avexux";
+  const copyrightText = settings?.copyright_text || `© ${currentYear} ${siteTitle} Inc. All rights reserved.`;
 
   return (
     <footer className="bg-foreground text-background pt-12 pb-8 border-t border-border/10 font-sans">
@@ -18,11 +21,15 @@ export function Footer() {
           {/* Brand & Mission (Full 2-column width on mobile, 1 col on lg) */}
           <div className="col-span-2 lg:col-span-1 space-y-3">
             <Link href="/" className="inline-flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-[#2faf2f] flex items-center justify-center text-white font-extrabold text-lg shadow-sm">
-                A
-              </div>
+              {settings?.logo_url ? (
+                <img src={settings.logo_url} alt={siteTitle} className="h-8 w-auto object-contain" />
+              ) : (
+                <div className="w-8 h-8 rounded-lg bg-[#2faf2f] flex items-center justify-center text-white font-extrabold text-lg shadow-sm">
+                  {siteTitle.charAt(0)}
+                </div>
+              )}
               <span className="font-heading font-bold text-2xl tracking-tight text-white">
-                Avexux<span className="text-[#2faf2f]">.</span>
+                {siteTitle}<span className="text-[#2faf2f]">.</span>
               </span>
             </Link>
             <p className="text-muted/80 text-sm leading-relaxed max-w-sm">
@@ -142,7 +149,7 @@ export function Footer() {
 
         {/* Bottom Bar */}
         <div className="border-t border-border/15 mt-10 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs sm:text-sm text-muted/60 text-center sm:text-left">
-          <p>&copy; {currentYear} Avexux Inc. All rights reserved.</p>
+          <p>{copyrightText}</p>
           <div className="flex items-center gap-6">
             <Link href="/privacy" className="hover:text-[#2faf2f] transition-colors">
               Privacy

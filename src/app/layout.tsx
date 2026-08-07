@@ -13,10 +13,24 @@ const plusJakartaSans = Plus_Jakarta_Sans({
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
-  title: "Avexux - Digital Opportunities Platform",
-  description: "Complete online tasks, earn rewards, and grow with Avexux.",
-};
+import { getSiteSettings } from "@/utils/settings";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const settings = await getSiteSettings();
+  
+  return {
+    title: settings.og_title || settings.site_title,
+    description: settings.og_description,
+    openGraph: {
+      title: settings.og_title,
+      description: settings.og_description,
+      images: settings.og_image_url ? [settings.og_image_url] : [],
+    },
+    icons: settings.favicon_url ? {
+      icon: settings.favicon_url
+    } : undefined
+  };
+}
 
 export default function RootLayout({
   children,

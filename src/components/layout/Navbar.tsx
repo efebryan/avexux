@@ -7,11 +7,14 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Menu, X } from "lucide-react";
 import { useState, useEffect } from "react";
+import type { SiteSettings } from "@/utils/settings";
 
-export function Navbar() {
+export function Navbar({ settings }: { settings?: SiteSettings }) {
   const pathname = usePathname();
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const siteTitle = settings?.site_title || "Avexux";
 
   useEffect(() => {
     const handleScroll = () => {
@@ -42,9 +45,13 @@ export function Navbar() {
       <div className="container mx-auto px-6 max-w-7xl flex items-center justify-between">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2">
-          <span className="font-heading font-bold text-2xl tracking-tight text-gray-900">
-            Avexux
-          </span>
+          {settings?.logo_url ? (
+            <img src={settings.logo_url} alt={siteTitle} className="h-8 w-auto object-contain" />
+          ) : (
+            <span className="font-heading font-bold text-2xl tracking-tight text-gray-900">
+              {siteTitle}
+            </span>
+          )}
         </Link>
 
         {/* Desktop Navigation */}

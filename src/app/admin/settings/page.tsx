@@ -1,6 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { createClient } from "@/utils/supabase/client";
+import { toast } from "sonner";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { 
@@ -24,6 +26,98 @@ export default function AdminSettingsPage() {
   const [activeTab, setActiveTab] = useState('general');
   const [maintenanceMode, setMaintenanceMode] = useState(false);
   const [enforce2FA, setEnforce2FA] = useState(true);
+  
+  const [settings, setSettings] = useState({
+    logo_url: "",
+    favicon_url: "",
+    og_image_url: "",
+    site_title: "",
+    copyright_text: "",
+    og_title: "",
+    og_description: "",
+  });
+  const [isSaving, setIsSaving] = useState(false);
+  const supabase = createClient();
+
+  useEffect(() => {
+    async function loadSettings() {
+      const { data } = await supabase.from("app_settings").select("*").limit(1).single();
+      if (data) {
+        setSettings({
+          logo_url: data.logo_url || "",
+          favicon_url: data.favicon_url || "",
+          og_image_url: data.og_image_url || "",
+          site_title: data.site_title || "",
+          copyright_text: data.copyright_text || "",
+          og_title: data.og_title || "",
+          og_description: data.og_description || "",
+        });
+      }
+    }
+    loadSettings();
+  }, [supabase]);
+
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>, fieldName: string) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    
+    // Quick validation
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error("File size must be less than 2MB");
+      return;
+    }
+
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${fieldName}-${Date.now()}.${fileExt}`;
+    
+    const toastId = toast.loading(`Uploading ${fieldName}...`);
+    
+    const { data, error } = await supabase.storage
+      .from('site_assets')
+      .upload(fileName, file, { upsert: true });
+      
+    if (error) {
+      toast.dismiss(toastId);
+      toast.error(`Upload failed: ${error.message}`);
+      return;
+    }
+    
+    const { data: publicUrlData } = supabase.storage
+      .from('site_assets')
+      .getPublicUrl(fileName);
+      
+    setSettings(prev => ({ ...prev, [fieldName]: publicUrlData.publicUrl }));
+    toast.dismiss(toastId);
+    toast.success("Upload successful!");
+  };
+
+  const handleSaveSettings = async () => {
+    setIsSaving(true);
+    const toastId = toast.loading("Saving settings...");
+    
+    // Upsert logic (always updating the single row or inserting if missing)
+    const { data: existingData } = await supabase.from("app_settings").select("id").limit(1).single();
+    
+    let error;
+    if (existingData) {
+      const res = await supabase.from("app_settings").update(settings).eq("id", existingData.id);
+      error = res.error;
+    } else {
+      const res = await supabase.from("app_settings").insert([settings]);
+      error = res.error;
+    }
+
+    setIsSaving(false);
+    toast.dismiss(toastId);
+    
+    if (error) {
+      toast.error(`Failed to save settings: ${error.message}`);
+    } else {
+      toast.success("Settings saved successfully!");
+      // Optionally refresh the page to apply metadata changes
+      window.location.reload();
+    }
+  };
 
   // Helper to render active tab styling
   const getTabClass = (tabId: string) => {
@@ -45,8 +139,12 @@ export default function AdminSettingsPage() {
           <Button variant="outline" className="bg-white hover:bg-slate-50 text-slate-700 font-bold border-slate-200 rounded-lg px-5 h-10 shadow-sm">
             Discard Changes
           </Button>
-          <Button className="bg-[#16a34a] hover:bg-[#15803d] text-white font-bold rounded-lg px-5 h-10 shadow-sm">
-            Save All Changes
+          <Button 
+            className="bg-[#16a34a] hover:bg-[#15803d] text-white font-bold rounded-lg px-5 h-10 shadow-sm"
+            onClick={handleSaveSettings}
+            disabled={isSaving}
+          >
+            {isSaving ? "Saving..." : "Save All Changes"}
           </Button>
         </div>
       </div>
@@ -84,43 +182,116 @@ export default function AdminSettingsPage() {
               </div>
 
               <div className="flex flex-col sm:flex-row gap-8">
+                {/* Logo Upload */}
                 <div className="flex-shrink-0 w-[140px]">
                   <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-2">Platform Logo</label>
-                  <div className="w-full aspect-square bg-slate-50 border border-dashed border-slate-300 rounded-lg flex flex-col items-center justify-center text-slate-400 cursor-pointer hover:bg-slate-100 hover:text-slate-500 transition-colors mb-2">
-                    <Upload className="w-5 h-5 mb-1.5" />
-                    <span className="text-[10px] font-bold uppercase tracking-wider">Replace</span>
-                  </div>
+                  <label className="w-full aspect-square bg-slate-50 border border-dashed border-slate-300 rounded-lg flex flex-col items-center justify-center text-slate-400 cursor-pointer hover:bg-slate-100 hover:text-slate-500 transition-colors mb-2 relative overflow-hidden">
+                    {settings.logo_url ? (
+                      <img src={settings.logo_url} alt="Logo" className="w-full h-full object-contain p-2" />
+                    ) : (
+                      <>
+                        <Upload className="w-5 h-5 mb-1.5" />
+                        <span className="text-[10px] font-bold uppercase tracking-wider">Replace</span>
+                      </>
+                    )}
+                    <input type="file" accept="image/png, image/svg+xml" className="hidden" onChange={(e) => handleFileUpload(e, 'logo_url')} />
+                  </label>
+                  {settings.logo_url && (
+                    <button onClick={() => setSettings(s => ({...s, logo_url: ""}))} className="text-red-500 font-bold text-[11px] hover:underline block text-center w-full">Remove logo</button>
+                  )}
+                </div>
+
+                {/* Favicon Upload */}
+                <div className="flex-shrink-0 w-[140px]">
+                  <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-2">Favicon</label>
+                  <label className="w-full aspect-square bg-slate-50 border border-dashed border-slate-300 rounded-lg flex flex-col items-center justify-center text-slate-400 cursor-pointer hover:bg-slate-100 hover:text-slate-500 transition-colors mb-2 relative overflow-hidden">
+                    {settings.favicon_url ? (
+                      <img src={settings.favicon_url} alt="Favicon" className="w-full h-full object-contain p-2" />
+                    ) : (
+                      <>
+                        <Upload className="w-5 h-5 mb-1.5" />
+                        <span className="text-[10px] font-bold uppercase tracking-wider">Replace</span>
+                      </>
+                    )}
+                    <input type="file" accept="image/png, image/x-icon, image/svg+xml" className="hidden" onChange={(e) => handleFileUpload(e, 'favicon_url')} />
+                  </label>
+                  {settings.favicon_url && (
+                    <button onClick={() => setSettings(s => ({...s, favicon_url: ""}))} className="text-red-500 font-bold text-[11px] hover:underline block text-center w-full">Remove favicon</button>
+                  )}
                 </div>
 
                 <div className="flex-1 space-y-5">
-                  <div className="flex flex-col pt-6 sm:flex-row gap-4 mb-2">
-                     <p className="text-xs text-slate-500 leading-relaxed max-w-[200px]">
-                      Upload a square SVG or PNG.<br/>Max size 2MB.<br/>Recommendation:<br/>512x512px.
-                     </p>
-                  </div>
-                  <button className="text-slate-900 font-bold text-[13px] hover:underline mb-2 block">Remove current logo</button>
-
                   <div className="space-y-5 pt-2">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                      <div className="md:col-span-1 w-full relative -mt-32 md:-mt-36 ml-0 md:ml-40 lg:ml-48">
+                      <div className="md:col-span-1 w-full relative">
                         <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-2">Site Title</label>
                         <input 
                           type="text" 
-                          defaultValue="Avexux Corporate Suite" 
+                          value={settings.site_title}
+                          onChange={(e) => setSettings(s => ({...s, site_title: e.target.value}))}
+                          placeholder="Avexux Corporate Suite" 
                           className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-[13px] text-slate-900 font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 focus:bg-white"
                         />
                       </div>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                      <div className="md:col-span-1 w-full relative ml-0 md:ml-40 lg:ml-48">
-                        <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-2">Copyright Text</label>
+                      <div className="md:col-span-1 w-full relative">
+                        <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-2">Copyright / Footer Text</label>
                         <input 
                           type="text" 
-                          defaultValue="© 2024 Avexux Intelligence Systems" 
+                          value={settings.copyright_text}
+                          onChange={(e) => setSettings(s => ({...s, copyright_text: e.target.value}))}
+                          placeholder="© 2024 Avexux Intelligence Systems" 
                           className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-[13px] text-slate-900 font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 focus:bg-white"
                         />
                       </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* OG Metadata Section */}
+              <div className="mt-8 pt-6 border-t border-slate-100">
+                <h3 className="text-sm font-bold text-slate-900 mb-4">OpenGraph Metadata (SEO)</h3>
+                <div className="flex flex-col sm:flex-row gap-8">
+                  <div className="flex-shrink-0 w-[140px]">
+                    <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-2">OG Image</label>
+                    <label className="w-full aspect-[1.91/1] bg-slate-50 border border-dashed border-slate-300 rounded-lg flex flex-col items-center justify-center text-slate-400 cursor-pointer hover:bg-slate-100 hover:text-slate-500 transition-colors mb-2 relative overflow-hidden">
+                      {settings.og_image_url ? (
+                        <img src={settings.og_image_url} alt="OG Image" className="w-full h-full object-cover" />
+                      ) : (
+                        <>
+                          <Upload className="w-5 h-5 mb-1.5" />
+                          <span className="text-[10px] font-bold uppercase tracking-wider">Replace</span>
+                        </>
+                      )}
+                      <input type="file" accept="image/png, image/jpeg, image/webp" className="hidden" onChange={(e) => handleFileUpload(e, 'og_image_url')} />
+                    </label>
+                    {settings.og_image_url && (
+                      <button onClick={() => setSettings(s => ({...s, og_image_url: ""}))} className="text-red-500 font-bold text-[11px] hover:underline block text-center w-full">Remove OG image</button>
+                    )}
+                  </div>
+                  <div className="flex-1 space-y-4">
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-2">OG Title</label>
+                      <input 
+                        type="text" 
+                        value={settings.og_title}
+                        onChange={(e) => setSettings(s => ({...s, og_title: e.target.value}))}
+                        placeholder="Avexux - Digital Opportunities Platform" 
+                        className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-[13px] text-slate-900 font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 focus:bg-white"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-2">OG Description</label>
+                      <textarea 
+                        rows={3}
+                        value={settings.og_description}
+                        onChange={(e) => setSettings(s => ({...s, og_description: e.target.value}))}
+                        placeholder="Complete online tasks, earn rewards, and grow with Avexux."
+                        className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg text-[13px] text-slate-700 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:bg-white resize-none"
+                      ></textarea>
                     </div>
                   </div>
                 </div>
@@ -498,8 +669,12 @@ export default function AdminSettingsPage() {
         <button className="text-[13px] font-bold text-slate-600 hover:text-slate-900">
           Cancel
         </button>
-        <Button className="bg-[#16a34a] hover:bg-[#15803d] text-white font-bold rounded-lg px-6 h-10 shadow-sm">
-          Update Global Settings
+        <Button 
+          className="bg-[#16a34a] hover:bg-[#15803d] text-white font-bold rounded-lg px-6 h-10 shadow-sm"
+          onClick={handleSaveSettings}
+          disabled={isSaving}
+        >
+          {isSaving ? "Updating..." : "Update Global Settings"}
         </Button>
       </div>
 
