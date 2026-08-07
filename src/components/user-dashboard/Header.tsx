@@ -6,7 +6,8 @@ import { ProfileDropdown } from "@/components/user-dashboard/ProfileDropdown";
 import { createClient } from "@/utils/supabase/client";
 
 export function Header() {
-  const [fullName, setFullName] = useState<string>("User");
+  const [fullName, setFullName] = useState<string>("");
+  const [isLoading, setIsLoading] = useState(true);
   
   useEffect(() => {
     const fetchUser = async () => {
@@ -18,9 +19,19 @@ export function Header() {
           setFullName(profile.full_name);
         }
       }
+      setIsLoading(false);
     };
     fetchUser();
   }, []);
+
+  if (isLoading) {
+    return (
+      <div className="w-full flex items-center justify-between gap-4 h-12">
+        <div className="w-48 h-6 bg-gray-200 animate-pulse rounded-md"></div>
+        <div className="w-10 h-10 bg-gray-200 animate-pulse rounded-full"></div>
+      </div>
+    );
+  }
 
   const firstName = fullName.split(' ')[0];
 

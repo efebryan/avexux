@@ -24,6 +24,7 @@ export function WeeklyGoal() {
   const [highestDeposit, setHighestDeposit] = useState(0);
   const [dailyTarget, setDailyTarget] = useState(0);
   const [achievedToday, setAchievedToday] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     async function fetchHighestDeposit() {
@@ -91,7 +92,6 @@ export function WeeklyGoal() {
               return isDone && subDate >= startOfDay;
             })
             .reduce((sum: number, sub: any) => {
-              // Look up the reward amount from the activeTasks pool
               const taskRef = activeTasks?.find((t: any) => t.id === sub.task_id);
               const reward = taskRef ? Number(taskRef.reward_amount) : 0;
               return sum + reward;
@@ -99,9 +99,26 @@ export function WeeklyGoal() {
           setAchievedToday(achievedSum);
         }
       }
+      setIsLoading(false);
     }
-    fetchHighestDeposit();
+    fetchGoalData();
   }, []);
+
+  if (isLoading) {
+    return (
+      <Card className="p-4 border border-gray-100 shadow-sm rounded-2xl mb-6 relative overflow-hidden group">
+        <div className="flex items-center justify-between mb-4">
+          <div className="h-4 w-24 bg-gray-200 animate-pulse rounded"></div>
+          <div className="h-6 w-16 bg-gray-200 animate-pulse rounded-full"></div>
+        </div>
+        <div className="space-y-4">
+          <div className="h-6 w-3/4 bg-gray-200 animate-pulse rounded"></div>
+          <div className="h-2 w-full bg-gray-200 animate-pulse rounded-full"></div>
+          <div className="h-4 w-1/2 bg-gray-200 animate-pulse rounded"></div>
+        </div>
+      </Card>
+    );
+  }
 
   const handleDeposit = (amount: number, method: string) => {
     toast.success(`Successfully upgraded plan with ₦${amount.toLocaleString()}!`);

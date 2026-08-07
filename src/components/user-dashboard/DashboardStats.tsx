@@ -11,6 +11,7 @@ export function DashboardStats() {
   const [activeReferrals, setActiveReferrals] = useState(0);
   const [totalCompleted, setTotalCompleted] = useState(0);
   const [todayCompleted, setTodayCompleted] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     async function fetchStats() {
@@ -48,33 +49,35 @@ export function DashboardStats() {
           setActiveReferrals(count);
         }
 
-        const { count: totalTasksCount } = await supabase
+        const { data: completedTasks } = await supabase
           .from("task_submissions")
-          .select("*", { count: "exact", head: true })
+          .select("created_at")
           .eq("user_id", user.id)
           .eq("status", "Approved");
 
-        if (totalTasksCount !== null) {
-          setTotalCompleted(totalTasksCount);
-        }
+        if (completedTasks) {
+          setTotalCompleted(completedTasks.length);
 
-        const startOfToday = new Date();
-        startOfToday.setHours(0, 0, 0, 0);
-
-        const { count: todayTasksCount } = await supabase
-          .from("task_submissions")
-          .select("*", { count: "exact", head: true })
-          .eq("user_id", user.id)
-          .eq("status", "Approved")
-          .gte("updated_at", startOfToday.toISOString());
-
-        if (todayTasksCount !== null) {
-          setTodayCompleted(todayTasksCount);
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          const completedTodayCount = completedTasks.filter((t: any) => new Date(t.created_at) >= today).length;
+          setTodayCompleted(completedTodayCount);
         }
       }
+      setIsLoading(false);
     }
     fetchStats();
   }, []);
+
+  if (isLoading) {
+    return (
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 mb-4">
+        {[1, 2, 3, 4].map((i) => (
+          <div key={i} className="h-[90px] bg-white rounded-lg border border-gray-100 shadow-sm animate-pulse" />
+        ))}
+      </div>
+    );
+  }
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 mb-4">

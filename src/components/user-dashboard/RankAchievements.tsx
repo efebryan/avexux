@@ -58,6 +58,7 @@ const ranksConfig = [
 
 export function RankAchievements() {
   const [highestDeposit, setHighestDeposit] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     async function fetchHighestDeposit() {
@@ -76,9 +77,26 @@ export function RankAchievements() {
           setHighestDeposit(maxDeposit);
         }
       }
+      setIsLoading(false);
     }
     fetchHighestDeposit();
   }, []);
+
+  if (isLoading) {
+    return (
+      <Card className="p-4 border border-gray-100 shadow-sm rounded-2xl mb-6 bg-white">
+        <div className="flex items-center justify-between mb-3">
+          <div className="h-4 w-40 bg-gray-200 animate-pulse rounded"></div>
+          <div className="h-5 w-20 bg-gray-200 animate-pulse rounded-full"></div>
+        </div>
+        <div className="grid grid-cols-2 gap-2">
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <div key={i} className="h-12 bg-gray-100 animate-pulse rounded-xl"></div>
+          ))}
+        </div>
+      </Card>
+    );
+  }
 
   const currentRankIndex = Math.max(0, ranksConfig.findLastIndex(r => highestDeposit >= r.threshold));
   const currentRankName = ranksConfig[currentRankIndex].name.split(' ')[0] + " Level";
