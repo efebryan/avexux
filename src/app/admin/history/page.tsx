@@ -34,7 +34,7 @@ export default function AdminHistoryPage() {
           created_at,
           rating,
           tasks!inner(title, reward_amount),
-          profiles!inner(full_name, email)
+          profiles!task_submissions_user_id_fkey(full_name, email)
         `)
         .order("created_at", { ascending: false })
         .limit(50);
