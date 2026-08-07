@@ -346,7 +346,7 @@ export default function FinancialsPage() {
                   {transactions.map((txn, i) => (
                     <tr key={i} className="hover:bg-slate-50/50 transition-colors">
                       <td className="px-6 py-4">
-                        <span className="text-slate-500 font-medium text-[13px]">{txn.id}</span>
+                        <span className="text-slate-500 font-medium text-[13px] font-mono">{txn.id?.substring(0, 8)}...</span>
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">

@@ -566,6 +566,7 @@ export default function AdminOverviewPage() {
             ))}
           </div>
         </Card>
-
+      </div>
+    </div>
   );
 }
