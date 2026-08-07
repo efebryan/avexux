@@ -18,6 +18,7 @@ const ranksConfig = [
 export default function TaskCenterPage() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [hasDeposited, setHasDeposited] = useState(true);
   const [activeTab, setActiveTab] = useState<
     "available" | "active" | "history"
   >("available");
@@ -60,6 +61,8 @@ export default function TaskCenterPage() {
             0,
           );
       }
+
+      setHasDeposited(highestDeposit > 0);
 
       const currentRankIndex = Math.max(
         0,
@@ -176,8 +179,26 @@ export default function TaskCenterPage() {
         </p>
       </div>
 
-      {/* Main Tabs */}
-      <div className="flex items-center gap-6 border-b border-gray-200 mb-8 overflow-x-auto scrollbar-hide">
+      {!hasDeposited ? (
+        <div className="py-20 text-center bg-gray-50 rounded-2xl border border-gray-200 shadow-sm animate-in fade-in zoom-in-95 duration-500">
+          <div className="w-16 h-16 bg-[#0f8538]/10 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[#0f8538]"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+          </div>
+          <h2 className="text-xl font-bold text-gray-900 mb-2">Tasks Locked</h2>
+          <p className="text-gray-500 max-w-md mx-auto mb-6">
+            You need to deposit and join a plan to access the task center and start earning rewards.
+          </p>
+          <button 
+            onClick={() => router.push("/user/deposit")} 
+            className="bg-[#0f8538] hover:bg-[#0f8538]/90 text-white font-semibold py-2.5 px-8 rounded-lg shadow-md transition-all"
+          >
+            Deposit & Join a Plan
+          </button>
+        </div>
+      ) : (
+        <>
+          {/* Main Tabs */}
+          <div className="flex items-center gap-6 border-b border-gray-200 mb-8 overflow-x-auto scrollbar-hide">
         <button
           onClick={() => setActiveTab("available")}
           className={`pb-4 text-sm font-bold border-b-2 transition-colors whitespace-nowrap ${activeTab === "available" ? "border-[#0f8538] text-[#0f8538]" : "border-transparent text-gray-500 hover:text-gray-700"}`}
@@ -213,6 +234,8 @@ export default function TaskCenterPage() {
           </div>
         )}
       </div>
+    </>
+  )}
     </div>
   );
 }

@@ -8,8 +8,9 @@ export async function adminCreateUserAction(data: {
   password?: string;
   role: string;
   status: string;
+  referralCode?: string;
 }) {
-  const { fullName, email, password, role, status } = data;
+  const { fullName, email, password, role, status, referralCode } = data;
   
   // Use a vanilla client to avoid modifying the admin's cookies
   const supabase = createSupabaseClient(
@@ -26,8 +27,8 @@ export async function adminCreateUserAction(data: {
   // Generate a random password if not provided
   const userPassword = password || Math.random().toString(36).slice(-10) + 'A1!';
   
-  // Generate a referral code
-  const refCode = 'ARV-' + Math.random().toString(36).substring(2, 7).toUpperCase();
+  // Generate a referral code if not provided
+  const refCode = referralCode || 'ARV-' + Math.random().toString(36).substring(2, 7).toUpperCase();
 
   // 1. Sign up the new user
   const { data: authData, error: signUpError } = await supabase.auth.signUp({

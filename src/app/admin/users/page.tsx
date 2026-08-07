@@ -19,6 +19,7 @@ type AdminUser = {
   tasks: number;
   initials: string;
   role: string;
+  referralCode: string;
 };
 
 export default function AdminUsersPage() {
@@ -39,6 +40,7 @@ export default function AdminUsersPage() {
         role,
         status,
         created_at,
+        referral_code,
         wallets(total_earned)
       `)
       .order('created_at', { ascending: false });
@@ -84,7 +86,8 @@ export default function AdminUsersPage() {
         earnings,
         tasks: completedTasks,
         initials,
-        role: p.role === "admin" ? "Admin" : p.role === "moderator" ? "Moderator" : "User"
+        role: p.role === "admin" ? "Admin" : p.role === "moderator" ? "Moderator" : "User",
+        referralCode: p.referral_code || ""
       };
     });
 
@@ -151,9 +154,23 @@ export default function AdminUsersPage() {
     setIsEditModalOpen(true);
   };
 
-  const handleSaveChanges = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSaveChanges = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!selectedUser) return;
+
+    // Update referral code in database if changed
+    const originalUser = users.find(u => u.id === selectedUser.id);
+    if (originalUser && originalUser.referralCode !== selectedUser.referralCode) {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ referral_code: selectedUser.referralCode })
+        .eq('id', selectedUser.id);
+        
+      if (error) {
+        toast.error(`Failed to update referral code: ${error.message}`);
+        return;
+      }
+    }
 
     setUsers(prev => prev.map(user => user.id === selectedUser.id ? selectedUser : user));
     setIsEditModalOpen(false);
@@ -505,6 +522,18 @@ export default function AdminUsersPage() {
                   />
                 </div>
 
+                {/* Referral Code */}
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Referral Code</label>
+                  <input
+                    type="text"
+                    required
+                    value={selectedUser.referralCode}
+                    onChange={(e) => setSelectedUser({ ...selectedUser, referralCode: e.target.value })}
+                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors text-slate-900 font-semibold uppercase"
+                  />
+                </div>
+
                 <div className="grid grid-cols-2 gap-4">
                   {/* Tasks */}
                   <div>
@@ -635,6 +664,10 @@ export default function AdminUsersPage() {
                 <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
                   <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Joined Date</p>
                   <p className="font-semibold text-slate-900">{userToView.joined}</p>
+                </div>
+                <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Referral Code</p>
+                  <p className="font-semibold text-slate-900 uppercase">{userToView.referralCode}</p>
                 </div>
                 <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
                   <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Tasks Completed</p>

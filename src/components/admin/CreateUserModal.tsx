@@ -15,6 +15,7 @@ export function CreateUserModal({ isOpen, onClose, onSuccess }: CreateUserModalP
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [referralCode, setReferralCode] = useState("");
   const [role, setRole] = useState("user");
   const [status, setStatus] = useState("ACTIVE");
   const [isLoading, setIsLoading] = useState(false);
@@ -33,7 +34,8 @@ export function CreateUserModal({ isOpen, onClose, onSuccess }: CreateUserModalP
       email,
       password,
       role,
-      status
+      status,
+      referralCode
     });
 
     setIsLoading(false);
@@ -44,6 +46,7 @@ export function CreateUserModal({ isOpen, onClose, onSuccess }: CreateUserModalP
       setFullName("");
       setEmail("");
       setPassword("");
+      setReferralCode("");
       setRole("user");
       setStatus("ACTIVE");
       onSuccess(); // Re-fetch users list
@@ -111,6 +114,20 @@ export function CreateUserModal({ isOpen, onClose, onSuccess }: CreateUserModalP
                 className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-gray-50"
               />
             </div>
+          </div>
+          
+          <div>
+            <label className="block text-sm font-bold text-gray-700 mb-1 flex justify-between">
+              <span>Referral Code</span>
+              <span className="text-xs text-gray-400 font-normal">Leave blank to auto-generate</span>
+            </label>
+            <input 
+              type="text" 
+              value={referralCode}
+              onChange={(e) => setReferralCode(e.target.value)}
+              placeholder="e.g., VIP-2024"
+              className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-gray-50 uppercase"
+            />
           </div>
 
           <div className="grid grid-cols-2 gap-4 pt-2">
