@@ -23,6 +23,9 @@ import { adminProcessWithdrawalAction } from "../actions";
 export default function FinancialsPage() {
   const [requests, setRequests] = useState<any[]>([]);
   const [transactions, setTransactions] = useState<any[]>([]);
+  const [txPage, setTxPage] = useState(1);
+  const [txTotal, setTxTotal] = useState(0);
+  const PAGE_SIZE = 10;
   const [totalDeposits, setTotalDeposits] = useState(0);
   const [totalWithdrawals, setTotalWithdrawals] = useState(0);
   const [pendingWithdrawalsSum, setPendingWithdrawalsSum] = useState(0);
@@ -103,16 +106,26 @@ export default function FinancialsPage() {
         }));
       }
 
-      // Fetch actual recent transactions
-      const { data: txData } = await supabase
+    }
+    fetchFinancials();
+  }, []);
+
+  useEffect(() => {
+    async function fetchTransactions() {
+      const supabase = createClient();
+      
+      const from = (txPage - 1) * PAGE_SIZE;
+      const to = from + PAGE_SIZE - 1;
+
+      const { data: txData, count } = await supabase
         .from("transactions")
         .select(`
           id, reference_id, type, amount, status, created_at,
           profiles!inner(full_name, email)
-        `)
+        `, { count: "exact" })
         .in("type", ["DEPOSIT", "WITHDRAWAL"])
         .order("created_at", { ascending: false })
-        .limit(10);
+        .range(from, to);
 
       if (txData) {
         setTransactions(txData.map((tx: any) => {
@@ -147,10 +160,12 @@ export default function FinancialsPage() {
             dotColor
           };
         }));
+        if (count !== null) setTxTotal(count);
       }
     }
-    fetchFinancials();
-  }, []);
+    
+    fetchTransactions();
+  }, [txPage]);
 
   const handleAction = async (id: string, action: "Approved" | "Rejected") => {
     toast.loading(`Processing request...`, { id: "process_withdrawal" });
@@ -359,25 +374,58 @@ export default function FinancialsPage() {
             {/* Pagination Footer */}
             <div className="p-4 border-t border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-4">
               <span className="text-xs text-slate-500 font-medium">
-                Showing <span className="font-bold text-slate-700">1</span> to <span className="font-bold text-slate-700">10</span> of 2,450 results
+                Showing <span className="font-bold text-slate-700">{txTotal > 0 ? (txPage - 1) * PAGE_SIZE + 1 : 0}</span> to <span className="font-bold text-slate-700">{Math.min(txPage * PAGE_SIZE, txTotal)}</span> of {txTotal} results
               </span>
-              <div className="flex items-center gap-1.5">
-                <button className="w-8 h-8 flex items-center justify-center rounded-md border border-slate-200 text-slate-400 hover:bg-slate-50">
-                  <ChevronLeft className="w-4 h-4" />
-                </button>
-                <button className="w-8 h-8 flex items-center justify-center rounded-md bg-primary text-white font-bold text-xs">
-                  1
-                </button>
-                <button className="w-8 h-8 flex items-center justify-center rounded-md border border-slate-200 text-slate-600 font-bold text-xs hover:bg-slate-50">
-                  2
-                </button>
-                <button className="w-8 h-8 flex items-center justify-center rounded-md border border-slate-200 text-slate-600 font-bold text-xs hover:bg-slate-50">
-                  3
-                </button>
-                <button className="w-8 h-8 flex items-center justify-center rounded-md border border-slate-200 text-slate-400 hover:bg-slate-50">
-                  <ChevronRight className="w-4 h-4" />
-                </button>
-              </div>
+              
+              {Math.ceil(txTotal / PAGE_SIZE) > 1 && (
+                <div className="flex items-center gap-1.5">
+                  <button 
+                    onClick={() => setTxPage(txPage - 1)}
+                    disabled={txPage === 1}
+                    className="w-8 h-8 flex items-center justify-center rounded-md border border-slate-200 text-slate-400 hover:bg-slate-50 disabled:opacity-50 disabled:pointer-events-none"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </button>
+                  
+                  {(() => {
+                    const totalPages = Math.ceil(txTotal / PAGE_SIZE) || 1;
+                    const pages = [];
+                    for (let i = 1; i <= totalPages; i++) {
+                      if (i === 1 || i === totalPages || (i >= txPage - 1 && i <= txPage + 1)) {
+                        pages.push(i);
+                      } else if (pages[pages.length - 1] !== '...') {
+                        pages.push('...');
+                      }
+                    }
+                    
+                    return pages.map((p, idx) => (
+                      p === '...' ? (
+                        <span key={`ellipsis-${idx}`} className="text-slate-400 text-xs font-bold px-1">...</span>
+                      ) : (
+                        <button 
+                          key={p}
+                          onClick={() => setTxPage(p as number)}
+                          className={`w-8 h-8 flex items-center justify-center rounded-md text-xs font-bold ${
+                            p === txPage 
+                              ? "bg-primary text-white" 
+                              : "border border-slate-200 text-slate-600 hover:bg-slate-50"
+                          }`}
+                        >
+                          {p}
+                        </button>
+                      )
+                    ));
+                  })()}
+
+                  <button 
+                    onClick={() => setTxPage(txPage + 1)}
+                    disabled={txPage === Math.ceil(txTotal / PAGE_SIZE)}
+                    className="w-8 h-8 flex items-center justify-center rounded-md border border-slate-200 text-slate-400 hover:bg-slate-50 disabled:opacity-50 disabled:pointer-events-none"
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
             </div>
           </Card>
           

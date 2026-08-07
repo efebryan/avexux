@@ -14,105 +14,190 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
+const PAGE_SIZE = 10;
+
 export default function AdminHistoryPage() {
   const [activeTab, setActiveTab] = useState<"tasks" | "spins">("tasks");
+  
   const [taskHistory, setTaskHistory] = useState<any[]>([]);
+  const [taskPage, setTaskPage] = useState(1);
+  const [taskTotal, setTaskTotal] = useState(0);
+  const [isTaskLoading, setIsTaskLoading] = useState(true);
+
   const [spinHistory, setSpinHistory] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [spinPage, setSpinPage] = useState(1);
+  const [spinTotal, setSpinTotal] = useState(0);
+  const [isSpinLoading, setIsSpinLoading] = useState(true);
+
+  const fetchTasks = async (page: number) => {
+    setIsTaskLoading(true);
+    const supabase = createClient();
+    
+    const from = (page - 1) * PAGE_SIZE;
+    const to = from + PAGE_SIZE - 1;
+
+    const { data, count, error } = await supabase
+      .from("task_submissions")
+      .select(`
+        id,
+        status,
+        created_at,
+        rating,
+        tasks!inner(title, reward_amount),
+        profiles!task_submissions_user_id_fkey(full_name, email)
+      `, { count: "exact" })
+      .order("created_at", { ascending: false })
+      .range(from, to);
+
+    if (data) {
+      setTaskHistory(data.map((t: any) => {
+        const profile = Array.isArray(t.profiles) ? t.profiles[0] : t.profiles;
+        const task = Array.isArray(t.tasks) ? t.tasks[0] : t.tasks;
+        const fullName = profile?.full_name || "Unknown User";
+        const initials = fullName.substring(0,2).toUpperCase();
+        
+        let statusColor = "bg-slate-50 text-slate-700";
+        let dotColor = "bg-slate-500";
+        if (t.status === "Approved") {
+          statusColor = "bg-green-50 text-green-700"; dotColor = "bg-green-500";
+        } else if (t.status === "Pending Review") {
+          statusColor = "bg-amber-50 text-amber-700"; dotColor = "bg-amber-500";
+        } else if (t.status === "Rejected") {
+          statusColor = "bg-red-50 text-red-700"; dotColor = "bg-red-500";
+        } else if (t.status === "In Progress") {
+          statusColor = "bg-blue-50 text-blue-700"; dotColor = "bg-blue-500";
+        }
+
+        return {
+          id: t.id,
+          user: fullName,
+          initials,
+          taskTitle: task?.title || "Unknown Task",
+          reward: `₦${Number(task?.reward_amount || 0).toLocaleString()}`,
+          status: t.status,
+          statusColor,
+          dotColor,
+          date: new Date(t.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+        };
+      }));
+      if (count !== null) setTaskTotal(count);
+    } else {
+      console.error("Task History Error:", error);
+    }
+    setIsTaskLoading(false);
+  };
+
+  const fetchSpins = async (page: number) => {
+    setIsSpinLoading(true);
+    const supabase = createClient();
+    
+    const from = (page - 1) * PAGE_SIZE;
+    const to = from + PAGE_SIZE - 1;
+
+    const { data, count, error } = await supabase
+      .from("transactions")
+      .select(`
+        id, reference_id, type, amount, status, created_at,
+        profiles!inner(full_name, email)
+      `, { count: "exact" })
+      .in("type", ["SPIN_REWARD", "SPIN_COST"])
+      .order("created_at", { ascending: false })
+      .range(from, to);
+
+    if (data) {
+      setSpinHistory(data.map((tx: any) => {
+        const profile = Array.isArray(tx.profiles) ? tx.profiles[0] : tx.profiles;
+        const fullName = profile?.full_name || "Unknown";
+        const initials = fullName.substring(0,2).toUpperCase();
+        const isReward = tx.type === "SPIN_REWARD";
+        
+        return {
+          id: tx.reference_id || tx.id,
+          user: fullName,
+          initials,
+          type: isReward ? "Reward" : "Cost",
+          typeColor: isReward ? "bg-emerald-100 text-emerald-700" : "bg-rose-100 text-rose-700",
+          amount: `₦${Number(tx.amount).toLocaleString()}`,
+          amountColor: isReward ? "text-emerald-600" : "text-rose-600",
+          status: tx.status,
+          date: new Date(tx.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+        };
+      }));
+      if (count !== null) setSpinTotal(count);
+    } else {
+      console.error("Spin History Error:", error);
+    }
+    setIsSpinLoading(false);
+  };
 
   useEffect(() => {
-    async function fetchHistory() {
-      setIsLoading(true);
-      const supabase = createClient();
-      
-      // Fetch Task History (limit to 50 for now)
-      const { data: tasksData, error: taskError } = await supabase
-        .from("task_submissions")
-        .select(`
-          id,
-          status,
-          created_at,
-          rating,
-          tasks!inner(title, reward_amount),
-          profiles!task_submissions_user_id_fkey(full_name, email)
-        `)
-        .order("created_at", { ascending: false })
-        .limit(50);
-        
-      if (tasksData) {
-        setTaskHistory(tasksData.map((t: any) => {
-          const profile = Array.isArray(t.profiles) ? t.profiles[0] : t.profiles;
-          const task = Array.isArray(t.tasks) ? t.tasks[0] : t.tasks;
-          const fullName = profile?.full_name || "Unknown User";
-          const initials = fullName.substring(0,2).toUpperCase();
-          
-          let statusColor = "bg-slate-50 text-slate-700";
-          let dotColor = "bg-slate-500";
-          if (t.status === "Approved") {
-            statusColor = "bg-green-50 text-green-700"; dotColor = "bg-green-500";
-          } else if (t.status === "Pending Review") {
-            statusColor = "bg-amber-50 text-amber-700"; dotColor = "bg-amber-500";
-          } else if (t.status === "Rejected") {
-            statusColor = "bg-red-50 text-red-700"; dotColor = "bg-red-500";
-          } else if (t.status === "In Progress") {
-            statusColor = "bg-blue-50 text-blue-700"; dotColor = "bg-blue-500";
-          }
+    fetchTasks(taskPage);
+  }, [taskPage]);
 
-          return {
-            id: t.id,
-            user: fullName,
-            initials,
-            taskTitle: task?.title || "Unknown Task",
-            reward: `₦${Number(task?.reward_amount || 0).toLocaleString()}`,
-            status: t.status,
-            statusColor,
-            dotColor,
-            date: new Date(t.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-          };
-        }));
-      } else {
-        console.error("Task History Error:", taskError);
+  useEffect(() => {
+    fetchSpins(spinPage);
+  }, [spinPage]);
+
+  const renderPagination = (page: number, total: number, setPage: (p: number) => void) => {
+    const totalPages = Math.ceil(total / PAGE_SIZE) || 1;
+    const startItem = (page - 1) * PAGE_SIZE + 1;
+    const endItem = Math.min(page * PAGE_SIZE, total);
+
+    const pages = [];
+    for (let i = 1; i <= totalPages; i++) {
+      if (i === 1 || i === totalPages || (i >= page - 1 && i <= page + 1)) {
+        pages.push(i);
+      } else if (pages[pages.length - 1] !== '...') {
+        pages.push('...');
       }
-
-      // Fetch Spin History (limit to 50 for now)
-      const { data: spinsData, error: spinError } = await supabase
-        .from("transactions")
-        .select(`
-          id, reference_id, type, amount, status, created_at,
-          profiles!inner(full_name, email)
-        `)
-        .in("type", ["SPIN_REWARD", "SPIN_COST"])
-        .order("created_at", { ascending: false })
-        .limit(50);
-
-      if (spinsData) {
-        setSpinHistory(spinsData.map((tx: any) => {
-          const profile = Array.isArray(tx.profiles) ? tx.profiles[0] : tx.profiles;
-          const fullName = profile?.full_name || "Unknown";
-          const initials = fullName.substring(0,2).toUpperCase();
-          const isReward = tx.type === "SPIN_REWARD";
-          
-          return {
-            id: tx.reference_id || tx.id,
-            user: fullName,
-            initials,
-            type: isReward ? "Reward" : "Cost",
-            typeColor: isReward ? "bg-emerald-100 text-emerald-700" : "bg-rose-100 text-rose-700",
-            amount: `₦${Number(tx.amount).toLocaleString()}`,
-            amountColor: isReward ? "text-emerald-600" : "text-rose-600",
-            status: tx.status,
-            date: new Date(tx.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-          };
-        }));
-      } else {
-        console.error("Spin History Error:", spinError);
-      }
-
-      setIsLoading(false);
     }
-    
-    fetchHistory();
-  }, []);
+
+    return (
+      <div className="p-4 border-t border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-4">
+        <span className="text-xs text-slate-500 font-medium">
+          Showing <span className="font-bold text-slate-700">{total > 0 ? startItem : 0}</span> to <span className="font-bold text-slate-700">{endItem}</span> of {total} results
+        </span>
+        
+        {totalPages > 1 && (
+          <div className="flex items-center gap-1.5">
+            <button 
+              onClick={() => setPage(page - 1)}
+              disabled={page === 1}
+              className="w-8 h-8 flex items-center justify-center rounded-md border border-slate-200 text-slate-400 hover:bg-slate-50 disabled:opacity-50 disabled:pointer-events-none"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+            
+            {pages.map((p, idx) => (
+              p === '...' ? (
+                <span key={`ellipsis-${idx}`} className="text-slate-400 text-xs font-bold px-1">...</span>
+              ) : (
+                <button 
+                  key={p}
+                  onClick={() => setPage(p as number)}
+                  className={`w-8 h-8 flex items-center justify-center rounded-md text-xs font-bold ${
+                    p === page 
+                      ? "bg-primary text-white" 
+                      : "border border-slate-200 text-slate-600 hover:bg-slate-50"
+                  }`}
+                >
+                  {p}
+                </button>
+              )
+            ))}
+
+            <button 
+              onClick={() => setPage(page + 1)}
+              disabled={page === totalPages}
+              className="w-8 h-8 flex items-center justify-center rounded-md border border-slate-200 text-slate-400 hover:bg-slate-50 disabled:opacity-50 disabled:pointer-events-none"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+        )}
+      </div>
+    );
+  };
 
   return (
     <div className="space-y-6 pb-10 max-w-[1200px] mx-auto">
@@ -160,7 +245,7 @@ export default function AdminHistoryPage() {
         </div>
 
         <div className="overflow-x-auto min-h-[300px]">
-          {isLoading ? (
+          {(activeTab === "tasks" ? isTaskLoading : isSpinLoading) ? (
             <div className="flex items-center justify-center h-[300px] text-sm text-slate-500 font-medium">Loading history...</div>
           ) : (
             <table className="w-full text-sm text-left">
@@ -259,20 +344,10 @@ export default function AdminHistoryPage() {
           )}
         </div>
 
-        {/* Pagination Footer */}
-        <div className="p-4 border-t border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-4">
-          <span className="text-xs text-slate-500 font-medium">
-            Showing latest 50 records
-          </span>
-          <div className="flex items-center gap-1.5">
-            <button className="w-8 h-8 flex items-center justify-center rounded-md border border-slate-200 text-slate-400 hover:bg-slate-50 disabled:opacity-50" disabled>
-              <ChevronLeft className="w-4 h-4" />
-            </button>
-            <button className="w-8 h-8 flex items-center justify-center rounded-md border border-slate-200 text-slate-400 hover:bg-slate-50 disabled:opacity-50" disabled>
-              <ChevronRight className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
+        {activeTab === "tasks" 
+          ? renderPagination(taskPage, taskTotal, setTaskPage)
+          : renderPagination(spinPage, spinTotal, setSpinPage)
+        }
       </Card>
     </div>
   );
