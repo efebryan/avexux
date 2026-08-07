@@ -11,6 +11,7 @@ import { useRouter } from "next/navigation";
 export function AvailableOpportunities() {
   const [opportunities, setOpportunities] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [hasDeposited, setHasDeposited] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
@@ -21,6 +22,29 @@ export function AvailableOpportunities() {
         setIsLoading(false);
         return;
       }
+
+      // Check deposit status
+      const { data: txData } = await supabase
+        .from("transactions")
+        .select("*")
+        .eq("user_id", user.id);
+
+      let highestDeposit = 0;
+      if (txData) {
+        highestDeposit = txData
+          .filter(
+            (tx: any) =>
+              tx.type?.toLowerCase() === "deposit" ||
+              (tx.metadata?.description || "")
+                .toLowerCase()
+                .includes("deposit"),
+          )
+          .reduce(
+            (max: number, tx: any) => Math.max(max, Number(tx.amount)),
+            0,
+          );
+      }
+      setHasDeposited(highestDeposit > 0);
 
       const { data: tasks, error } = await supabase
         .from("tasks")
@@ -107,10 +131,14 @@ export function AvailableOpportunities() {
                   </div>
                   <Button 
                     variant="outline" 
-                    onClick={() => router.push(`/user/tasks/${task.id}`)}
-                    className="rounded-lg border-[#0f8538] text-[#0f8538] hover:bg-[#0f8538] hover:text-white transition-colors font-bold px-3.5 h-8 text-xs"
+                    onClick={() => hasDeposited ? router.push(`/user/tasks/${task.id}`) : router.push('/user/deposit')}
+                    className={`rounded-lg transition-colors font-bold px-3.5 h-8 text-xs ${
+                      hasDeposited 
+                        ? "border-[#0f8538] text-[#0f8538] hover:bg-[#0f8538] hover:text-white" 
+                        : "border-gray-300 text-gray-500 hover:bg-gray-100"
+                    }`}
                   >
-                    View Task
+                    {hasDeposited ? "View Task" : "Task Locked"}
                   </Button>
                 </div>
               </Card>
