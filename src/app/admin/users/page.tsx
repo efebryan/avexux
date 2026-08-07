@@ -123,8 +123,18 @@ export default function AdminUsersPage() {
     setIsDeleteModalOpen(true);
   };
 
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = async () => {
     if (!userToDelete) return;
+
+    // Call secure RPC to delete user from auth.users (cascades to all other tables)
+    const { error } = await supabase.rpc('delete_user_completely', { p_user_id: userToDelete.id });
+
+    if (error) {
+      toast.error(`Failed to delete user: ${error.message}`);
+      setIsDeleteModalOpen(false);
+      return;
+    }
+
     setUsers(prev => prev.filter(user => user.id !== userToDelete.id));
     setIsDeleteModalOpen(false);
     toast.success(`${userToDelete.username} has been permanently deleted.`);
