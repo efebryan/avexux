@@ -18,81 +18,11 @@ import {
   ArrowRight
 } from "lucide-react";
 
-// Mock Data
-const transactionHistory = [
-  {
-    id: "#TXN-84291",
-    user: "John Doe",
-    initials: "JD",
-    color: "bg-green-100 text-green-700",
-    type: "DEPOSIT",
-    typeColor: "bg-blue-100 text-blue-700",
-    amount: "₦50,000",
-    status: "Completed",
-    statusColor: "bg-green-50 text-green-700",
-    dotColor: "bg-green-500"
-  },
-  {
-    id: "#TXN-84292",
-    user: "Sarah Amadi",
-    initials: "SA",
-    color: "bg-blue-100 text-blue-700",
-    type: "WITHDRAWAL",
-    typeColor: "bg-rose-100 text-rose-700",
-    amount: "₦12,500",
-    amountColor: "text-rose-600",
-    status: "Pending",
-    statusColor: "bg-amber-50 text-amber-700",
-    dotColor: "bg-amber-500"
-  },
-  {
-    id: "#TXN-84293",
-    user: "Michael Kola",
-    initials: "MK",
-    color: "bg-slate-100 text-slate-700",
-    type: "TASK REWARD",
-    typeColor: "bg-slate-100 text-slate-700",
-    amount: "₦2,500",
-    status: "Completed",
-    statusColor: "bg-green-50 text-green-700",
-    dotColor: "bg-green-500"
-  }
-];
-
-const pendingRequests = [
-  {
-    id: "req1",
-    name: "Adeola Bakare",
-    img: "https://ui-avatars.com/api/?name=Adeola+Bakare&background=E2E8F0&color=333",
-    method: "BANK TRANSFER",
-    amount: "₦85,000",
-    bank: "GTBank PLC",
-    account: "012****984"
-  },
-  {
-    id: "req2",
-    name: "Chioma Eze",
-    img: "https://ui-avatars.com/api/?name=Chioma+Eze&background=E2E8F0&color=333",
-    method: "BANK TRANSFER",
-    amount: "₦15,200",
-    bank: "Zenith Bank",
-    account: "208****412"
-  },
-  {
-    id: "req3",
-    name: "Umar Sani",
-    img: "https://ui-avatars.com/api/?name=Umar+Sani&background=E2E8F0&color=333",
-    method: "BANK TRANSFER",
-    amount: "₦45,000",
-    bank: "Kuda MFB",
-    account: "309****112"
-  }
-];
-
-
+import { adminProcessWithdrawalAction } from "../actions";
 
 export default function FinancialsPage() {
-  const [requests, setRequests] = useState(pendingRequests);
+  const [requests, setRequests] = useState<any[]>([]);
+  const [transactions, setTransactions] = useState<any[]>([]);
   const [totalDeposits, setTotalDeposits] = useState(0);
   const [totalWithdrawals, setTotalWithdrawals] = useState(0);
   const [pendingWithdrawalsSum, setPendingWithdrawalsSum] = useState(0);
@@ -146,13 +76,85 @@ export default function FinancialsPage() {
         const sum = earningsData.reduce((acc, curr) => acc + Number(curr.amount), 0);
         setTotalEarnings(sum);
       }
+
+      // Fetch actual pending requests
+      const { data: wData } = await supabase
+        .from("withdrawal_requests")
+        .select(`
+          id, amount, bank_name, account_number, account_name, created_at, status,
+          profiles!inner(full_name, email)
+        `)
+        .eq("status", "Pending")
+        .order("created_at", { ascending: true });
+
+      if (wData) {
+        setRequests(wData.map(w => ({
+          id: w.id,
+          name: w.profiles?.full_name || "Unknown User",
+          img: `https://ui-avatars.com/api/?name=${encodeURIComponent(w.profiles?.full_name || "Unknown")}&background=E2E8F0&color=333`,
+          method: "BANK TRANSFER",
+          amount: `₦${Number(w.amount).toLocaleString()}`,
+          bank: w.bank_name,
+          account: w.account_number
+        })));
+      }
+
+      // Fetch actual recent transactions
+      const { data: txData } = await supabase
+        .from("transactions")
+        .select(`
+          id, reference_id, type, amount, status, created_at,
+          profiles!inner(full_name, email)
+        `)
+        .order("created_at", { ascending: false })
+        .limit(10);
+
+      if (txData) {
+        setTransactions(txData.map(tx => {
+          const typeColor = tx.type === "DEPOSIT" ? "bg-blue-100 text-blue-700" : 
+                            tx.type === "WITHDRAWAL" ? "bg-rose-100 text-rose-700" : "bg-slate-100 text-slate-700";
+          
+          let statusColor = "bg-slate-50 text-slate-700";
+          let dotColor = "bg-slate-500";
+          if (tx.status === "Completed") {
+            statusColor = "bg-green-50 text-green-700"; dotColor = "bg-green-500";
+          } else if (tx.status === "Pending") {
+            statusColor = "bg-amber-50 text-amber-700"; dotColor = "bg-amber-500";
+          } else if (tx.status === "Failed" || tx.status === "Cancelled") {
+            statusColor = "bg-red-50 text-red-700"; dotColor = "bg-red-500";
+          }
+
+          const initials = (tx.profiles?.full_name || "U").substring(0,2).toUpperCase();
+
+          return {
+            id: tx.reference_id,
+            user: tx.profiles?.full_name || "Unknown",
+            initials,
+            color: "bg-slate-100 text-slate-700",
+            type: tx.type,
+            typeColor,
+            amount: `₦${Number(tx.amount).toLocaleString()}`,
+            amountColor: tx.type === "WITHDRAWAL" ? "text-rose-600" : "text-green-600",
+            status: tx.status,
+            statusColor,
+            dotColor
+          };
+        }));
+      }
     }
     fetchFinancials();
   }, []);
 
-  const handleAction = (id: string, action: string) => {
-    setRequests(requests.filter(req => req.id !== id));
-    toast.success(`Request ${action} successfully`);
+  const handleAction = async (id: string, action: "Approved" | "Rejected") => {
+    toast.loading(`Processing request...`, { id: "process_withdrawal" });
+    const res = await adminProcessWithdrawalAction(id, action);
+    
+    if (res.success) {
+      setRequests(requests.filter(req => req.id !== id));
+      toast.success(`Request ${action.toLowerCase()} successfully`, { id: "process_withdrawal" });
+    } else {
+      toast.error(res.error || "Failed to process request", { id: "process_withdrawal" });
+    }
   };
 
   return (
@@ -312,7 +314,7 @@ export default function FinancialsPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100/70 border-t border-slate-100">
-                  {transactionHistory.map((txn, i) => (
+                  {transactions.map((txn, i) => (
                     <tr key={i} className="hover:bg-slate-50/50 transition-colors">
                       <td className="px-6 py-4">
                         <span className="text-slate-500 font-medium text-[13px]">{txn.id}</span>
@@ -408,14 +410,14 @@ export default function FinancialsPage() {
 
                   <div className="grid grid-cols-2 gap-3">
                     <Button 
-                      onClick={() => handleAction(req.id, "approved")}
+                      onClick={() => handleAction(req.id, "Approved")}
                       className="w-full bg-primary hover:bg-primary/90 text-white font-bold h-9 text-xs rounded-lg shadow-sm"
                     >
                       Approve
                     </Button>
                     <Button 
                       variant="outline"
-                      onClick={() => handleAction(req.id, "rejected")}
+                      onClick={() => handleAction(req.id, "Rejected")}
                       className="w-full border-rose-200 text-rose-500 hover:bg-rose-50 hover:text-rose-600 font-bold h-9 text-xs rounded-lg"
                     >
                       Reject

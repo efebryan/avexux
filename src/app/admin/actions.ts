@@ -206,3 +206,45 @@ export async function adminNotifyUserAction(userId: string, title: string, messa
 
   return { success: true };
 }
+
+export async function adminProcessWithdrawalAction(requestId: string, status: "Approved" | "Rejected", reason?: string) {
+  const supabase = createSupabaseClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      auth: {
+        persistSession: false,
+        autoRefreshToken: false,
+      }
+    }
+  );
+
+  const { data: { user } } = await supabase.auth.getUser();
+
+  const { data: rpcResult, error: rpcError } = await supabase.rpc(
+    "process_withdrawal",
+    {
+      p_request_id: requestId,
+      p_admin_id: user?.id || null, // Mock admin id if none 
+      p_status: status,
+      p_reason: reason || null,
+    }
+  );
+
+  if (rpcError) {
+    console.error("RPC Process Withdrawal Error:", rpcError);
+    return {
+      success: false,
+      error: rpcError.message || "Failed to process withdrawal.",
+    };
+  }
+
+  if (rpcResult && rpcResult.success === false) {
+    return {
+      success: false,
+      error: rpcResult.error || "Failed to process withdrawal.",
+    };
+  }
+
+  return { success: true };
+}

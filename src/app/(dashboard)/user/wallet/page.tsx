@@ -9,6 +9,7 @@ import { WithdrawalModal } from "@/components/user-dashboard/wallet/WithdrawalMo
 import { TransactionTable } from "@/components/user-dashboard/wallet/TransactionTable";
 import { WithdrawalTable } from "@/components/user-dashboard/wallet/WithdrawalTable";
 import { toast } from "sonner";
+import { requestWithdrawalAction } from "./actions";
 
 const DepositModal = dynamic(() => import("@/components/user-dashboard/wallet/DepositModal").then(mod => mod.DepositModal), {
   ssr: false,
@@ -27,6 +28,7 @@ export default function WalletPage() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [withdrawals, setWithdrawals] = useState<Withdrawal[]>([]);
   const [availableBalance, setAvailableBalance] = useState(0);
+  const [withdrawableBalance, setWithdrawableBalance] = useState(0);
   const [pendingBalance, setPendingBalance] = useState(0);
   const [bonusEarnings, setBonusEarnings] = useState(0);
   const [referralEarnings, setReferralEarnings] = useState(0);
@@ -85,6 +87,7 @@ export default function WalletPage() {
           .eq("user_id", user.id)
           .order("created_at", { ascending: false });
 
+        let pastWithdrawalsSum = 0;
         if (wData) {
           const formattedW: Withdrawal[] = wData.map((w: any) => ({
             id: w.id,
@@ -95,32 +98,49 @@ export default function WalletPage() {
             status: w.status === "Approved" ? "Processed" : w.status,
           }));
           setWithdrawals(formattedW);
+
+          pastWithdrawalsSum = wData
+            .filter((w: any) => w.status !== "Rejected")
+            .reduce((acc: number, w: any) => acc + Number(w.amount), 0);
+        }
+
+        if (walletData) {
+          const wb = Math.min(walletData.balance, walletData.total_earned - pastWithdrawalsSum);
+          setWithdrawableBalance(Math.max(wb, 0));
         }
       }
     }
     fetchWallet();
   }, []);
 
-  const handleWithdrawRequest = (amount: number, method: string) => {
-    // Deduct from available balance
-    setAvailableBalance(prev => prev - amount);
+  const handleWithdrawRequest = async (amount: number, method: string) => {
+    toast.loading("Processing withdrawal...", { id: "withdraw" });
     
-    // Add to withdrawal history
-    const newWithdrawal: Withdrawal = {
-      id: `w${Date.now()}`,
-      date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-      method,
-      accountDetails: method === "Bank Transfer" ? "**** 1234" : "0801***456", // Mock detail
-      amount,
-      status: "Pending"
-    };
+    const res = await requestWithdrawalAction(amount, method);
     
-    setWithdrawals([newWithdrawal, ...withdrawals]);
-    setIsModalOpen(false);
-    toast.success(`Withdrawal request for ₦${amount.toLocaleString()} submitted successfully!`);
-    
-    // Switch to withdrawals tab so user sees the new entry
-    setActiveTab("withdrawals");
+    if (res.success) {
+      toast.success(`Withdrawal request for ₦${amount.toLocaleString()} submitted!`, { id: "withdraw" });
+      
+      // Optimistic update
+      setAvailableBalance(prev => prev - amount);
+      setWithdrawableBalance(prev => prev - amount);
+      setPendingBalance(prev => prev + amount);
+      
+      const newWithdrawal: Withdrawal = {
+        id: `w${Date.now()}`,
+        date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+        method,
+        accountDetails: method === "Bank Transfer" ? "Local Bank - 1234567890" : "0801***456",
+        amount,
+        status: "Pending"
+      };
+      
+      setWithdrawals([newWithdrawal, ...withdrawals]);
+      setIsModalOpen(false);
+      setActiveTab("withdrawals");
+    } else {
+      toast.error(res.error || "Failed to process withdrawal", { id: "withdraw" });
+    }
   };
 
   const handleDepositRequest = (amount: number, method: string) => {
@@ -187,7 +207,7 @@ export default function WalletPage() {
       <WithdrawalModal 
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        availableBalance={availableBalance}
+        availableBalance={withdrawableBalance}
         onWithdraw={handleWithdrawRequest}
       />
 
