@@ -32,10 +32,21 @@ const navItems = [
 ];
 
 import { SiteSettings } from "@/utils/settings";
+import { createClient } from "@/utils/supabase/client";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 export function Sidebar({ settings }: { settings?: SiteSettings }) {
   const pathname = usePathname();
+  const router = useRouter();
   const siteTitle = settings?.site_title || "Avexux";
+
+  const handleLogout = async () => {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    toast.success("Logged out successfully");
+    router.push("/admin/login");
+  };
 
   return (
     <div className="flex flex-col h-full py-6 bg-[#111827] text-slate-300 relative overflow-hidden">
@@ -89,7 +100,7 @@ export function Sidebar({ settings }: { settings?: SiteSettings }) {
             Help Center
           </Link>
           
-          <button className="flex items-center gap-4 text-sm font-medium text-red-500 hover:text-red-400 transition-colors w-full text-left">
+          <button onClick={handleLogout} className="flex items-center gap-4 text-sm font-medium text-red-500 hover:text-red-400 transition-colors w-full text-left">
             <LogOut className="w-5 h-5 text-red-500" />
             Logout
           </button>
