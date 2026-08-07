@@ -14,9 +14,36 @@ export function InviteCard({ referralCode }: InviteCardProps) {
   const baseUrl = typeof window !== "undefined" ? window.location.origin : "";
   const referralLink = `${baseUrl}/register?ref=${referralCode}`;
 
+  const shareText = `Join Avexux and earn high-yield digital opportunities with me! Use my referral code: ${referralCode}`;
+
   const handleCopy = () => {
     navigator.clipboard.writeText(referralLink);
     toast.success("Referral link copied to clipboard!");
+  };
+
+  const handleShareWhatsApp = () => {
+    window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(shareText + " " + referralLink)}`, "_blank");
+  };
+
+  const handleShareTelegram = () => {
+    window.open(`https://t.me/share/url?url=${encodeURIComponent(referralLink)}&text=${encodeURIComponent(shareText)}`, "_blank");
+  };
+
+  const handleNativeShare = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: "Join Avexux",
+          text: shareText,
+          url: referralLink,
+        });
+      } catch (err) {
+        console.log("Error sharing:", err);
+      }
+    } else {
+      // Fallback to Twitter
+      window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(referralLink)}`, "_blank");
+    }
   };
 
   return (
@@ -59,13 +86,13 @@ export function InviteCard({ referralCode }: InviteCardProps) {
             <Share2 className="w-3.5 h-3.5" /> Quick Share
           </p>
           <div className="flex justify-center md:justify-start gap-2">
-            <Button variant="outline" className="w-9 h-9 rounded-full p-0 border-white/20 bg-white/10 hover:bg-white/20 text-white border-0 transition-transform hover:scale-105">
+            <Button onClick={handleNativeShare} variant="outline" className="w-9 h-9 rounded-full p-0 border-white/20 bg-white/10 hover:bg-white/20 text-white border-0 transition-transform hover:scale-105">
               <Globe className="w-4 h-4" />
             </Button>
-            <Button variant="outline" className="w-9 h-9 rounded-full p-0 border-white/20 bg-white/10 hover:bg-white/20 text-white border-0 transition-transform hover:scale-105">
+            <Button onClick={handleShareTelegram} variant="outline" className="w-9 h-9 rounded-full p-0 border-white/20 bg-[#0088cc]/80 hover:bg-[#0088cc] text-white border-0 transition-transform hover:scale-105">
               <Send className="w-4 h-4" />
             </Button>
-            <Button variant="outline" className="w-9 h-9 rounded-full p-0 border-white/20 bg-[#25D366]/80 hover:bg-[#25D366] text-white border-0 transition-transform hover:scale-105">
+            <Button onClick={handleShareWhatsApp} variant="outline" className="w-9 h-9 rounded-full p-0 border-white/20 bg-[#25D366]/80 hover:bg-[#25D366] text-white border-0 transition-transform hover:scale-105">
               <MessageCircle className="w-4 h-4" />
             </Button>
           </div>
