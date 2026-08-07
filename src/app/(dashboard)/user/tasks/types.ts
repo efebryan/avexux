@@ -10,6 +10,7 @@ export interface Task {
   taskLink?: string;
   acceptedAt?: string; // ISO string when user accepted task
   category: string;
+  dayOfWeek: string;
   status: TaskStatus;
   advertiser: string;
   requirements: string[];

@@ -216,9 +216,14 @@ export default function AdminTasksPage() {
                       <p className="text-[11px] text-slate-500 mt-1">{task.advertiser} • {task.created}</p>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-slate-600 bg-slate-100/80 px-2.5 py-1 rounded-md border border-slate-200/50">
-                        {task.category}
-                      </span>
+                      <div className="flex flex-col gap-1 items-start">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-600 bg-slate-100/80 px-2.5 py-1 rounded-md border border-slate-200/50">
+                          {task.category}
+                        </span>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-primary bg-primary/10 px-2.5 py-1 rounded-md">
+                          {task.day_of_week || 'Friday'}
+                        </span>
+                      </div>
                     </td>
                     <td className="px-6 py-4">
                       <span className="text-[11px] font-bold text-slate-700 bg-slate-100 px-2 py-1 rounded-md">

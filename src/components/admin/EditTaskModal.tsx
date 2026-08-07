@@ -39,6 +39,7 @@ export function EditTaskModal({
   const [taskLink, setTaskLink] = useState("");
   const [description, setDescription] = useState("");
   const [targetPlan, setTargetPlan] = useState("All");
+  const [dayOfWeek, setDayOfWeek] = useState("Monday");
   const [images, setImages] = useState<string[]>([]);
   const [isPending, startTransition] = useTransition();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -60,6 +61,7 @@ export function EditTaskModal({
       setTaskLink(task.task_link || task.taskLink || "");
       setDescription(task.description || "");
       setTargetPlan(task.target_plan || "All");
+      setDayOfWeek(task.day_of_week || task.dayOfWeek || "Monday");
       setImages(task.images || []);
     }
   }, [task]);
@@ -115,6 +117,7 @@ export function EditTaskModal({
         taskLink,
         images,
         targetPlan,
+        dayOfWeek,
       });
 
       if (res.success && res.task) {
@@ -204,6 +207,23 @@ export function EditTaskModal({
                 <option value="silver">Silver Earner</option>
                 <option value="gold">Gold Master</option>
                 <option value="platinum">Platinum Pro</option>
+              </select>
+            </div>
+            
+            <div>
+              <label className="block text-sm font-bold text-gray-700 mb-1">
+                Day of Week *
+              </label>
+              <select
+                value={dayOfWeek}
+                onChange={(e) => setDayOfWeek(e.target.value)}
+                className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-gray-50/50 appearance-none"
+              >
+                <option value="Monday">Monday</option>
+                <option value="Tuesday">Tuesday</option>
+                <option value="Wednesday">Wednesday</option>
+                <option value="Thursday">Thursday</option>
+                <option value="Friday">Friday</option>
               </select>
             </div>
           </div>

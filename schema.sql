@@ -54,6 +54,7 @@ CREATE TABLE IF NOT EXISTS public.tasks (
     max_submissions INTEGER,
     submissions_count INTEGER NOT NULL DEFAULT 0 CHECK (submissions_count >= 0),
     status TEXT NOT NULL DEFAULT 'Active' CHECK (status IN ('Active', 'Paused', 'Completed', 'Draft')),
+    day_of_week TEXT NOT NULL DEFAULT 'Friday' CHECK (day_of_week IN ('Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday')),
     created_by UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now()

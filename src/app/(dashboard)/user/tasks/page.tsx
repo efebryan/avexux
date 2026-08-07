@@ -22,6 +22,10 @@ export default function TaskCenterPage() {
     "available" | "active" | "history"
   >("available");
   const router = useRouter();
+  
+  const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+  const currentDayName = dayNames[new Date().getDay()];
+  const isWeekend = currentDayName === "Saturday" || currentDayName === "Sunday";
 
   const supabase = createClient();
 
@@ -117,6 +121,7 @@ export default function TaskCenterPage() {
           taskLink: t.task_link,
           acceptedAt,
           category: t.category,
+          dayOfWeek: t.day_of_week || 'Friday',
           status: currentStatus as TaskStatus,
           advertiser: t.advertiser,
           requirements: t.requirements || [],
@@ -132,7 +137,10 @@ export default function TaskCenterPage() {
   // Filter Logic
   const filteredTasks = tasks.filter((task) => {
     // Tab Filter
-    if (activeTab === "available" && task.status !== "Available") return false;
+    if (activeTab === "available") {
+      if (task.status !== "Available") return false;
+      if (task.dayOfWeek !== currentDayName) return false;
+    }
     if (
       activeTab === "active" &&
       !["In Progress", "Pending Review"].includes(task.status)
@@ -198,7 +206,9 @@ export default function TaskCenterPage() {
         ) : (
           <div className="col-span-full py-16 text-center bg-gray-50 rounded-2xl border border-gray-100 border-dashed">
             <p className="text-gray-500 font-medium">
-              No tasks found for this tab.
+              {activeTab === "available" && isWeekend 
+                ? "No available task for the weekend."
+                : "No tasks found for this tab."}
             </p>
           </div>
         )}

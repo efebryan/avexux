@@ -85,11 +85,12 @@ function ChartComponent({ data }: { data: any[] }) {
   const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
 
   if (!data || data.length === 0) {
+    const skeletonHeights = [40, 70, 45, 80, 55, 30, 95];
     return (
       <div className="flex-1 flex items-center justify-center min-h-[180px]">
         <div className="animate-pulse flex space-x-4 items-end h-[120px]">
-          {[1, 2, 3, 4, 5, 6, 7].map(i => (
-            <div key={i} className="w-9 bg-slate-100 rounded-md" style={{ height: `${Math.max(20, Math.random() * 100)}%` }}></div>
+          {skeletonHeights.map((h, i) => (
+            <div key={i} className="w-9 bg-slate-100 rounded-md" style={{ height: `${h}%` }}></div>
           ))}
         </div>
       </div>

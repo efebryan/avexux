@@ -76,6 +76,7 @@ export async function adminCreateTaskAction(data: {
   taskLink?: string;
   images: string[];
   targetPlan: string;
+  dayOfWeek: string;
 }) {
   const supabase = createSupabaseClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -103,6 +104,7 @@ export async function adminCreateTaskAction(data: {
       task_link: data.taskLink || null,
       images: data.images,
       target_plan: data.targetPlan,
+      day_of_week: data.dayOfWeek,
       status: 'Active',
       submissions_count: 0
     }])
@@ -139,6 +141,7 @@ export async function adminEditTaskAction(
     taskLink?: string;
     images: string[];
     targetPlan: string;
+    dayOfWeek: string;
   }
 ) {
   const supabase = createSupabaseClient(
@@ -163,6 +166,7 @@ export async function adminEditTaskAction(
       task_link: data.taskLink || null,
       images: data.images,
       target_plan: data.targetPlan,
+      day_of_week: data.dayOfWeek,
       status: 'Active',
       updated_at: new Date().toISOString()
     })
