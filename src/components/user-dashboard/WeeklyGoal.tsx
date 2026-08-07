@@ -101,7 +101,7 @@ export function WeeklyGoal() {
       }
       setIsLoading(false);
     }
-    fetchGoalData();
+    fetchHighestDeposit();
   }, []);
 
   if (isLoading) {
