@@ -2,44 +2,81 @@
 
 import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
-import { Trophy, Medal, Crown, ShieldCheck, Lock, Gem, Flame } from "lucide-react";
+import {
+  Trophy,
+  Medal,
+  Crown,
+  ShieldCheck,
+  Lock,
+  Gem,
+  Flame,
+} from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
 
 const ranksConfig = [
-  { 
-    id: "bronze", name: "Bronze Starter", level: "Tier 1", threshold: 0,
+  {
+    id: "bronze",
+    name: "Bronze Starter",
+    level: "Tier 1",
+    threshold: 0,
     icon: <Medal className="w-4 h-4 text-amber-700" />,
     colors: {
-      unlocked: { bg: "bg-amber-100/60 border-amber-200", text: "text-amber-900" },
-      current: { bg: "bg-amber-50 border-amber-300 ring-2 ring-amber-400/20", text: "text-amber-900" }
-    }
+      unlocked: {
+        bg: "bg-amber-100/60 border-amber-200",
+        text: "text-amber-900",
+      },
+      current: {
+        bg: "bg-amber-50 border-amber-300 ring-2 ring-amber-400/20",
+        text: "text-amber-900",
+      },
+    },
   },
-  { 
-    id: "silver", name: "Silver Earner", level: "Tier 2", threshold: 18000,
+  {
+    id: "silver",
+    name: "Silver Earner",
+    level: "Tier 2",
+    threshold: 18000,
     icon: <ShieldCheck className="w-4 h-4 text-slate-500" />,
     colors: {
       unlocked: { bg: "bg-slate-100 border-slate-200", text: "text-slate-700" },
-      current: { bg: "bg-slate-50 border-slate-300 ring-2 ring-slate-400/20", text: "text-slate-800" }
-    }
+      current: {
+        bg: "bg-slate-50 border-slate-300 ring-2 ring-slate-400/20",
+        text: "text-slate-800",
+      },
+    },
   },
 
-  { 
-    id: "platinum", name: "Platinum Pro", level: "Tier 4", threshold: 88000,
+  {
+    id: "platinum",
+    name: "Platinum Pro",
+    level: "Tier 4",
+    threshold: 88000,
     icon: <Trophy className="w-4 h-4 text-cyan-500" />,
     colors: {
       unlocked: { bg: "bg-cyan-50 border-cyan-200", text: "text-cyan-800" },
-      current: { bg: "bg-cyan-50 border-cyan-300 ring-2 ring-cyan-400/20", text: "text-cyan-900" }
-    }
+      current: {
+        bg: "bg-cyan-50 border-cyan-300 ring-2 ring-cyan-400/20",
+        text: "text-cyan-900",
+      },
+    },
   },
-  { 
-    id: "diamond", name: "Diamond Elite", level: "Tier 5", threshold: 124000,
+  {
+    id: "diamond",
+    name: "Diamond Elite",
+    level: "Tier 5",
+    threshold: 124000,
     icon: <Gem className="w-4 h-4 text-indigo-500" />,
     colors: {
-      unlocked: { bg: "bg-indigo-50 border-indigo-200", text: "text-indigo-800" },
-      current: { bg: "bg-indigo-50 border-indigo-300 ring-2 ring-indigo-400/20", text: "text-indigo-900" }
-    }
+      unlocked: {
+        bg: "bg-indigo-50 border-indigo-200",
+        text: "text-indigo-800",
+      },
+      current: {
+        bg: "bg-indigo-50 border-indigo-300 ring-2 ring-indigo-400/20",
+        text: "text-indigo-900",
+      },
+    },
   },
-
 ];
 
 export function RankAchievements() {
@@ -49,17 +86,29 @@ export function RankAchievements() {
   useEffect(() => {
     async function fetchHighestDeposit() {
       const supabase = createClient();
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (user) {
         const { data: txData } = await supabase
           .from("transactions")
           .select("*")
           .eq("user_id", user.id);
-        
+
         if (txData) {
           const maxDeposit = txData
-            .filter((tx: any) => tx.type?.toLowerCase() === 'deposit' || (tx.metadata?.description || "").toLowerCase().includes('deposit') || (tx.description || "").toLowerCase().includes('deposit'))
-            .reduce((max: number, tx: any) => Math.max(max, Number(tx.amount)), 0);
+            .filter(
+              (tx: any) =>
+                tx.type?.toLowerCase() === "deposit" ||
+                (tx.metadata?.description || "")
+                  .toLowerCase()
+                  .includes("deposit") ||
+                (tx.description || "").toLowerCase().includes("deposit"),
+            )
+            .reduce(
+              (max: number, tx: any) => Math.max(max, Number(tx.amount)),
+              0,
+            );
           setHighestDeposit(maxDeposit);
         }
       }
@@ -76,16 +125,23 @@ export function RankAchievements() {
           <div className="h-5 w-20 bg-gray-200 animate-pulse rounded-full"></div>
         </div>
         <div className="grid grid-cols-2 gap-2">
-          {[1, 2, 3, 4, 5, 6].map((i) => (
-            <div key={i} className="h-12 bg-gray-100 animate-pulse rounded-xl"></div>
+          {[1, 2, 3, 4].map((i) => (
+            <div
+              key={i}
+              className="h-12 bg-gray-100 animate-pulse rounded-xl"
+            ></div>
           ))}
         </div>
       </Card>
     );
   }
 
-  const currentRankIndex = Math.max(0, ranksConfig.findLastIndex(r => highestDeposit >= r.threshold));
-  const currentRankName = ranksConfig[currentRankIndex].name.split(' ')[0] + " Level";
+  const currentRankIndex = Math.max(
+    0,
+    ranksConfig.findLastIndex((r) => highestDeposit >= r.threshold),
+  );
+  const currentRankName =
+    ranksConfig[currentRankIndex].name.split(" ")[0] + " Level";
 
   return (
     <Card className="p-4 border border-gray-100 shadow-sm rounded-2xl mb-6 bg-white">
@@ -105,8 +161,12 @@ export function RankAchievements() {
           if (index < currentRankIndex) status = "unlocked";
           if (index === currentRankIndex) status = "current";
 
-          const bgColor = status === "locked" ? "bg-gray-50 border-gray-100 opacity-60" : rank.colors[status].bg;
-          const textColor = status === "locked" ? "text-gray-400" : rank.colors[status].text;
+          const bgColor =
+            status === "locked"
+              ? "bg-gray-50 border-gray-100 opacity-60"
+              : rank.colors[status].bg;
+          const textColor =
+            status === "locked" ? "text-gray-400" : rank.colors[status].text;
 
           return (
             <div
@@ -126,7 +186,9 @@ export function RankAchievements() {
                 </div>
                 <div className="text-[10px] text-gray-400 font-medium">
                   {status === "current" ? (
-                    <span className="text-[#2faf2f] font-bold">Current Rank</span>
+                    <span className="text-[#2faf2f] font-bold">
+                      Current Rank
+                    </span>
                   ) : status === "unlocked" ? (
                     <span className="text-gray-500">Unlocked ✓</span>
                   ) : (

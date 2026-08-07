@@ -13,15 +13,19 @@ export interface Sector {
 const ranksConfig = [
   { id: "bronze", threshold: 0 },
   { id: "silver", threshold: 18000 },
-
   { id: "platinum", threshold: 88000 },
   { id: "diamond", threshold: 124000 },
-
 ];
 
 // Fallback if DB not configured
 const defaultSectors: Sector[] = [
-  { label: "₦1,000 Cash", color: "#10b981", isWin: true, value: 1000, type: "cash" },
+  {
+    label: "₦1,000 Cash",
+    color: "#10b981",
+    isWin: true,
+    value: 1000,
+    type: "cash",
+  },
   { label: "Try Again 😢", color: "#64748b", isWin: false, type: "none" },
   { label: "Premium Pro", color: "#3b82f6", isWin: true, type: "premium" },
   { label: "Better Luck 🍀", color: "#475569", isWin: false, type: "none" },
@@ -29,7 +33,9 @@ const defaultSectors: Sector[] = [
 
 export async function executeSpinAction() {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
   if (!user) {
     return { success: false, error: "Unauthorized" };
@@ -40,19 +46,19 @@ export async function executeSpinAction() {
   // Paid spin cost is strictly 1800
   let SPIN_COST = 1800;
   let planConfig: Record<string, number[]> | null = null;
-  
+
   const { data: appSettings } = await supabase
     .from("app_settings")
     .select("key, value")
     .in("key", ["spin_wheel_config", "spins_per_plan_config"]);
-    
+
   if (appSettings) {
-    const wheelConf = appSettings.find(s => s.key === "spin_wheel_config");
+    const wheelConf = appSettings.find((s) => s.key === "spin_wheel_config");
     if (wheelConf?.value) {
       sectors = wheelConf.value.sectors;
     }
-    
-    const planConf = appSettings.find(s => s.key === "spins_per_plan_config");
+
+    const planConf = appSettings.find((s) => s.key === "spins_per_plan_config");
     if (planConf?.value) {
       planConfig = planConf.value;
     }
@@ -63,15 +69,22 @@ export async function executeSpinAction() {
     .from("transactions")
     .select("*")
     .eq("user_id", user.id);
-  
+
   let highestDep = 0;
   if (txData) {
     highestDep = txData
-      .filter((tx: any) => tx.type?.toLowerCase() === 'deposit' || (tx.metadata?.description || "").toLowerCase().includes('deposit'))
+      .filter(
+        (tx: any) =>
+          tx.type?.toLowerCase() === "deposit" ||
+          (tx.metadata?.description || "").toLowerCase().includes("deposit"),
+      )
       .reduce((max: number, tx: any) => Math.max(max, Number(tx.amount)), 0);
   }
-  
-  const rankIndex = Math.max(0, ranksConfig.findLastIndex(r => highestDep >= r.threshold));
+
+  const rankIndex = Math.max(
+    0,
+    ranksConfig.findLastIndex((r) => highestDep >= r.threshold),
+  );
   const userPlanId = ranksConfig[rankIndex].id;
 
   // 2. Check if today is a valid spin day for this plan
@@ -85,26 +98,36 @@ export async function executeSpinAction() {
   }
 
   if (!isValidDay) {
-    return { success: false, error: "Spins are not available today for your current plan." };
+    return {
+      success: false,
+      error: "Spins are not available today for your current plan.",
+    };
   }
 
   // 2.5 Pre-check for Paid Spin limit
   // Only check if they don't have free spins (we must query wallet first)
-  const { data: wallet } = await supabase.from("wallets").select("free_spins").eq("user_id", user.id).single();
+  const { data: wallet } = await supabase
+    .from("wallets")
+    .select("free_spins")
+    .eq("user_id", user.id)
+    .single();
   if (wallet && wallet.free_spins <= 0) {
     // If no free spins, check if they already had a paid spin today
     const startOfDay = new Date();
     startOfDay.setHours(0, 0, 0, 0);
-    
+
     const { count: paidSpinsToday } = await supabase
       .from("rewards_spins")
       .select("*", { count: "exact", head: true })
       .eq("user_id", user.id)
       .gt("cost_paid", 0)
       .gte("created_at", startOfDay.toISOString());
-      
+
     if (paidSpinsToday && paidSpinsToday > 0) {
-      return { success: false, error: "You have already used your extra paid spin for today." };
+      return {
+        success: false,
+        error: "You have already used your extra paid spin for today.",
+      };
     }
   }
 
@@ -123,8 +146,11 @@ export async function executeSpinAction() {
 
   if (override) {
     // Mark override as used
-    await supabase.from("spin_overrides").update({ is_used: true }).eq("id", override.id);
-    
+    await supabase
+      .from("spin_overrides")
+      .update({ is_used: true })
+      .eq("id", override.id);
+
     // Find matching sector by label
     targetIdx = sectors.findIndex((s) => s.label === override.reward_label);
     if (targetIdx !== -1) {
@@ -135,7 +161,7 @@ export async function executeSpinAction() {
   // 4. Fallback to Randomness (if no override)
   if (targetIdx === -1) {
     const rand = Math.random() * 100;
-    
+
     // Split dynamic sectors into wins and losses
     const winSectors: number[] = [];
     const loseSectors: number[] = [];
@@ -159,13 +185,16 @@ export async function executeSpinAction() {
   }
 
   // 5. Perform the Transaction via Atomic RPC
-  const { data: rpcResult, error: rpcError } = await supabase.rpc("execute_spin_transaction", {
-    p_user_id: user.id,
-    p_cost: SPIN_COST,
-    p_reward_amount: targetSector?.value || 0,
-    p_reward_label: targetSector?.label || "Unknown",
-    p_reward_type: targetSector?.type || "none"
-  });
+  const { data: rpcResult, error: rpcError } = await supabase.rpc(
+    "execute_spin_transaction",
+    {
+      p_user_id: user.id,
+      p_cost: SPIN_COST,
+      p_reward_amount: targetSector?.value || 0,
+      p_reward_label: targetSector?.label || "Unknown",
+      p_reward_type: targetSector?.type || "none",
+    },
+  );
 
   if (rpcError) {
     console.error("RPC Spin Error:", rpcError);
@@ -174,9 +203,15 @@ export async function executeSpinAction() {
       return { success: false, error: "Insufficient balance for a spin" };
     }
     if (rpcError.message.includes("already used your extra paid spin")) {
-      return { success: false, error: "You have already used your extra paid spin for today." };
+      return {
+        success: false,
+        error: "You have already used your extra paid spin for today.",
+      };
     }
-    return { success: false, error: "Failed to process spin. Please try again later." };
+    return {
+      success: false,
+      error: "Failed to process spin. Please try again later.",
+    };
   }
 
   return { success: true, targetIdx, wonItem: targetSector };

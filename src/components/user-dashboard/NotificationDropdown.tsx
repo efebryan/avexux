@@ -8,10 +8,8 @@ import { createClient } from "@/utils/supabase/client";
 const ranksConfig = [
   { id: "bronze", threshold: 0 },
   { id: "silver", threshold: 18000 },
-
   { id: "platinum", threshold: 88000 },
   { id: "diamond", threshold: 124000 },
-
 ];
 
 export interface NotificationItem {
@@ -27,22 +25,22 @@ export interface NotificationItem {
 function timeAgo(dateString: string) {
   const date = new Date(dateString);
   const seconds = Math.floor((new Date().getTime() - date.getTime()) / 1000);
-  
+
   let interval = seconds / 31536000;
   if (interval > 1) return Math.floor(interval) + " years ago";
-  
+
   interval = seconds / 2592000;
   if (interval > 1) return Math.floor(interval) + " months ago";
-  
+
   interval = seconds / 86400;
   if (interval > 1) return Math.floor(interval) + " days ago";
-  
+
   interval = seconds / 3600;
   if (interval > 1) return Math.floor(interval) + " hours ago";
-  
+
   interval = seconds / 60;
   if (interval > 1) return Math.floor(interval) + " minutes ago";
-  
+
   return Math.floor(seconds) + " seconds ago";
 }
 
@@ -54,7 +52,9 @@ export function NotificationDropdown() {
 
   useEffect(() => {
     async function fetchNotifications() {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) return;
 
       // 1. Fetch DB notifications
@@ -72,7 +72,7 @@ export function NotificationDropdown() {
           message: n.message,
           time: timeAgo(n.created_at),
           type: n.type,
-          isRead: n.is_read
+          isRead: n.is_read,
         }));
       }
 
@@ -86,9 +86,15 @@ export function NotificationDropdown() {
 
       let maxDeposit = 0;
       if (txData) {
-        maxDeposit = txData.reduce((max: number, tx: any) => Math.max(max, Number(tx.amount)), 0);
+        maxDeposit = txData.reduce(
+          (max: number, tx: any) => Math.max(max, Number(tx.amount)),
+          0,
+        );
       }
-      const rankIndex = Math.max(0, ranksConfig.findLastIndex(r => maxDeposit >= r.threshold));
+      const rankIndex = Math.max(
+        0,
+        ranksConfig.findLastIndex((r) => maxDeposit >= r.threshold),
+      );
       const userPlan = ranksConfig[rankIndex].id;
 
       const { data: settingsData } = await supabase
@@ -98,10 +104,14 @@ export function NotificationDropdown() {
         .single();
 
       let spinDays = [5];
-      if (settingsData?.value?.planDays && settingsData.value.planDays[userPlan]) {
+      if (
+        settingsData?.value?.planDays &&
+        settingsData.value.planDays[userPlan]
+      ) {
         spinDays = settingsData.value.planDays[userPlan];
       } else {
-        if (["platinum", "diamond"].includes(userPlan)) spinDays = [1, 2, 3, 4, 5];
+        if (["platinum", "diamond"].includes(userPlan))
+          spinDays = [1, 2, 3, 4, 5];
         else if (userPlan === "silver") spinDays = [1, 5];
       }
 
@@ -120,29 +130,30 @@ export function NotificationDropdown() {
           formatted.unshift({
             id: "virtual_spin",
             title: "Free Spin Available!",
-            message: "You have a free lucky spin available today. Try your luck!",
+            message:
+              "You have a free lucky spin available today. Try your luck!",
             time: "Just now",
             type: "success",
             category: "System",
-            isRead: false
+            isRead: false,
           });
         }
       }
 
       setNotifications(formatted);
     }
-    
+
     fetchNotifications();
 
     // Set up realtime subscription
     const channel = supabase
-      .channel('public:notifications')
+      .channel("public:notifications")
       .on(
-        'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'notifications' },
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "notifications" },
         (payload) => {
           fetchNotifications(); // Refresh on new notification
-        }
+        },
       )
       .subscribe();
 
@@ -151,35 +162,43 @@ export function NotificationDropdown() {
     };
   }, []);
 
-  const unreadCount = notifications.filter(n => !n.isRead).length;
+  const unreadCount = notifications.filter((n) => !n.isRead).length;
   const recentNotifications = notifications.slice(0, 5); // Show top 5 in dropdown
 
   const getIcon = (type: string) => {
     switch (type.toLowerCase()) {
-      case "success": return <CheckCircle2 className="w-5 h-5 text-green-500" />;
-      case "warning": return <AlertCircle className="w-5 h-5 text-yellow-500" />;
-      default: return <Info className="w-5 h-5 text-blue-500" />;
+      case "success":
+        return <CheckCircle2 className="w-5 h-5 text-green-500" />;
+      case "warning":
+        return <AlertCircle className="w-5 h-5 text-yellow-500" />;
+      default:
+        return <Info className="w-5 h-5 text-blue-500" />;
     }
   };
 
   const markAllAsRead = async () => {
-    const unreadIds = notifications.filter(n => !n.isRead && n.id !== "virtual_spin").map(n => n.id);
-    
+    const unreadIds = notifications
+      .filter((n) => !n.isRead && n.id !== "virtual_spin")
+      .map((n) => n.id);
+
     // Optimistic update
-    setNotifications(notifications.map(n => ({ ...n, isRead: true })));
+    setNotifications(notifications.map((n) => ({ ...n, isRead: true })));
 
     if (unreadIds.length > 0) {
       await supabase
         .from("notifications")
         .update({ is_read: true })
-        .in('id', unreadIds);
+        .in("id", unreadIds);
     }
   };
 
   // Close dropdown when clicking outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
         setIsOpen(false);
       }
     }
@@ -190,7 +209,7 @@ export function NotificationDropdown() {
   return (
     <div className="relative" ref={dropdownRef}>
       {/* Bell Button */}
-      <button 
+      <button
         onClick={() => setIsOpen(!isOpen)}
         className={`relative p-2 rounded-full transition-colors ${isOpen ? "bg-gray-100" : "hover:bg-gray-100"}`}
       >
@@ -206,7 +225,7 @@ export function NotificationDropdown() {
           <div className="p-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
             <h3 className="font-bold text-gray-900">Notifications</h3>
             {unreadCount > 0 && (
-              <button 
+              <button
                 onClick={markAllAsRead}
                 className="text-xs font-bold text-[#0f8538] hover:text-[#0c6b2c] flex items-center gap-1"
               >
@@ -218,18 +237,26 @@ export function NotificationDropdown() {
           <div className="max-h-[320px] overflow-y-auto">
             {recentNotifications.length > 0 ? (
               <div className="divide-y divide-gray-50">
-                {recentNotifications.map(notification => (
-                  <div 
-                    key={notification.id} 
+                {recentNotifications.map((notification) => (
+                  <div
+                    key={notification.id}
                     className={`p-4 hover:bg-gray-50 transition-colors flex gap-3 ${!notification.isRead ? "bg-green-50/30" : ""}`}
                   >
-                    <div className="shrink-0 mt-1">{getIcon(notification.type)}</div>
+                    <div className="shrink-0 mt-1">
+                      {getIcon(notification.type)}
+                    </div>
                     <div className="flex-1 min-w-0">
-                      <p className={`text-sm ${!notification.isRead ? "font-bold text-gray-900" : "font-medium text-gray-800"}`}>
+                      <p
+                        className={`text-sm ${!notification.isRead ? "font-bold text-gray-900" : "font-medium text-gray-800"}`}
+                      >
                         {notification.title}
                       </p>
-                      <p className="text-xs text-gray-500 mt-1 line-clamp-2">{notification.message}</p>
-                      <p className="text-[10px] font-bold text-gray-400 mt-2 uppercase tracking-wider">{notification.time}</p>
+                      <p className="text-xs text-gray-500 mt-1 line-clamp-2">
+                        {notification.message}
+                      </p>
+                      <p className="text-[10px] font-bold text-gray-400 mt-2 uppercase tracking-wider">
+                        {notification.time}
+                      </p>
                     </div>
                     {!notification.isRead && (
                       <div className="shrink-0 w-2 h-2 bg-[#0f8538] rounded-full mt-2"></div>
@@ -245,8 +272,8 @@ export function NotificationDropdown() {
           </div>
 
           <div className="p-3 border-t border-gray-100 bg-gray-50">
-            <Link 
-              href="/user/notifications" 
+            <Link
+              href="/user/notifications"
               onClick={() => setIsOpen(false)}
               className="block w-full text-center text-sm font-bold text-[#0f8538] hover:text-[#0c6b2c] py-2 rounded-xl hover:bg-green-50 transition-colors"
             >

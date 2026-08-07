@@ -1,5 +1,10 @@
 import { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Trophy, Sparkles } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
@@ -8,10 +13,8 @@ import { useRouter } from "next/navigation";
 const ranksConfig = [
   { id: "bronze", threshold: 0 },
   { id: "silver", threshold: 18000 },
-
   { id: "platinum", threshold: 88000 },
   { id: "diamond", threshold: 124000 },
-
 ];
 
 interface CongratulationsModalProps {
@@ -19,7 +22,10 @@ interface CongratulationsModalProps {
   onClose: () => void;
 }
 
-export function CongratulationsModal({ isOpen, onClose }: CongratulationsModalProps) {
+export function CongratulationsModal({
+  isOpen,
+  onClose,
+}: CongratulationsModalProps) {
   const router = useRouter();
   const [isActive, setIsActive] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
@@ -36,7 +42,7 @@ export function CongratulationsModal({ isOpen, onClose }: CongratulationsModalPr
         .select("value")
         .eq("key", "congrats_modal_config")
         .single();
-        
+
       if (data?.value) {
         setIsActive(data.value.active !== false);
         if (data.value.title) setTitle(data.value.title);
@@ -44,7 +50,9 @@ export function CongratulationsModal({ isOpen, onClose }: CongratulationsModalPr
       }
 
       // Check User Eligibility (Free Spins & Spin Days)
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (user) {
         // 1. Check free spins
         const { data: wallet } = await supabase
@@ -52,7 +60,7 @@ export function CongratulationsModal({ isOpen, onClose }: CongratulationsModalPr
           .select("free_spins")
           .eq("user_id", user.id)
           .single();
-        
+
         if (wallet && wallet.free_spins > 0) {
           setHasFreeSpins(true);
         }
@@ -62,15 +70,27 @@ export function CongratulationsModal({ isOpen, onClose }: CongratulationsModalPr
           .from("transactions")
           .select("*")
           .eq("user_id", user.id);
-        
+
         let highestDep = 0;
         if (txData) {
           highestDep = txData
-            .filter((tx: any) => tx.type?.toLowerCase() === 'deposit' || (tx.metadata?.description || "").toLowerCase().includes('deposit'))
-            .reduce((max: number, tx: any) => Math.max(max, Number(tx.amount)), 0);
+            .filter(
+              (tx: any) =>
+                tx.type?.toLowerCase() === "deposit" ||
+                (tx.metadata?.description || "")
+                  .toLowerCase()
+                  .includes("deposit"),
+            )
+            .reduce(
+              (max: number, tx: any) => Math.max(max, Number(tx.amount)),
+              0,
+            );
         }
-        
-        const rankIndex = Math.max(0, ranksConfig.findLastIndex(r => highestDep >= r.threshold));
+
+        const rankIndex = Math.max(
+          0,
+          ranksConfig.findLastIndex((r) => highestDep >= r.threshold),
+        );
         const userPlanId = ranksConfig[rankIndex].id;
 
         // 3. Check Spin Days Config
@@ -79,13 +99,15 @@ export function CongratulationsModal({ isOpen, onClose }: CongratulationsModalPr
           .select("value")
           .eq("key", "spins_per_plan_config")
           .single();
-        
+
         if (planData?.value && planData.value[userPlanId]) {
           const allowedDays: number[] = planData.value[userPlanId];
           setIsValidSpinDay(allowedDays.includes(new Date().getDay()));
         } else {
           // Fallback to Tuesday/Friday if missing config
-          setIsValidSpinDay(new Date().getDay() === 2 || new Date().getDay() === 5);
+          setIsValidSpinDay(
+            new Date().getDay() === 2 || new Date().getDay() === 5,
+          );
         }
       }
 
@@ -95,7 +117,8 @@ export function CongratulationsModal({ isOpen, onClose }: CongratulationsModalPr
   }, []);
 
   // Only show the modal once config is loaded, if it's active, on a valid spin day, and if user has free spins
-  const showModal = isOpen && isLoaded && isActive && isValidSpinDay && hasFreeSpins;
+  const showModal =
+    isOpen && isLoaded && isActive && isValidSpinDay && hasFreeSpins;
 
   return (
     <Dialog open={showModal} onOpenChange={(open) => !open && onClose()}>
@@ -105,13 +128,25 @@ export function CongratulationsModal({ isOpen, onClose }: CongratulationsModalPr
           <div className="relative mb-6 flex items-center justify-center">
             {/* Background glowing effects */}
             <div className="absolute w-24 h-24 bg-yellow-100 rounded-full blur-xl opacity-70 animate-pulse"></div>
-            
+
             {/* Sparkles icons to represent confetti */}
-            <Sparkles className="absolute -top-3 -left-3 w-5 h-5 text-yellow-500 animate-bounce" style={{ animationDelay: "0.2s" }} />
-            <Sparkles className="absolute -top-4 right-2 w-4 h-4 text-orange-400 animate-bounce" style={{ animationDelay: "0.5s" }} />
-            <Sparkles className="absolute bottom-2 -right-4 w-5 h-5 text-yellow-500 animate-bounce" style={{ animationDelay: "0.8s" }} />
-            <Sparkles className="absolute bottom-0 -left-4 w-4 h-4 text-orange-400 animate-bounce" style={{ animationDelay: "1.1s" }} />
-            
+            <Sparkles
+              className="absolute -top-3 -left-3 w-5 h-5 text-yellow-500 animate-bounce"
+              style={{ animationDelay: "0.2s" }}
+            />
+            <Sparkles
+              className="absolute -top-4 right-2 w-4 h-4 text-orange-400 animate-bounce"
+              style={{ animationDelay: "0.5s" }}
+            />
+            <Sparkles
+              className="absolute bottom-2 -right-4 w-5 h-5 text-yellow-500 animate-bounce"
+              style={{ animationDelay: "0.8s" }}
+            />
+            <Sparkles
+              className="absolute bottom-0 -left-4 w-4 h-4 text-orange-400 animate-bounce"
+              style={{ animationDelay: "1.1s" }}
+            />
+
             {/* Main Trophy */}
             <div className="relative w-20 h-20 bg-gradient-to-b from-yellow-300 to-yellow-500 rounded-full flex items-center justify-center shadow-lg border border-yellow-200 transform hover:scale-110 transition-transform duration-300">
               <Trophy className="w-10 h-10 text-white drop-shadow-md" />
@@ -121,11 +156,15 @@ export function CongratulationsModal({ isOpen, onClose }: CongratulationsModalPr
           <DialogTitle className="text-xl font-bold text-gray-900 leading-tight mb-3">
             {title}
           </DialogTitle>
-          
+
           <DialogDescription className="space-y-3 text-gray-600 text-sm leading-relaxed max-w-sm">
             <span>
-              Thank you for trusting us! We are giving you the chance to win up to{" "}
-              <strong className="text-gray-900 font-extrabold text-base">{amount}</strong> in bonuses! 🔥 🔥 🔥
+              Thank you for trusting us! We are giving you the chance to win up
+              to{" "}
+              <strong className="text-gray-900 font-extrabold text-base">
+                {amount}
+              </strong>{" "}
+              in bonuses! 🔥 🔥 🔥
             </span>
             <span className="block font-medium text-[#0f8538] mt-2">
               Open the box and participate to win prizes!
@@ -134,7 +173,7 @@ export function CongratulationsModal({ isOpen, onClose }: CongratulationsModalPr
         </div>
 
         <div className="mt-4 pb-2">
-          <Button 
+          <Button
             onClick={() => {
               onClose();
               router.push("/user/rewards");

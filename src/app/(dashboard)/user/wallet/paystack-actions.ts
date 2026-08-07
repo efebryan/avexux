@@ -1,25 +1,29 @@
-'use server'
+"use server";
 
-import { createClient } from '@/utils/supabase/server'
-import { revalidatePath } from 'next/cache'
+import { createClient } from "@/utils/supabase/server";
+import { revalidatePath } from "next/cache";
 
 const ranksConfig = [
   { id: "bronze", threshold: 0 },
   { id: "silver", threshold: 18000 },
-
   { id: "platinum", threshold: 88000 },
   { id: "diamond", threshold: 124000 },
-
 ];
 
-export async function verifyDepositAction(reference: string, expectedAmount: number) {
+export async function verifyDepositAction(
+  reference: string,
+  expectedAmount: number,
+) {
   try {
     const supabase = await createClient();
-    
+
     // 1. Get the authenticated user
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
     if (authError || !user) {
-      return { success: false, error: 'User not authenticated' };
+      return { success: false, error: "User not authenticated" };
     }
 
     // 2. We don't have the secret key in env right now, so we'll gracefully mock the Paystack validation
@@ -39,11 +43,14 @@ export async function verifyDepositAction(reference: string, expectedAmount: num
 
     // 3. Since the payment was "successful", process it in the database
     // We call the SECURITY DEFINER function to bypass RLS and insert securely
-    const { data: rpcData, error: rpcError } = await supabase.rpc('process_paystack_deposit', {
-      p_user_id: user.id,
-      p_reference: reference,
-      p_amount: expectedAmount
-    });
+    const { data: rpcData, error: rpcError } = await supabase.rpc(
+      "process_paystack_deposit",
+      {
+        p_user_id: user.id,
+        p_reference: reference,
+        p_amount: expectedAmount,
+      },
+    );
 
     if (rpcError) {
       return { success: false, error: rpcError.message };
@@ -73,11 +80,17 @@ export async function verifyDepositAction(reference: string, expectedAmount: num
 
       let highestDep = 0;
       if (txData) {
-        highestDep = txData.reduce((max: number, tx: any) => Math.max(max, Number(tx.amount)), 0);
+        highestDep = txData.reduce(
+          (max: number, tx: any) => Math.max(max, Number(tx.amount)),
+          0,
+        );
       }
 
       // Determine rank
-      const rankIndex = Math.max(0, ranksConfig.findLastIndex(r => highestDep >= r.threshold));
+      const rankIndex = Math.max(
+        0,
+        ranksConfig.findLastIndex((r) => highestDep >= r.threshold),
+      );
       const userPlanId = ranksConfig[rankIndex].id;
 
       // Fetch commission config
@@ -86,37 +99,41 @@ export async function verifyDepositAction(reference: string, expectedAmount: num
         .select("value")
         .eq("key", "referral_commission_config")
         .single();
-      
+
       let commissionAmount = 0;
-      if (configData?.value && typeof configData.value[userPlanId] === 'number') {
+      if (
+        configData?.value &&
+        typeof configData.value[userPlanId] === "number"
+      ) {
         commissionAmount = configData.value[userPlanId];
       }
 
       // Process commission via RPC securely
-      await supabase.rpc('process_referral_commission', {
+      await supabase.rpc("process_referral_commission", {
         p_referral_id: referral.id,
         p_referrer_id: referral.referrer_id,
-        p_commission_amount: commissionAmount
+        p_commission_amount: commissionAmount,
       });
     }
 
     // Insert deposit notification
-    await supabase.from("notifications").insert([{
-      user_id: user.id,
-      title: "Deposit Successful",
-      message: `Your deposit of ₦${expectedAmount.toLocaleString()} has been successfully added to your wallet.`,
-      type: "success",
-      category: "Account",
-      is_read: false
-    }]);
+    await supabase.from("notifications").insert([
+      {
+        user_id: user.id,
+        title: "Deposit Successful",
+        message: `Your deposit of ₦${expectedAmount.toLocaleString()} has been successfully added to your wallet.`,
+        type: "success",
+        category: "Account",
+        is_read: false,
+      },
+    ]);
 
     // Refresh wallet page data
-    revalidatePath('/user/wallet', 'page');
-    
+    revalidatePath("/user/wallet", "page");
+
     return { success: true };
-    
   } catch (error: any) {
     console.error("Paystack verify error:", error);
-    return { success: false, error: error.message || 'Internal server error' };
+    return { success: false, error: error.message || "Internal server error" };
   }
 }
