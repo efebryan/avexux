@@ -2,6 +2,7 @@ import { RegisterForm } from "@/features/auth/components/RegisterForm";
 import { Metadata } from "next";
 import Link from "next/link";
 import { TrendingUp } from "lucide-react";
+import { Suspense } from "react";
 
 export const metadata: Metadata = {
   title: "Create an Account - Avexux",
@@ -61,7 +62,9 @@ export default function RegisterPage() {
 
         {/* Right Side: Form */}
         <div className="flex-1 flex items-center justify-center lg:justify-end w-full">
-           <RegisterForm />
+           <Suspense fallback={<div className="flex items-center justify-center min-h-[400px] w-full max-w-[420px] bg-white rounded-2xl border border-gray-100 shadow-sm"><span className="text-gray-400 font-medium">Loading form...</span></div>}>
+             <RegisterForm />
+           </Suspense>
         </div>
       </main>
 

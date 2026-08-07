@@ -42,6 +42,21 @@ export async function signupAction(data: any) {
 
   const supabase = await createClient()
 
+  // 1. Validate referral code exists
+  if (!referralCode) {
+    return { success: false, error: "Referral code is required." };
+  }
+
+  const { data: refData, error: refError } = await supabase
+    .from('profiles')
+    .select('id')
+    .eq('referral_code', referralCode)
+    .single();
+
+  if (refError || !refData) {
+    return { success: false, error: "Invalid referral code. Please check your link or code." };
+  }
+
   const isEmail = identifier.includes('@')
   const credentials = isEmail ? { email: identifier, password } : { phone: identifier, password }
 

@@ -11,7 +11,8 @@ interface InviteCardProps {
 }
 
 export function InviteCard({ referralCode }: InviteCardProps) {
-  const referralLink = `https://avexux.com/ref/${referralCode}`;
+  const baseUrl = typeof window !== "undefined" ? window.location.origin : "";
+  const referralLink = `${baseUrl}/register?ref=${referralCode}`;
 
   const handleCopy = () => {
     navigator.clipboard.writeText(referralLink);

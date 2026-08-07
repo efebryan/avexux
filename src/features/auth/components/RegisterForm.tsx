@@ -21,7 +21,7 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 
 import { signupAction } from "@/app/(auth)/actions";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 const registerSchema = z.object({
   fullName: z.string().min(2, { message: "Full name is required." }),
@@ -37,6 +37,9 @@ type RegisterFormValues = z.infer<typeof registerSchema>;
 
 export function RegisterForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const refCode = searchParams.get("ref") || "";
+  
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
@@ -46,7 +49,7 @@ export function RegisterForm() {
       fullName: "",
       identifier: "",
       password: "",
-      referralCode: "",
+      referralCode: refCode,
       acceptTerms: false,
     },
   });
