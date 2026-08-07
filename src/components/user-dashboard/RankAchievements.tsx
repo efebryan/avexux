@@ -151,7 +151,12 @@ export function RankAchievements() {
           Rank Achievements (4 Tiers)
         </h3>
         <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full uppercase tracking-wide ${
-          hasDeposited ? "bg-[#e6f7e6] text-[#2faf2f]" : "bg-gray-100 text-gray-500"
+          hasDeposited 
+            ? currentRankIndex === 0 ? "bg-amber-100 text-amber-700"
+            : currentRankIndex === 1 ? "bg-slate-200 text-slate-700"
+            : currentRankIndex === 2 ? "bg-yellow-100 text-yellow-700"
+            : "bg-cyan-100 text-cyan-700"
+          : "bg-gray-100 text-gray-500"
         }`}>
           {currentRankName}
         </span>
