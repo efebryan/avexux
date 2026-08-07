@@ -133,12 +133,15 @@ export function RankAchievements() {
     );
   }
 
-  const currentRankIndex = Math.max(
-    0,
-    ranksConfig.findLastIndex((r) => highestDeposit >= r.threshold),
-  );
-  const currentRankName =
-    ranksConfig[currentRankIndex].name.split(" ")[0] + " Level";
+  const hasDeposited = highestDeposit > 0;
+  
+  const currentRankIndex = hasDeposited
+    ? Math.max(0, ranksConfig.findLastIndex((r) => highestDeposit >= r.threshold))
+    : -1;
+
+  const currentRankName = hasDeposited
+    ? ranksConfig[currentRankIndex].name.split(" ")[0] + " Level"
+    : "Unranked";
 
   return (
     <Card className="p-4 border border-gray-100 shadow-sm rounded-2xl mb-6 bg-white">
@@ -147,7 +150,9 @@ export function RankAchievements() {
           <Trophy className="w-3.5 h-3.5 text-[#2faf2f]" />
           Rank Achievements (4 Tiers)
         </h3>
-        <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-[#e6f7e6] text-[#2faf2f] uppercase tracking-wide">
+        <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full uppercase tracking-wide ${
+          hasDeposited ? "bg-[#e6f7e6] text-[#2faf2f]" : "bg-gray-100 text-gray-500"
+        }`}>
           {currentRankName}
         </span>
       </div>
@@ -155,8 +160,10 @@ export function RankAchievements() {
       <div className="grid grid-cols-2 gap-2">
         {ranksConfig.map((rank, index) => {
           let status: "unlocked" | "current" | "locked" = "locked";
-          if (index < currentRankIndex) status = "unlocked";
-          if (index === currentRankIndex) status = "current";
+          if (hasDeposited) {
+            if (index < currentRankIndex) status = "unlocked";
+            if (index === currentRankIndex) status = "current";
+          }
 
           const bgColor =
             status === "locked"
