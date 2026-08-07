@@ -333,7 +333,7 @@ export default function AdminOverviewPage() {
         .eq("status", "Completed")
         .gte("created_at", last7Days.toISOString());
 
-      const days = [];
+      const days: { dateStr: string; label: string; amt: number }[] = [];
       for (let i = 0; i < 7; i++) {
         const d = new Date();
         d.setDate(d.getDate() - (6 - i));
