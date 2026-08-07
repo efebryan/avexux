@@ -357,7 +357,7 @@ export default function AdminSettingsPage() {
                   <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-2">Base Currency</label>
                   <div className="relative">
                     <select className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-[13px] text-slate-900 font-medium appearance-none focus:outline-none focus:ring-2 focus:ring-primary/20 focus:bg-white pr-10">
-                      <option>USD - United States Dollar</option>
+                      <option>NGN - Nigerian Naira</option>
                     </select>
                     <ChevronDown className="w-4 h-4 text-slate-400 absolute right-3 top-[11px] pointer-events-none" />
                   </div>

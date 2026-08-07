@@ -328,7 +328,7 @@ export default function SupportPage() {
               
               <div>
                 <p className="text-[11px] font-medium text-slate-500 mb-1.5">Total Lifetime Value</p>
-                <p className="font-bold text-[14px] text-slate-900">$12,450.00</p>
+                <p className="font-bold text-[14px] text-slate-900">₦12,450.00</p>
               </div>
 
               <div>

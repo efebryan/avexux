@@ -2,7 +2,7 @@
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Clock, DollarSign, Tag, User, Calendar, Image as ImageIcon, ShieldCheck, Activity } from "lucide-react";
+import { Clock, Banknote, Tag, User, Calendar, Image as ImageIcon, ShieldCheck, Activity } from "lucide-react";
 
 interface TaskPreviewModalProps {
   isOpen: boolean;
@@ -53,7 +53,7 @@ export function TaskPreviewModal({ isOpen, onClose, task }: TaskPreviewModalProp
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div className="flex flex-col gap-1 p-3 rounded-lg border bg-card text-card-foreground shadow-sm">
               <span className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
-                <DollarSign className="w-3.5 h-3.5" /> Reward
+                <Banknote className="w-3.5 h-3.5" /> Reward
               </span>
               <span className="text-xl font-bold text-emerald-600 dark:text-emerald-500">
                 ₦{Number(task.reward || 0).toLocaleString()}

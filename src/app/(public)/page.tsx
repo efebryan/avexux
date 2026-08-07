@@ -7,7 +7,7 @@ import {
   ArrowRight,
   Link as LinkIcon,
   Megaphone,
-  DollarSign,
+  Banknote,
   Users,
   ShieldCheck,
   BarChart3,
@@ -225,7 +225,7 @@ export default function HomePage() {
                 desc: "Get your brand in front of a global audience with laser-focused engagement campaigns.",
               },
               {
-                icon: <DollarSign className="w-5 h-5 text-[#2faf2f]" />,
+                icon: <Banknote className="w-5 h-5 text-[#2faf2f]" />,
                 title: "Earn Rewards",
                 desc: "Consistent payouts and competitive rates for all types of micro-tasks and promotions.",
               },
