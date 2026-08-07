@@ -199,7 +199,7 @@ export function RankAchievements() {
 
       <div className="grid grid-cols-2 gap-2">
         {ranksConfig.map((rank, index) => {
-          let status: "unlocked" | "current" | "locked" = "locked";
+          let status: "current" | "locked" = "locked";
           if (currentRankIndex >= 0) {
             if (index === currentRankIndex) status = "current";
           }
@@ -207,14 +207,10 @@ export function RankAchievements() {
           const bgColor =
             status === "locked"
               ? "bg-gray-50 border-gray-100 opacity-60"
-              : status === "unlocked"
-              ? "bg-slate-50 border-slate-200 opacity-70"
               : rank.colors[status].bg;
           const textColor =
             status === "locked" 
               ? "text-gray-400" 
-              : status === "unlocked"
-              ? "text-slate-600"
               : rank.colors[status].text;
 
           return (
@@ -222,7 +218,7 @@ export function RankAchievements() {
               key={rank.id}
               className={`p-2.5 rounded-xl border flex items-center gap-2.5 transition-all ${bgColor}`}
             >
-              <div className={`w-8 h-8 rounded-lg bg-white shadow-xs flex items-center justify-center shrink-0 border border-black/5 ${status === "unlocked" ? "grayscale opacity-60" : ""}`}>
+              <div className={`w-8 h-8 rounded-lg bg-white shadow-xs flex items-center justify-center shrink-0 border border-black/5`}>
                 {status === "locked" ? (
                   <Lock className="w-3.5 h-3.5 text-gray-400" />
                 ) : (
@@ -238,8 +234,6 @@ export function RankAchievements() {
                     <span className="text-[#2faf2f] font-bold">
                       Current Rank
                     </span>
-                  ) : status === "unlocked" ? (
-                    <span className="text-gray-500">Unlocked ✓</span>
                   ) : (
                     <span>Locked</span>
                   )}
