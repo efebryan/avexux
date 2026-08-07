@@ -110,6 +110,7 @@ export default function FinancialsPage() {
           id, reference_id, type, amount, status, created_at,
           profiles!inner(full_name, email)
         `)
+        .in("type", ["DEPOSIT", "WITHDRAWAL"])
         .order("created_at", { ascending: false })
         .limit(10);
 
