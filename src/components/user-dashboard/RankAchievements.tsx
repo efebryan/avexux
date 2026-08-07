@@ -161,16 +161,22 @@ export function RankAchievements() {
           const bgColor =
             status === "locked"
               ? "bg-gray-50 border-gray-100 opacity-60"
+              : status === "unlocked"
+              ? "bg-slate-50 border-slate-200 opacity-70"
               : rank.colors[status].bg;
           const textColor =
-            status === "locked" ? "text-gray-400" : rank.colors[status].text;
+            status === "locked" 
+              ? "text-gray-400" 
+              : status === "unlocked"
+              ? "text-slate-600"
+              : rank.colors[status].text;
 
           return (
             <div
               key={rank.id}
               className={`p-2.5 rounded-xl border flex items-center gap-2.5 transition-all ${bgColor}`}
             >
-              <div className="w-8 h-8 rounded-lg bg-white shadow-xs flex items-center justify-center shrink-0 border border-black/5">
+              <div className={`w-8 h-8 rounded-lg bg-white shadow-xs flex items-center justify-center shrink-0 border border-black/5 ${status === "unlocked" ? "grayscale opacity-60" : ""}`}>
                 {status === "locked" ? (
                   <Lock className="w-3.5 h-3.5 text-gray-400" />
                 ) : (
