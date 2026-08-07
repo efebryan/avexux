@@ -77,37 +77,7 @@ const stats = [
   },
 ];
 
-const recentRegistrations = [
-  {
-    username: "john_doe99",
-    email: "john@example.com",
-    joined: "2 hours ago",
-    initials: "JO",
-    color: "bg-blue-100 text-blue-700",
-  },
-  {
-    username: "sarah_tasks",
-    email: "sarah@example.com",
-    joined: "4 hours ago",
-    initials: "SA",
-    color: "bg-green-100 text-green-700",
-  },
-  {
-    username: "mike_hustle",
-    email: "mike.h@example.com",
-    joined: "5 hours ago",
-    initials: "MI",
-    color: "bg-purple-100 text-purple-700",
-  },
-  {
-    username: "crypto_king",
-    email: "crypto@example.com",
-    joined: "1 day ago",
-    initials: "CR",
-    color: "bg-orange-100 text-orange-700",
-    offline: true,
-  },
-];
+// Dynamic recent signups will be used instead
 
 const pendingWithdrawals = [
   {
@@ -256,6 +226,9 @@ export default function AdminOverviewPage() {
   // Chart Data
   const [chartData, setChartData] = useState<any[]>([]);
   const [chartGrowth, setChartGrowth] = useState({ pct: 0, type: "neutral" });
+  
+  // Recent Signups
+  const [recentSignups, setRecentSignups] = useState<any[]>([]);
 
   useEffect(() => {
     async function fetchFinancials() {
@@ -411,6 +384,44 @@ export default function AdminOverviewPage() {
         pct: Number(pct.toFixed(1)),
         type: pct >= 0 ? "growth" : "decline"
       });
+      // Fetch Recent Signups (last 4)
+      const { data: signups } = await supabase
+        .from("profiles")
+        .select("full_name, email, created_at, status")
+        .order("created_at", { ascending: false })
+        .limit(4);
+
+      if (signups) {
+        const formatted = signups.map((s, idx) => {
+          const colors = [
+            "bg-blue-100 text-blue-700",
+            "bg-green-100 text-green-700",
+            "bg-purple-100 text-purple-700",
+            "bg-orange-100 text-orange-700",
+          ];
+          const name = s.full_name || "Unknown User";
+          const init = name.substring(0, 2).toUpperCase();
+          
+          // Calculate time ago
+          const diffMs = new Date().getTime() - new Date(s.created_at).getTime();
+          const diffHrs = Math.floor(diffMs / (1000 * 60 * 60));
+          const diffDays = Math.floor(diffHrs / 24);
+          let joinedText = "";
+          if (diffHrs < 1) joinedText = "Just now";
+          else if (diffHrs < 24) joinedText = `${diffHrs} hour${diffHrs > 1 ? "s" : ""} ago`;
+          else joinedText = `${diffDays} day${diffDays > 1 ? "s" : ""} ago`;
+
+          return {
+            username: name,
+            email: s.email,
+            joined: joinedText,
+            initials: init,
+            color: colors[idx % colors.length],
+            offline: s.status !== "ACTIVE",
+          };
+        });
+        setRecentSignups(formatted);
+      }
     }
     fetchFinancials();
   }, []);
@@ -535,7 +546,7 @@ export default function AdminOverviewPage() {
             </Link>
           </div>
           <div className="flex-1 overflow-y-auto px-2 py-2">
-            {recentRegistrations.map((user, i) => (
+            {recentSignups.map((user, i) => (
               <div
                 key={i}
                 className="p-3 flex justify-between items-center hover:bg-slate-50/70 transition-colors rounded-xl mx-2 my-0.5 group"
