@@ -47,6 +47,20 @@ const ranksConfig = [
   },
 
   {
+    id: "gold",
+    name: "Gold Master",
+    level: "Tier 3",
+    threshold: 42000,
+    icon: <Crown className="w-4 h-4 text-amber-500" />,
+    colors: {
+      unlocked: { bg: "bg-amber-50 border-amber-200", text: "text-amber-900" },
+      current: {
+        bg: "bg-amber-50 border-amber-300 ring-2 ring-amber-400/20",
+        text: "text-amber-900",
+      },
+    },
+  },
+  {
     id: "platinum",
     name: "Platinum Pro",
     level: "Tier 4",
@@ -57,23 +71,6 @@ const ranksConfig = [
       current: {
         bg: "bg-cyan-50 border-cyan-300 ring-2 ring-cyan-400/20",
         text: "text-cyan-900",
-      },
-    },
-  },
-  {
-    id: "diamond",
-    name: "Diamond Elite",
-    level: "Tier 5",
-    threshold: 124000,
-    icon: <Gem className="w-4 h-4 text-indigo-500" />,
-    colors: {
-      unlocked: {
-        bg: "bg-indigo-50 border-indigo-200",
-        text: "text-indigo-800",
-      },
-      current: {
-        bg: "bg-indigo-50 border-indigo-300 ring-2 ring-indigo-400/20",
-        text: "text-indigo-900",
       },
     },
   },

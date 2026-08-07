@@ -203,9 +203,7 @@ export function EditTaskModal({
                 <option value="bronze">Bronze Starter</option>
                 <option value="silver">Silver Earner</option>
                 <option value="gold">Gold Master</option>
-                <option value="Premium">
-                  Premium (Platinum, Diamond, Apex)
-                </option>
+                <option value="platinum">Platinum Pro</option>
               </select>
             </div>
           </div>

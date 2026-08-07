@@ -31,8 +31,8 @@ import { Input } from "@/components/ui/input";
 const planLabels: Record<string, string> = {
   bronze: "Bronze Starter",
   silver: "Silver Earner",
+  gold: "Gold Master",
   platinum: "Platinum Pro",
-  diamond: "Diamond Elite",
 };
 
 export default function ReferralsPage() {
@@ -57,8 +57,8 @@ export default function ReferralsPage() {
   >({
     bronze: 0,
     silver: 1000,
-    platinum: 4500,
-    diamond: 7500,
+    gold: 2500,
+    platinum: 5000,
   });
 
   useEffect(() => {
