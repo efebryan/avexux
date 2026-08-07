@@ -31,19 +31,26 @@ const navItems = [
   { name: "Settings", href: "/admin/settings", icon: Settings },
 ];
 
-export function Sidebar() {
+import { SiteSettings } from "@/utils/settings";
+
+export function Sidebar({ settings }: { settings?: SiteSettings }) {
   const pathname = usePathname();
+  const siteTitle = settings?.site_title || "Avexux";
 
   return (
     <div className="flex flex-col h-full py-6 bg-[#111827] text-slate-300 relative overflow-hidden">
       
       {/* Logo */}
       <div className="flex items-center gap-3 px-6 mb-10">
-        <div className="bg-primary p-2 rounded-xl flex-shrink-0">
-          <LayoutGrid className="w-5 h-5 text-white" strokeWidth={2.5} />
-        </div>
+        {settings?.logo_url ? (
+          <img src={settings.logo_url} alt={siteTitle} className="h-8 w-auto object-contain flex-shrink-0" />
+        ) : (
+          <div className="bg-primary p-2 rounded-xl flex-shrink-0">
+            <LayoutGrid className="w-5 h-5 text-white" strokeWidth={2.5} />
+          </div>
+        )}
         <div className="flex flex-col">
-          <span className="font-heading font-bold text-xl leading-none text-white tracking-tight">Avexux</span>
+          <span className="font-heading font-bold text-xl leading-none text-white tracking-tight">{siteTitle}</span>
           <span className="font-heading text-[10px] font-bold text-primary uppercase tracking-widest mt-1">SUPER ADMIN</span>
         </div>
       </div>

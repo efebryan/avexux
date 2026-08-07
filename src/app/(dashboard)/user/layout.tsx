@@ -49,13 +49,12 @@ export default function UserDashboardLayout({
           </button>
         </div>
         <div className="h-full overflow-y-auto">
-           <Sidebar />
+           <Sidebar settings={settings} />
         </div>
       </div>
 
-      {/* Desktop Sidebar (Hidden on small screens) */}
       <div className="hidden lg:block w-64 xl:w-72 border-r border-gray-200 bg-[#f8fafc] shrink-0">
-        <Sidebar />
+        <Sidebar settings={settings} />
       </div>
 
       {/* Main Content Area */}
