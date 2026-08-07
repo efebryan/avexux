@@ -79,26 +79,7 @@ const stats = [
 
 // Dynamic recent signups will be used instead
 
-const pendingWithdrawals = [
-  {
-    user: "Alex123",
-    amount: "₦15,000",
-    method: "Bank Transfer",
-    date: "Oct 24, 2023",
-  },
-  {
-    user: "DevNerd",
-    amount: "₦5,000",
-    method: "Bank Transfer",
-    date: "Oct 24, 2023",
-  },
-  {
-    user: "CryptoFan",
-    amount: "₦25,000",
-    method: "Bank Transfer",
-    date: "Oct 23, 2023",
-  },
-];
+
 
 function ChartComponent({ data }: { data: any[] }) {
   const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
@@ -585,90 +566,6 @@ export default function AdminOverviewPage() {
             ))}
           </div>
         </Card>
-      </div>
 
-      {/* Urgent: Pending Withdrawals */}
-      <Card className="border border-rose-100 shadow-sm rounded-2xl bg-white overflow-hidden">
-        <div className="p-5 border-b border-rose-100/60 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-gradient-to-r from-rose-50/50 via-rose-50/20 to-white">
-          <div className="flex items-center gap-3.5">
-            <div className="w-10 h-10 rounded-xl bg-rose-500/10 border border-rose-200/50 flex items-center justify-center text-rose-600 flex-shrink-0">
-              <AlertCircle className="w-5 h-5" strokeWidth={2.5} />
-            </div>
-            <div>
-              <h2 className="font-extrabold text-base text-rose-700 tracking-tight">Urgent: Pending Withdrawals</h2>
-              <p className="text-xs text-slate-500 font-medium mt-0.5">
-                3 requests require immediate verification & settlement
-              </p>
-            </div>
-          </div>
-          <Link href="/admin/financials" className="w-full sm:w-auto">
-             <Button className="w-full sm:w-auto bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl text-xs px-5 py-2 shadow-sm transition-all duration-200 hover:shadow-rose-100 hover:shadow-md">
-               Process All Requests
-             </Button>
-          </Link>
-        </div>
-        
-        <div className="divide-y divide-slate-100/70">
-          {pendingWithdrawals.map((req, i) => {
-            const initials = req.user.substring(0, 2).toUpperCase();
-            return (
-              <div
-                key={i}
-                className="p-4 px-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 hover:bg-slate-50/40 transition-colors group"
-              >
-                <div className="flex items-center gap-3">
-                  {/* Avatar fallback with cool gradient */}
-                  <div className="w-9 h-9 rounded-full bg-gradient-to-br from-rose-50 to-rose-100 border border-rose-200/30 flex items-center justify-center font-bold text-xs text-rose-700 shadow-sm shrink-0">
-                    {initials}
-                  </div>
-                  <div>
-                    <p className="text-xs font-extrabold text-slate-900 leading-tight group-hover:text-rose-600 transition-colors cursor-pointer">{req.user}</p>
-                    <p className="text-[10px] text-slate-400 font-bold mt-1 uppercase tracking-wide flex items-center gap-1.5">
-                      <span>{req.method}</span>
-                      <span className="text-slate-200 font-normal">|</span>
-                      <span>{req.date}</span>
-                    </p>
-                  </div>
-                </div>
-                
-                {/* Actions & Amount */}
-                <div className="flex items-center justify-between sm:justify-end gap-6 w-full sm:w-auto mt-2 sm:mt-0">
-                  {/* Subtle Pending Badge */}
-                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wide bg-amber-50 text-amber-600 border border-amber-100">
-                    <span className="w-1 h-1 rounded-full bg-amber-500 mr-1 animate-pulse"></span>
-                    Pending
-                  </span>
-                  
-                  {/* Hover Actions */}
-                  <div className="flex md:hidden items-center gap-2 opacity-100 transition-opacity duration-200">
-                    <button className="px-2.5 py-1 text-[10px] font-bold text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors border border-transparent hover:border-rose-100">
-                      Decline
-                    </button>
-                    <button className="px-3 py-1 text-[10px] font-extrabold text-white bg-slate-900 hover:bg-slate-800 rounded-lg transition-colors shadow-sm">
-                      Approve & Pay
-                    </button>
-                  </div>
-                  <div className="hidden md:flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                    <button className="px-2.5 py-1 text-[10px] font-bold text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors border border-transparent hover:border-rose-100">
-                      Decline
-                    </button>
-                    <button className="px-3 py-1 text-[10px] font-extrabold text-white bg-slate-900 hover:bg-slate-800 rounded-lg transition-colors shadow-sm">
-                      Approve & Pay
-                    </button>
-                  </div>
-
-                  {/* Styled Amount */}
-                  <div className="text-right shrink-0">
-                    <span className="text-sm font-black text-rose-600 group-hover:scale-105 transition-transform block">
-                      {req.amount}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </Card>
-    </div>
   );
 }

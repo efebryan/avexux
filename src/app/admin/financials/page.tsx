@@ -17,11 +17,13 @@ import {
   ChevronRight,
   ArrowRight
 } from "lucide-react";
+import Link from "next/link";
 
 import { adminProcessWithdrawalAction } from "../actions";
 
 export default function FinancialsPage() {
   const [requests, setRequests] = useState<any[]>([]);
+  const [totalPendingRequests, setTotalPendingRequests] = useState(0);
   const [transactions, setTransactions] = useState<any[]>([]);
   const [txPage, setTxPage] = useState(1);
   const [txTotal, setTxTotal] = useState(0);
@@ -81,14 +83,19 @@ export default function FinancialsPage() {
       }
 
       // Fetch actual pending requests
-      const { data: wData } = await supabase
+      const { data: wData, count: wCount } = await supabase
         .from("withdrawal_requests")
         .select(`
           id, amount, bank_name, account_number, account_name, created_at, status,
           profiles!withdrawal_requests_user_id_fkey(full_name, email)
-        `)
+        `, { count: "exact" })
         .eq("status", "Pending")
-        .order("created_at", { ascending: true });
+        .order("created_at", { ascending: true })
+        .limit(5);
+
+      if (wCount !== null) {
+        setTotalPendingRequests(wCount);
+      }
 
       if (wData) {
         setRequests(wData.map((w: any) => {
@@ -489,10 +496,10 @@ export default function FinancialsPage() {
             </div>
 
             <div className="p-4 border-t border-slate-100 flex justify-center">
-              <button className="text-[11px] font-extrabold text-primary hover:text-primary/80 transition-colors flex items-center gap-1 group">
-                View All Pending Requests (14)
+              <Link href="/admin/withdrawals" className="text-[11px] font-extrabold text-primary hover:text-primary/80 transition-colors flex items-center gap-1 group">
+                View All Pending Requests ({totalPendingRequests})
                 <ArrowRight className="w-3.5 h-3.5 transform group-hover:translate-x-0.5 transition-transform" />
-              </button>
+              </Link>
             </div>
           </Card>
         </div>
