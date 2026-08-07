@@ -130,18 +130,20 @@ const pendingWithdrawals = [
   },
 ];
 
-function ChartComponent() {
+function ChartComponent({ data }: { data: any[] }) {
   const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
-  
-  const data = [
-    { label: "Mon", x: 30, y: 87, w: 36, h: 58, amt: "₦240k", type: "growth" },
-    { label: "Tue", x: 95, y: 58, w: 36, h: 87, amt: "₦360k", type: "growth" },
-    { label: "Wed", x: 160, y: 80, w: 36, h: 65, amt: "₦270k", type: "decline" },
-    { label: "Thu", x: 225, y: 29, w: 36, h: 116, amt: "₦480k", type: "growth" },
-    { label: "Fri", x: 290, y: 65, w: 36, h: 80, amt: "₦330k", type: "decline" },
-    { label: "Sat", x: 355, y: 15, w: 36, h: 130, amt: "₦540k", type: "growth" },
-    { label: "Sun", x: 420, y: 36, w: 36, h: 109, amt: "₦450k", type: "decline" },
-  ];
+
+  if (!data || data.length === 0) {
+    return (
+      <div className="flex-1 flex items-center justify-center min-h-[180px]">
+        <div className="animate-pulse flex space-x-4 items-end h-[120px]">
+          {[1, 2, 3, 4, 5, 6, 7].map(i => (
+            <div key={i} className="w-9 bg-slate-100 rounded-md" style={{ height: `${Math.max(20, Math.random() * 100)}%` }}></div>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="relative flex-1 flex flex-col justify-between mt-4 h-full min-h-0">
@@ -250,6 +252,10 @@ export default function AdminOverviewPage() {
   const [totalReferralsPayout, setTotalReferralsPayout] = useState(0);
   const [depositsToday, setDepositsToday] = useState(0);
   const [usersThisWeek, setUsersThisWeek] = useState(0);
+  
+  // Chart Data
+  const [chartData, setChartData] = useState<any[]>([]);
+  const [chartGrowth, setChartGrowth] = useState({ pct: 0, type: "neutral" });
 
   useEffect(() => {
     async function fetchFinancials() {
@@ -341,6 +347,70 @@ export default function AdminOverviewPage() {
         .select("*", { count: "exact", head: true })
         .gte("created_at", startOfWeek.toISOString());
       if (uThisWeek !== null) setUsersThisWeek(uThisWeek);
+
+      // Fetch Chart Data (last 7 days of DEPOSIT)
+      const last7Days = new Date();
+      last7Days.setDate(last7Days.getDate() - 6);
+      last7Days.setHours(0,0,0,0);
+      
+      const { data: chartTx } = await supabase
+        .from("transactions")
+        .select("amount, created_at")
+        .eq("type", "DEPOSIT")
+        .eq("status", "Completed")
+        .gte("created_at", last7Days.toISOString());
+
+      const days = [];
+      for (let i = 0; i < 7; i++) {
+        const d = new Date();
+        d.setDate(d.getDate() - (6 - i));
+        days.push({
+          dateStr: d.toISOString().split("T")[0],
+          label: d.toLocaleDateString("en-US", { weekday: "short" }),
+          amt: 0
+        });
+      }
+
+      if (chartTx) {
+        chartTx.forEach((tx) => {
+          const txDate = tx.created_at.split("T")[0];
+          const day = days.find(d => d.dateStr === txDate);
+          if (day) {
+            day.amt += Number(tx.amount) || 0;
+          }
+        });
+      }
+
+      const maxAmt = Math.max(...days.map(d => d.amt), 1);
+      
+      const computedChartData = days.map((d, i) => {
+        const h = Math.max(10, (d.amt / maxAmt) * 120);
+        const y = 145 - h;
+        const prevAmt = i > 0 ? days[i-1].amt : 0;
+        return {
+          label: d.label,
+          x: 30 + (i * 65),
+          y,
+          w: 36,
+          h,
+          amt: `₦${d.amt.toLocaleString()}`,
+          type: d.amt >= prevAmt ? "growth" : "decline"
+        };
+      });
+
+      setChartData(computedChartData);
+
+      // Compute simple growth between first half and second half of the week for the top label
+      const firstHalfSum = days.slice(0, 3).reduce((acc, d) => acc + d.amt, 0);
+      const secondHalfSum = days.slice(3, 7).reduce((acc, d) => acc + d.amt, 0);
+      let pct = 0;
+      if (firstHalfSum > 0) {
+        pct = ((secondHalfSum - firstHalfSum) / firstHalfSum) * 100;
+      }
+      setChartGrowth({
+        pct: Number(pct.toFixed(1)),
+        type: pct >= 0 ? "growth" : "decline"
+      });
     }
     fetchFinancials();
   }, []);
@@ -438,14 +508,18 @@ export default function AdminOverviewPage() {
                   Transaction volume over the last 7 days
                 </p>
               </div>
-              <div className="bg-green-50 border border-green-100 text-green-700 text-xs font-semibold px-3 py-1 rounded-full">
-                +18.5% Growth
+              <div className={`border text-xs font-semibold px-3 py-1 rounded-full ${
+                chartGrowth.type === "growth" 
+                  ? "bg-green-50 border-green-100 text-green-700" 
+                  : "bg-rose-50 border-rose-100 text-rose-700"
+              }`}>
+                {chartGrowth.pct > 0 ? "+" : ""}{chartGrowth.pct}% {chartGrowth.type === "growth" ? "Growth" : "Decline"}
               </div>
             </div>
           </div>
 
           {/* Senior UI SVG Chart Visualization */}
-          <ChartComponent />
+          <ChartComponent data={chartData} />
         </Card>
 
         {/* Recent Signups */}
