@@ -32,6 +32,7 @@ export default function WalletPage() {
   const [pendingBalance, setPendingBalance] = useState(0);
   const [bonusEarnings, setBonusEarnings] = useState(0);
   const [referralEarnings, setReferralEarnings] = useState(0);
+  const [totalDeposit, setTotalDeposit] = useState(0);
   const [bankDetails, setBankDetails] = useState<{ bankName: string; accountNumber: string; accountName: string } | null>(null);
 
   useEffect(() => {
@@ -93,6 +94,11 @@ export default function WalletPage() {
             status: tx.status,
           }));
           setTransactions(formattedTx);
+
+          const sumDeposits = txData
+            .filter((tx: any) => tx.type?.toLowerCase() === "deposit" || (tx.metadata?.description || "").toLowerCase().includes("deposit") || (tx.description || "").toLowerCase().includes("deposit"))
+            .reduce((acc: number, tx: any) => acc + Number(tx.amount), 0);
+          setTotalDeposit(sumDeposits);
         }
 
         // Fetch Withdrawals
@@ -159,8 +165,9 @@ export default function WalletPage() {
   };
 
   const handleDepositRequest = (amount: number, method: string) => {
-    // Add to available balance
+    // Add to available balance and total deposit
     setAvailableBalance(prev => prev + amount);
+    setTotalDeposit(prev => prev + amount);
     
     // Add to transaction history
     const newTransaction: Transaction = {
@@ -190,7 +197,7 @@ export default function WalletPage() {
       <BalanceCards 
         availableBalance={availableBalance}
         pendingBalance={pendingBalance}
-        depositBalance={Math.max(0, availableBalance - withdrawableBalance)}
+        depositBalance={totalDeposit}
         earningsBalance={withdrawableBalance}
         withdrawableBalance={withdrawableBalance}
         onWithdrawClick={() => setIsModalOpen(true)}
