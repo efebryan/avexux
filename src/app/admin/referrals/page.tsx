@@ -53,12 +53,12 @@ export default function ReferralsPage() {
   // Commission Config State
   const [commissionModalOpen, setCommissionModalOpen] = useState(false);
   const [commissionConfig, setCommissionConfig] = useState<
-    Record<string, number>
+    Record<string, Record<string, number>>
   >({
-    bronze: 0,
-    silver: 1000,
-    gold: 2500,
-    platinum: 5000,
+    bronze: { level_1: 10, level_2: 2, level_3: 1 },
+    silver: { level_1: 15, level_2: 5, level_3: 2 },
+    gold: { level_1: 20, level_2: 8, level_3: 3 },
+    platinum: { level_1: 25, level_2: 10, level_3: 5 },
   });
 
   useEffect(() => {
@@ -788,31 +788,40 @@ export default function ReferralsPage() {
             Referral Commissions
           </DialogTitle>
           <DialogDescription className="text-gray-500 text-sm">
-            Set the monetary amount a referrer receives when their invited user
-            deposits and enters a specific plan.
+            Set the percentage (%) a referrer receives from their downlines' deposits, based on the referrer's active plan.
           </DialogDescription>
 
-          <div className="space-y-4 py-4">
+          <div className="space-y-6 py-2 max-h-[60vh] overflow-y-auto px-1">
             {Object.keys(planLabels).map((plan) => (
-              <div key={plan} className="flex flex-col gap-1.5">
-                <label className="text-sm font-bold text-gray-700">
+              <div key={plan} className="flex flex-col gap-2 p-3 bg-slate-50 rounded-xl border border-slate-100">
+                <label className="text-sm font-bold text-slate-800">
                   {planLabels[plan] || plan}
                 </label>
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-medium">
-                    ₦
-                  </span>
-                  <Input
-                    type="number"
-                    value={commissionConfig[plan]}
-                    onChange={(e) =>
-                      setCommissionConfig({
-                        ...commissionConfig,
-                        [plan]: Number(e.target.value),
-                      })
-                    }
-                    className="pl-8 rounded-xl bg-gray-50 border-gray-200"
-                  />
+                <div className="grid grid-cols-3 gap-3">
+                  {[1, 2, 3].map((level) => (
+                    <div key={level} className="flex flex-col gap-1">
+                      <label className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">Level {level}</label>
+                      <div className="relative">
+                        <Input
+                          type="number"
+                          value={commissionConfig[plan]?.[`level_${level}`] || 0}
+                          onChange={(e) =>
+                            setCommissionConfig({
+                              ...commissionConfig,
+                              [plan]: {
+                                ...(commissionConfig[plan] || {}),
+                                [`level_${level}`]: Number(e.target.value),
+                              }
+                            })
+                          }
+                          className="pr-6 rounded-lg bg-white border-slate-200 text-sm font-bold h-9"
+                        />
+                        <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-xs">
+                          %
+                        </span>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
             ))}

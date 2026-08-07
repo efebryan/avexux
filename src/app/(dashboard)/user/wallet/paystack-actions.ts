@@ -70,28 +70,7 @@ export async function verifyDepositAction(
       .single();
 
     if (referral) {
-      // Calculate user's new total deposit to determine their plan
-      const { data: txData } = await supabase
-        .from("transactions")
-        .select("amount")
-        .eq("user_id", user.id)
-        .eq("type", "DEPOSIT")
-        .eq("status", "Completed");
 
-      let highestDep = 0;
-      if (txData) {
-        highestDep = txData.reduce(
-          (max: number, tx: any) => Math.max(max, Number(tx.amount)),
-          0,
-        );
-      }
-
-      // Determine rank
-      const rankIndex = Math.max(
-        0,
-        ranksConfig.findLastIndex((r) => highestDep >= r.threshold),
-      );
-      const userPlanId = ranksConfig[rankIndex].id;
 
       // Fetch commission config
       const { data: configData } = await supabase
@@ -100,19 +79,12 @@ export async function verifyDepositAction(
         .eq("key", "referral_commission_config")
         .single();
 
-      let commissionAmount = 0;
-      if (
-        configData?.value &&
-        typeof configData.value[userPlanId] === "number"
-      ) {
-        commissionAmount = configData.value[userPlanId];
-      }
-
-      // Process commission via RPC securely
-      await supabase.rpc("process_referral_commission", {
+      // Pass the entire config object and deposit amount to the RPC
+      // The RPC will calculate the 3 levels and process the commission atomically
+      await supabase.rpc("process_multi_level_referral_commission", {
         p_referral_id: referral.id,
-        p_referrer_id: referral.referrer_id,
-        p_commission_amount: commissionAmount,
+        p_deposit_amount: expectedAmount,
+        p_config: configData?.value || {}
       });
     }
 
