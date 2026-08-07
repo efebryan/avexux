@@ -32,7 +32,8 @@ export function DashboardStats() {
         const { count } = await supabase
           .from("referrals")
           .select("*", { count: "exact", head: true })
-          .eq("referrer_id", user.id);
+          .eq("referrer_id", user.id)
+          .eq("status", "Active");
         
         if (count !== null) {
           setActiveReferrals(count);

@@ -48,31 +48,34 @@ export default function ReferralsPage() {
         setUserReferralCode(profile.referral_code);
       }
 
-      // 2. Fetch users who were referred by this user
-      // Assuming 'profiles' table has a 'referred_by_code' column
-      if (profile?.referral_code) {
-        const { data: referralsData } = await supabase
-          .from("profiles")
-          .select("id, full_name, created_at, status")
-          .eq("referred_by_code", profile.referral_code);
+      // 2. Fetch users who were referred by this user using the referrals table
+      const { data: referralsData } = await supabase
+        .from("referrals")
+        .select(`
+          id,
+          status,
+          commission_earned,
+          created_at,
+          referred:profiles!referred_id(full_name)
+        `)
+        .eq("referrer_id", user.id);
 
-        if (referralsData) {
-          const formattedReferrals = referralsData.map((ref: any) => ({
-            id: ref.id,
-            username: ref.full_name || "Unknown User",
-            dateJoined: new Date(ref.created_at).toLocaleDateString(),
-            status: ref.status === "ACTIVE" ? "Active" : "Inactive",
-            earned: 0, // Placeholder until commission logic is fully built out
-          }));
+      if (referralsData) {
+        const formattedReferrals = referralsData.map((ref: any) => ({
+          id: ref.id,
+          username: ref.referred?.full_name || "Unknown User",
+          dateJoined: new Date(ref.created_at).toLocaleDateString(),
+          status: ref.status === "Active" ? "Active" : "Inactive",
+          earned: Number(ref.commission_earned || 0),
+        }));
 
-          setMyReferrals(formattedReferrals);
+        setMyReferrals(formattedReferrals);
 
-          setStats({
-            totalReferrals: formattedReferrals.length,
-            activeReferrals: formattedReferrals.filter(r => r.status === "Active").length,
-            referralEarnings: 0, // Placeholder
-          });
-        }
+        setStats({
+          totalReferrals: formattedReferrals.length,
+          activeReferrals: formattedReferrals.filter(r => r.status === "Active").length,
+          referralEarnings: formattedReferrals.reduce((sum, r) => sum + r.earned, 0),
+        });
       }
 
       setIsLoading(false);
