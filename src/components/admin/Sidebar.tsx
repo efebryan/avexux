@@ -45,14 +45,16 @@ export function Sidebar({ settings }: { settings?: SiteSettings }) {
         {settings?.logo_url ? (
           <img src={settings.logo_url} alt={siteTitle} className="h-8 w-auto object-contain flex-shrink-0" />
         ) : (
-          <div className="bg-primary p-2 rounded-xl flex-shrink-0">
-            <LayoutGrid className="w-5 h-5 text-white" strokeWidth={2.5} />
-          </div>
+          <>
+            <div className="bg-primary p-2 rounded-xl flex-shrink-0">
+              <LayoutGrid className="w-5 h-5 text-white" strokeWidth={2.5} />
+            </div>
+            <div className="flex flex-col">
+              <span className="font-heading font-bold text-xl leading-none text-white tracking-tight">{siteTitle}</span>
+              <span className="font-heading text-[10px] font-bold text-primary uppercase tracking-widest mt-1">SUPER ADMIN</span>
+            </div>
+          </>
         )}
-        <div className="flex flex-col">
-          <span className="font-heading font-bold text-xl leading-none text-white tracking-tight">{siteTitle}</span>
-          <span className="font-heading text-[10px] font-bold text-primary uppercase tracking-widest mt-1">SUPER ADMIN</span>
-        </div>
       </div>
 
       {/* Main Navigation */}

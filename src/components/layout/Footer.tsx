@@ -24,13 +24,15 @@ export function Footer({ settings }: { settings?: SiteSettings }) {
               {settings?.logo_url ? (
                 <img src={settings.logo_url} alt={siteTitle} className="h-8 w-auto object-contain" />
               ) : (
-                <div className="w-8 h-8 rounded-lg bg-[#2faf2f] flex items-center justify-center text-white font-extrabold text-lg shadow-sm">
-                  {siteTitle.charAt(0)}
-                </div>
+                <>
+                  <div className="w-8 h-8 rounded-lg bg-[#2faf2f] flex items-center justify-center text-white font-extrabold text-lg shadow-sm">
+                    {siteTitle.charAt(0)}
+                  </div>
+                  <span className="font-heading font-bold text-2xl tracking-tight text-white">
+                    {siteTitle}<span className="text-[#2faf2f]">.</span>
+                  </span>
+                </>
               )}
-              <span className="font-heading font-bold text-2xl tracking-tight text-white">
-                {siteTitle}<span className="text-[#2faf2f]">.</span>
-              </span>
             </Link>
             <p className="text-muted/80 text-sm leading-relaxed max-w-sm">
               The modern digital opportunities platform. Complete tasks, earn verified rewards, and grow your brand with us.

@@ -41,14 +41,16 @@ export function Sidebar({ settings }: { settings?: SiteSettings }) {
         {settings?.logo_url ? (
           <img src={settings.logo_url} alt={siteTitle} className="h-8 w-auto object-contain flex-shrink-0" />
         ) : (
-          <div className="bg-[#0f8538] p-2 rounded-xl">
-            <Leaf className="w-5 h-5 text-white" />
-          </div>
+          <>
+            <div className="bg-[#0f8538] p-2 rounded-xl">
+              <Leaf className="w-5 h-5 text-white" />
+            </div>
+            <div className="flex flex-col">
+              <span className="font-bold text-lg leading-tight tracking-tight text-gray-900">{siteTitle}</span>
+              <span className="text-[10px] uppercase tracking-widest text-gray-500 font-semibold">Digital Growth</span>
+            </div>
+          </>
         )}
-        <div className="flex flex-col">
-          <span className="font-bold text-lg leading-tight tracking-tight text-gray-900">{siteTitle}</span>
-          <span className="text-[10px] uppercase tracking-widest text-gray-500 font-semibold">Digital Growth</span>
-        </div>
       </div>
 
       {/* Main Navigation */}
