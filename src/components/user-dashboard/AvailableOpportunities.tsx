@@ -131,7 +131,7 @@ export function AvailableOpportunities() {
                   </div>
                   <Button 
                     variant="outline" 
-                    onClick={() => hasDeposited ? router.push(`/user/tasks/${task.id}`) : router.push('/user/deposit')}
+                    onClick={() => hasDeposited ? router.push(`/user/tasks/${task.id}`) : router.push('/user/wallet')}
                     className={`rounded-lg transition-colors font-bold px-3.5 h-8 text-xs ${
                       hasDeposited 
                         ? "border-[#0f8538] text-[#0f8538] hover:bg-[#0f8538] hover:text-white" 

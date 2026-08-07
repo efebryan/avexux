@@ -189,10 +189,10 @@ export default function TaskCenterPage() {
             You need to deposit and join a plan to access the task center and start earning rewards.
           </p>
           <button 
-            onClick={() => router.push("/user/deposit")} 
+            onClick={() => router.push("/user/wallet")} 
             className="bg-[#0f8538] hover:bg-[#0f8538]/90 text-white font-semibold py-2.5 px-8 rounded-lg shadow-md transition-all"
           >
-            Deposit & Join a Plan
+            Go to Wallet & Join a Plan
           </button>
         </div>
       ) : (
