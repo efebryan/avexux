@@ -1,21 +1,74 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { CheckCircle2, AlertCircle, Info, Check } from "lucide-react";
-import { mockNotifications, NotificationItem } from "@/components/user-dashboard/NotificationDropdown";
+import { NotificationItem } from "@/components/user-dashboard/NotificationDropdown";
+import { createClient } from "@/utils/supabase/client";
+
+function timeAgo(dateString: string) {
+  const date = new Date(dateString);
+  const seconds = Math.floor((new Date().getTime() - date.getTime()) / 1000);
+  
+  let interval = seconds / 31536000;
+  if (interval > 1) return Math.floor(interval) + " years ago";
+  interval = seconds / 2592000;
+  if (interval > 1) return Math.floor(interval) + " months ago";
+  interval = seconds / 86400;
+  if (interval > 1) return Math.floor(interval) + " days ago";
+  interval = seconds / 3600;
+  if (interval > 1) return Math.floor(interval) + " hours ago";
+  interval = seconds / 60;
+  if (interval > 1) return Math.floor(interval) + " minutes ago";
+  
+  return Math.floor(seconds) + " seconds ago";
+}
 
 export default function NotificationsPage() {
-  const [notifications, setNotifications] = useState<NotificationItem[]>(mockNotifications);
+  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [activeTab, setActiveTab] = useState<"all" | "unread" | "Task" | "Account" | "System">("all");
+  const supabase = createClient();
+
+  useEffect(() => {
+    async function fetchNotifications() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data } = await supabase
+        .from("notifications")
+        .select("*")
+        .or(`user_id.eq.${user.id},user_id.is.null`)
+        .order("created_at", { ascending: false });
+
+      if (data) {
+        const formatted = data.map((n: any) => ({
+          id: n.id,
+          title: n.title,
+          message: n.message,
+          time: timeAgo(n.created_at),
+          type: n.type,
+          isRead: n.is_read,
+          category: n.category || "System"
+        }));
+        setNotifications(formatted);
+      }
+    }
+    
+    fetchNotifications();
+  }, []);
 
   const unreadCount = notifications.filter(n => !n.isRead).length;
 
-  const markAllAsRead = () => {
+  const markAllAsRead = async () => {
+    const unreadIds = notifications.filter(n => !n.isRead).map(n => n.id);
+    if (unreadIds.length === 0) return;
+
     setNotifications(notifications.map(n => ({ ...n, isRead: true })));
+    await supabase.from("notifications").update({ is_read: true }).in("id", unreadIds);
   };
 
-  const markAsRead = (id: string) => {
+  const markAsRead = async (id: string) => {
     setNotifications(notifications.map(n => n.id === id ? { ...n, isRead: true } : n));
+    await supabase.from("notifications").update({ is_read: true }).eq("id", id);
   };
 
   const getIcon = (type: string) => {

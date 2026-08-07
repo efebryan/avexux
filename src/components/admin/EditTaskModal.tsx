@@ -19,6 +19,7 @@ export function EditTaskModal({ isOpen, onClose, task, onTaskUpdate }: EditTaskM
   const [timerSeconds, setTimerSeconds] = useState("30");
   const [taskLink, setTaskLink] = useState("");
   const [description, setDescription] = useState("");
+  const [targetPlan, setTargetPlan] = useState("All");
   const [images, setImages] = useState<string[]>([]);
   const [isPending, startTransition] = useTransition();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -29,8 +30,9 @@ export function EditTaskModal({ isOpen, onClose, task, onTaskUpdate }: EditTaskM
       setCategory(task.category || "Rate Hotels");
       setReward(task.reward_amount ? task.reward_amount.toString() : task.reward ? task.reward.toString() : "");
       setTimerSeconds(task.timer_seconds ? task.timer_seconds.toString() : "30");
-      setTaskLink(task.task_link || "");
+      setTaskLink(task.task_link || task.taskLink || "");
       setDescription(task.description || "");
+      setTargetPlan(task.target_plan || "All");
       setImages(task.images || []);
     }
   }, [task]);
@@ -85,6 +87,7 @@ export function EditTaskModal({ isOpen, onClose, task, onTaskUpdate }: EditTaskM
         timerSeconds: Number(timerSeconds),
         taskLink,
         images,
+        targetPlan,
       });
 
       if (res.success && res.task) {
@@ -147,6 +150,23 @@ export function EditTaskModal({ isOpen, onClose, task, onTaskUpdate }: EditTaskM
               </select>
             </div>
             
+            <div>
+              <label className="block text-sm font-bold text-gray-700 mb-1">Target Plan *</label>
+              <select 
+                value={targetPlan}
+                onChange={(e) => setTargetPlan(e.target.value)}
+                className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-gray-50/50 appearance-none"
+              >
+                <option value="All">All Plans</option>
+                <option value="bronze">Bronze Starter</option>
+                <option value="silver">Silver Earner</option>
+                <option value="gold">Gold Master</option>
+                <option value="Premium">Premium (Platinum, Diamond, Apex)</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-1">Timer (Seconds) *</label>
               <div className="relative">

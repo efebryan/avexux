@@ -6,6 +6,14 @@ import { Button } from "@/components/ui/button";
 import dynamic from "next/dynamic";
 import { createClient } from "@/utils/supabase/client";
 import { toast } from "sonner";
+import { Trophy } from "lucide-react";
+
+const ranksConfig = [
+  { id: "bronze", threshold: 0 },
+  { id: "silver", threshold: 18000 },
+  { id: "gold", threshold: 42000 },
+  { id: "Premium", threshold: 88000 }, // Matches platinum/diamond/apex
+];
 
 const DepositModal = dynamic(() => import("@/components/user-dashboard/wallet/DepositModal").then(mod => mod.DepositModal), {
   ssr: false,
@@ -27,18 +35,23 @@ export function WeeklyGoal() {
           .select("*")
           .eq("user_id", user.id);
         
+        let maxDeposit = 0;
         if (txData) {
-          const maxDeposit = txData
+          maxDeposit = txData
             .filter((tx: any) => tx.type?.toLowerCase() === 'deposit' || (tx.metadata?.description || "").toLowerCase().includes('deposit') || (tx.description || "").toLowerCase().includes('deposit'))
             .reduce((max: number, tx: any) => Math.max(max, Number(tx.amount)), 0);
           setHighestDeposit(maxDeposit);
         }
 
-        // Fetch ALL Active tasks
+        const currentRankIndex = Math.max(0, ranksConfig.findLastIndex(r => maxDeposit >= r.threshold));
+        const userRank = ranksConfig[currentRankIndex].id;
+
+        // Fetch ALL Active tasks for this user's plan
         const { data: activeTasks } = await supabase
           .from("tasks")
           .select("id, reward_amount")
-          .eq("status", "Active");
+          .eq("status", "Active")
+          .in("target_plan", ["All", userRank, "all"]);
         
         // Fetch ALL user submissions
         const { data: allSubmissions } = await supabase

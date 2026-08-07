@@ -173,6 +173,7 @@ export default function AdminTasksPage() {
                 <tr>
                   <th className="px-6 py-4 font-bold tracking-wider">Task Details</th>
                   <th className="px-6 py-4 font-bold tracking-wider">Category</th>
+                  <th className="px-6 py-4 font-bold tracking-wider">Target Plan</th>
                   <th className="px-6 py-4 font-bold tracking-wider">Reward</th>
                   <th className="px-6 py-4 font-bold tracking-wider">Submissions</th>
                   <th className="px-6 py-4 font-bold tracking-wider">Status</th>
@@ -189,6 +190,11 @@ export default function AdminTasksPage() {
                     <td className="px-6 py-4">
                       <span className="text-[10px] font-bold uppercase tracking-wider text-slate-600 bg-slate-100/80 px-2.5 py-1 rounded-md border border-slate-200/50">
                         {task.category}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="text-[11px] font-bold text-slate-700 bg-slate-100 px-2 py-1 rounded-md">
+                        {task.target_plan === "Premium" ? "Premium" : task.target_plan === "All" ? "All Plans" : task.target_plan?.charAt(0).toUpperCase() + task.target_plan?.slice(1)}
                       </span>
                     </td>
                     <td className="px-6 py-4 font-extrabold text-emerald-600">

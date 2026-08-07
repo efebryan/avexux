@@ -8,6 +8,13 @@ import { toast } from "sonner";
 import { createClient } from "@/utils/supabase/client";
 import { Loader2 } from "lucide-react";
 
+const ranksConfig = [
+  { id: "bronze", threshold: 0 },
+  { id: "silver", threshold: 18000 },
+  { id: "gold", threshold: 42000 },
+  { id: "Premium", threshold: 88000 }, // Matches platinum/diamond/apex
+];
+
 export default function TaskCenterPage() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -24,11 +31,28 @@ export default function TaskCenterPage() {
         return;
       }
 
-      // 1. Fetch all active tasks
+      // 1. Determine user rank
+      const { data: txData } = await supabase
+        .from("transactions")
+        .select("*")
+        .eq("user_id", user.id);
+        
+      let highestDeposit = 0;
+      if (txData) {
+        highestDeposit = txData
+          .filter((tx: any) => tx.type?.toLowerCase() === 'deposit' || (tx.metadata?.description || "").toLowerCase().includes('deposit'))
+          .reduce((max: number, tx: any) => Math.max(max, Number(tx.amount)), 0);
+      }
+      
+      const currentRankIndex = Math.max(0, ranksConfig.findLastIndex(r => highestDeposit >= r.threshold));
+      const userRank = ranksConfig[currentRankIndex].id;
+
+      // 2. Fetch all active tasks matching their plan
       const { data: allTasks, error: tasksError } = await supabase
         .from("tasks")
         .select("*")
-        .eq("status", "Active");
+        .eq("status", "Active")
+        .in("target_plan", ["All", userRank, "all"]); // 'all' lowercase fallback
 
       if (tasksError) {
         toast.error("Failed to load tasks");

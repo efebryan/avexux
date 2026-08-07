@@ -75,6 +75,7 @@ export async function adminCreateTaskAction(data: {
   timerSeconds: number;
   taskLink?: string;
   images: string[];
+  targetPlan: string;
 }) {
   const supabase = createSupabaseClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -101,6 +102,7 @@ export async function adminCreateTaskAction(data: {
       timer_seconds: data.timerSeconds,
       task_link: data.taskLink || null,
       images: data.images,
+      target_plan: data.targetPlan,
       status: 'Active',
       submissions_count: 0
     }])
@@ -125,6 +127,7 @@ export async function adminEditTaskAction(
     timerSeconds: number;
     taskLink?: string;
     images: string[];
+    targetPlan: string;
   }
 ) {
   const supabase = createSupabaseClient(
@@ -148,6 +151,7 @@ export async function adminEditTaskAction(
       timer_seconds: data.timerSeconds,
       task_link: data.taskLink || null,
       images: data.images,
+      target_plan: data.targetPlan,
       status: 'Active',
       updated_at: new Date().toISOString()
     })
