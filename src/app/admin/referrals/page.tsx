@@ -793,7 +793,7 @@ export default function ReferralsPage() {
           </DialogDescription>
 
           <div className="space-y-4 py-4">
-            {Object.keys(commissionConfig).map((plan) => (
+            {Object.keys(planLabels).map((plan) => (
               <div key={plan} className="flex flex-col gap-1.5">
                 <label className="text-sm font-bold text-gray-700">
                   {planLabels[plan] || plan}

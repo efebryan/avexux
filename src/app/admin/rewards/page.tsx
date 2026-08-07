@@ -625,7 +625,7 @@ export default function AdminRewardsPage() {
           </div>
 
           <div className="space-y-4 relative z-10">
-            {Object.keys(spinsPerPlanConfig).map((plan) => (
+            {Object.keys(planLabels).map((plan) => (
               <div
                 key={plan}
                 className="flex flex-col md:flex-row md:items-center justify-between p-4 border border-gray-100 rounded-xl bg-gray-50/50"
