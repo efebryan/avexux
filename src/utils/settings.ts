@@ -23,7 +23,7 @@ const defaultSettings: SiteSettings = {
 export async function getSiteSettings(): Promise<SiteSettings> {
   const supabase = await createClient();
   try {
-    const { data, error } = await supabase.from("app_settings").select("*").limit(1).single();
+    const { data, error } = await supabase.from("site_settings").select("*").limit(1).single();
     if (error || !data) {
       return defaultSettings;
     }

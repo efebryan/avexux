@@ -1,7 +1,7 @@
 -- Drop table if it exists with an old schema to ensure a clean slate
-DROP TABLE IF EXISTS app_settings CASCADE;
+DROP TABLE IF EXISTS site_settings CASCADE;
 
-CREATE TABLE app_settings (
+CREATE TABLE site_settings (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   logo_url text,
   favicon_url text,
@@ -15,22 +15,24 @@ CREATE TABLE app_settings (
 );
 
 -- Ensure there is only one settings row
-CREATE UNIQUE INDEX IF NOT EXISTS ensure_single_row ON app_settings ((true));
+CREATE UNIQUE INDEX IF NOT EXISTS ensure_single_row_site ON site_settings ((true));
 
 -- Insert default row if none exists
-INSERT INTO app_settings (id, site_title)
+INSERT INTO site_settings (id, site_title)
 SELECT gen_random_uuid(), 'Avexux'
-WHERE NOT EXISTS (SELECT 1 FROM app_settings);
+WHERE NOT EXISTS (SELECT 1 FROM site_settings);
 
 -- Policies
-ALTER TABLE app_settings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE site_settings ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Public can view settings"
-ON app_settings FOR SELECT
+DROP POLICY IF EXISTS "Public can view site settings" ON site_settings;
+CREATE POLICY "Public can view site settings"
+ON site_settings FOR SELECT
 TO public
 USING (true);
 
-CREATE POLICY "Admin can update settings"
-ON app_settings FOR UPDATE
+DROP POLICY IF EXISTS "Admins can update site settings" ON site_settings;
+CREATE POLICY "Admins can update site settings"
+ON site_settings FOR ALL
 TO authenticated
 USING (true);

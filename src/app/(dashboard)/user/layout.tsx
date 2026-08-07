@@ -20,7 +20,7 @@ export default function UserDashboardLayout({
   useEffect(() => {
     async function loadSettings() {
       const supabase = createClient();
-      const { data } = await supabase.from("app_settings").select("*").limit(1).single();
+      const { data } = await supabase.from("site_settings").select("*").limit(1).single();
       if (data) setSettings(data);
     }
     loadSettings();

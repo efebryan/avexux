@@ -41,7 +41,7 @@ export default function AdminSettingsPage() {
 
   useEffect(() => {
     async function loadSettings() {
-      const { data } = await supabase.from("app_settings").select("*").limit(1).single();
+      const { data } = await supabase.from("site_settings").select("*").limit(1).single();
       if (data) {
         setSettings({
           logo_url: data.logo_url || "",
@@ -96,14 +96,14 @@ export default function AdminSettingsPage() {
     const toastId = toast.loading("Saving settings...");
     
     // Upsert logic (always updating the single row or inserting if missing)
-    const { data: existingData } = await supabase.from("app_settings").select("id").limit(1).single();
+    const { data: existingData } = await supabase.from("site_settings").select("id").limit(1).single();
     
     let error;
     if (existingData) {
-      const res = await supabase.from("app_settings").update(settings).eq("id", existingData.id);
+      const res = await supabase.from("site_settings").update(settings).eq("id", existingData.id);
       error = res.error;
     } else {
-      const res = await supabase.from("app_settings").insert([settings]);
+      const res = await supabase.from("site_settings").insert([settings]);
       error = res.error;
     }
 
