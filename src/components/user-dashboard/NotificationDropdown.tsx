@@ -5,6 +5,15 @@ import { Bell, CheckCircle2, AlertCircle, Info, Check } from "lucide-react";
 import Link from "next/link";
 import { createClient } from "@/utils/supabase/client";
 
+const ranksConfig = [
+  { id: "bronze", threshold: 0 },
+  { id: "silver", threshold: 18000 },
+  { id: "gold", threshold: 42000 },
+  { id: "platinum", threshold: 88000 },
+  { id: "diamond", threshold: 124000 },
+  { id: "apex", threshold: 200000 },
+];
+
 export interface NotificationItem {
   id: string;
   title: string;
@@ -48,14 +57,16 @@ export function NotificationDropdown() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
+      // 1. Fetch DB notifications
       const { data } = await supabase
         .from("notifications")
         .select("*")
         .or(`user_id.eq.${user.id},user_id.is.null`)
         .order("created_at", { ascending: false });
 
+      let formatted: NotificationItem[] = [];
       if (data) {
-        const formatted = data.map((n: any) => ({
+        formatted = data.map((n: any) => ({
           id: n.id,
           title: n.title,
           message: n.message,
@@ -63,8 +74,63 @@ export function NotificationDropdown() {
           type: n.type,
           isRead: n.is_read
         }));
-        setNotifications(formatted);
       }
+
+      // 2. Check Spin Eligibility
+      const { data: txData } = await supabase
+        .from("transactions")
+        .select("amount")
+        .eq("user_id", user.id)
+        .eq("type", "DEPOSIT")
+        .eq("status", "Completed");
+
+      let maxDeposit = 0;
+      if (txData) {
+        maxDeposit = txData.reduce((max: number, tx: any) => Math.max(max, Number(tx.amount)), 0);
+      }
+      const rankIndex = Math.max(0, ranksConfig.findLastIndex(r => maxDeposit >= r.threshold));
+      const userPlan = ranksConfig[rankIndex].id;
+
+      const { data: settingsData } = await supabase
+        .from("app_settings")
+        .select("value")
+        .eq("key", "wheel_config")
+        .single();
+
+      let spinDays = [5];
+      if (settingsData?.value?.planDays && settingsData.value.planDays[userPlan]) {
+        spinDays = settingsData.value.planDays[userPlan];
+      } else {
+        if (["platinum", "diamond", "apex"].includes(userPlan)) spinDays = [1, 2, 3, 4, 5];
+        else if (userPlan === "gold") spinDays = [1, 3, 5];
+        else if (userPlan === "silver") spinDays = [1, 5];
+      }
+
+      const today = new Date().getDay();
+      if (spinDays.includes(today)) {
+        const startOfDay = new Date();
+        startOfDay.setHours(0, 0, 0, 0);
+        const { count: freeSpinsUsed } = await supabase
+          .from("rewards_spins")
+          .select("*", { count: "exact", head: true })
+          .eq("user_id", user.id)
+          .eq("cost_paid", 0)
+          .gte("created_at", startOfDay.toISOString());
+
+        if (freeSpinsUsed === 0) {
+          formatted.unshift({
+            id: "virtual_spin",
+            title: "Free Spin Available!",
+            message: "You have a free lucky spin available today. Try your luck!",
+            time: "Just now",
+            type: "success",
+            category: "System",
+            isRead: false
+          });
+        }
+      }
+
+      setNotifications(formatted);
     }
     
     fetchNotifications();
@@ -98,17 +164,17 @@ export function NotificationDropdown() {
   };
 
   const markAllAsRead = async () => {
-    const unreadIds = notifications.filter(n => !n.isRead).map(n => n.id);
-    if (unreadIds.length === 0) return;
-
+    const unreadIds = notifications.filter(n => !n.isRead && n.id !== "virtual_spin").map(n => n.id);
+    
     // Optimistic update
     setNotifications(notifications.map(n => ({ ...n, isRead: true })));
 
-    // Update DB
-    await supabase
-      .from("notifications")
-      .update({ is_read: true })
-      .in('id', unreadIds);
+    if (unreadIds.length > 0) {
+      await supabase
+        .from("notifications")
+        .update({ is_read: true })
+        .in('id', unreadIds);
+    }
   };
 
   // Close dropdown when clicking outside

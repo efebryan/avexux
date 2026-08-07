@@ -114,6 +114,17 @@ export async function adminCreateTaskAction(data: {
     return { success: false, error: error.message };
   }
 
+  // Insert global notification for the new task
+  const targetLabel = data.targetPlan === "All" ? "all users" : `${data.targetPlan} users`;
+  await supabase.from("notifications").insert([{
+    user_id: null, // null means it's for everyone (or filtered later)
+    title: "New Task Available!",
+    message: `A new task "${data.title}" is available for ${targetLabel}. Earn ₦${data.rewardAmount}!`,
+    type: "info",
+    category: "Task",
+    is_read: false
+  }]);
+
   return { success: true, task };
 }
 
@@ -165,4 +176,33 @@ export async function adminEditTaskAction(
   }
 
   return { success: true, task };
+}
+
+export async function adminNotifyUserAction(userId: string, title: string, message: string, type: string = "info", category: string = "System") {
+  const supabase = createSupabaseClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      auth: {
+        persistSession: false,
+        autoRefreshToken: false,
+      }
+    }
+  );
+
+  const { error } = await supabase.from("notifications").insert([{
+    user_id: userId,
+    title,
+    message,
+    type,
+    category,
+    is_read: false
+  }]);
+
+  if (error) {
+    console.error("Error creating notification:", error);
+    return { success: false, error: error.message };
+  }
+
+  return { success: true };
 }

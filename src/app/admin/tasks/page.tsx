@@ -9,6 +9,7 @@ import { EditTaskModal } from "@/components/admin/EditTaskModal";
 import { TaskPreviewModal } from "@/components/admin/TaskPreviewModal";
 import { createClient } from "@/utils/supabase/client";
 import { DeleteModal } from "@/components/ui/delete-modal";
+import { adminNotifyUserAction } from "../actions";
 
 export default function AdminTasksPage() {
   const [activeTab, setActiveTab] = useState<"manage" | "review">("manage");
@@ -52,14 +53,19 @@ export default function AdminTasksPage() {
       }
 
       if (allSubmissions) {
-        setSubmissions(allSubmissions.map(s => ({
-          id: s.id,
-          taskId: s.task_id,
-          taskTitle: allTasks?.find(t => t.id === s.task_id)?.title || "Unknown Task",
-          user: s.profiles?.full_name || "Unknown User",
-          date: new Date(s.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-          status: s.status,
-        })));
+        setSubmissions(allSubmissions.map(s => {
+          const t = allTasks?.find(task => task.id === s.task_id);
+          return {
+            id: s.id,
+            taskId: s.task_id,
+            userId: s.user_id,
+            taskTitle: t?.title || "Unknown Task",
+            taskReward: t?.reward_amount || 0,
+            user: s.profiles?.full_name || "Unknown User",
+            date: new Date(s.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+            status: s.status,
+          };
+        }));
       }
 
       setIsLoading(false);
@@ -92,6 +98,28 @@ export default function AdminTasksPage() {
     if (!error) {
       setSubmissions(submissions.map(s => (s.id === id ? { ...s, status: action } : s)));
       toast.success(`Submission ${action.toLowerCase()}`);
+      
+      // Notify the user
+      const sub = submissions.find(s => s.id === id);
+      if (sub && sub.userId) {
+        if (action === "Approved") {
+          await adminNotifyUserAction(
+            sub.userId,
+            "Task Approved",
+            `Your submission for "${sub.taskTitle}" was approved! You earned ₦${sub.taskReward.toLocaleString()}.`,
+            "success",
+            "Task"
+          );
+        } else if (action === "Rejected") {
+          await adminNotifyUserAction(
+            sub.userId,
+            "Task Rejected",
+            `Your submission for "${sub.taskTitle}" was rejected by the admin.`,
+            "warning",
+            "Task"
+          );
+        }
+      }
     } else {
       console.error("Submission Error:", error);
       toast.error(`Error: ${error.message || "Failed to update submission"}`);

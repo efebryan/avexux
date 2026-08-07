@@ -5,6 +5,15 @@ import { CheckCircle2, AlertCircle, Info, Check } from "lucide-react";
 import { NotificationItem } from "@/components/user-dashboard/NotificationDropdown";
 import { createClient } from "@/utils/supabase/client";
 
+const ranksConfig = [
+  { id: "bronze", threshold: 0 },
+  { id: "silver", threshold: 18000 },
+  { id: "gold", threshold: 42000 },
+  { id: "platinum", threshold: 88000 },
+  { id: "diamond", threshold: 124000 },
+  { id: "apex", threshold: 200000 },
+];
+
 function timeAgo(dateString: string) {
   const date = new Date(dateString);
   const seconds = Math.floor((new Date().getTime() - date.getTime()) / 1000);
@@ -39,8 +48,9 @@ export default function NotificationsPage() {
         .or(`user_id.eq.${user.id},user_id.is.null`)
         .order("created_at", { ascending: false });
 
+      let formatted: NotificationItem[] = [];
       if (data) {
-        const formatted = data.map((n: any) => ({
+        formatted = data.map((n: any) => ({
           id: n.id,
           title: n.title,
           message: n.message,
@@ -49,8 +59,63 @@ export default function NotificationsPage() {
           isRead: n.is_read,
           category: n.category || "System"
         }));
-        setNotifications(formatted);
       }
+
+      // Check Spin Eligibility
+      const { data: txData } = await supabase
+        .from("transactions")
+        .select("amount")
+        .eq("user_id", user.id)
+        .eq("type", "DEPOSIT")
+        .eq("status", "Completed");
+
+      let maxDeposit = 0;
+      if (txData) {
+        maxDeposit = txData.reduce((max: number, tx: any) => Math.max(max, Number(tx.amount)), 0);
+      }
+      const rankIndex = Math.max(0, ranksConfig.findLastIndex(r => maxDeposit >= r.threshold));
+      const userPlan = ranksConfig[rankIndex].id;
+
+      const { data: settingsData } = await supabase
+        .from("app_settings")
+        .select("value")
+        .eq("key", "wheel_config")
+        .single();
+
+      let spinDays = [5];
+      if (settingsData?.value?.planDays && settingsData.value.planDays[userPlan]) {
+        spinDays = settingsData.value.planDays[userPlan];
+      } else {
+        if (["platinum", "diamond", "apex"].includes(userPlan)) spinDays = [1, 2, 3, 4, 5];
+        else if (userPlan === "gold") spinDays = [1, 3, 5];
+        else if (userPlan === "silver") spinDays = [1, 5];
+      }
+
+      const today = new Date().getDay();
+      if (spinDays.includes(today)) {
+        const startOfDay = new Date();
+        startOfDay.setHours(0, 0, 0, 0);
+        const { count: freeSpinsUsed } = await supabase
+          .from("rewards_spins")
+          .select("*", { count: "exact", head: true })
+          .eq("user_id", user.id)
+          .eq("cost_paid", 0)
+          .gte("created_at", startOfDay.toISOString());
+
+        if (freeSpinsUsed === 0) {
+          formatted.unshift({
+            id: "virtual_spin",
+            title: "Free Spin Available!",
+            message: "You have a free lucky spin available today. Try your luck!",
+            time: "Just now",
+            type: "success",
+            category: "System",
+            isRead: false
+          });
+        }
+      }
+
+      setNotifications(formatted);
     }
     
     fetchNotifications();
@@ -59,14 +124,21 @@ export default function NotificationsPage() {
   const unreadCount = notifications.filter(n => !n.isRead).length;
 
   const markAllAsRead = async () => {
-    const unreadIds = notifications.filter(n => !n.isRead).map(n => n.id);
-    if (unreadIds.length === 0) return;
+    const unreadIds = notifications.filter(n => !n.isRead && n.id !== "virtual_spin").map(n => n.id);
+    if (unreadIds.length === 0) {
+      setNotifications(notifications.map(n => ({ ...n, isRead: true })));
+      return;
+    }
 
     setNotifications(notifications.map(n => ({ ...n, isRead: true })));
     await supabase.from("notifications").update({ is_read: true }).in("id", unreadIds);
   };
 
   const markAsRead = async (id: string) => {
+    if (id === "virtual_spin") {
+      setNotifications(notifications.map(n => n.id === id ? { ...n, isRead: true } : n));
+      return;
+    }
     setNotifications(notifications.map(n => n.id === id ? { ...n, isRead: true } : n));
     await supabase.from("notifications").update({ is_read: true }).eq("id", id);
   };

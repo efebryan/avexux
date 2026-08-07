@@ -100,6 +100,16 @@ export async function verifyDepositAction(reference: string, expectedAmount: num
       });
     }
 
+    // Insert deposit notification
+    await supabase.from("notifications").insert([{
+      user_id: user.id,
+      title: "Deposit Successful",
+      message: `Your deposit of ₦${expectedAmount.toLocaleString()} has been successfully added to your wallet.`,
+      type: "success",
+      category: "Account",
+      is_read: false
+    }]);
+
     // Refresh wallet page data
     revalidatePath('/user/wallet', 'page');
     
