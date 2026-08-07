@@ -33,7 +33,7 @@ export function WithdrawalModal({ isOpen, onClose, availableBalance, bankDetails
         <div className="bg-[#f8fafc] p-4 border-b border-gray-100">
           <DialogTitle className="text-lg font-bold text-gray-900">Withdraw Funds</DialogTitle>
           <DialogDescription className="text-xs text-gray-500 mt-0.5">
-            Available Balance: <span className="font-bold text-[#0f8538]">₦{availableBalance.toLocaleString()}</span>
+            Withdrawable Earnings: <span className="font-bold text-[#0f8538]">₦{availableBalance.toLocaleString()}</span>
           </DialogDescription>
         </div>
 

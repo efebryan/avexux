@@ -1,12 +1,13 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Wallet, Clock, Gift, Users, ArrowRight } from "lucide-react";
+import { Wallet, Clock, Gift, Users, ArrowRight, Landmark } from "lucide-react";
 
 interface BalanceCardsProps {
   availableBalance: number;
   pendingBalance: number;
-  bonusEarnings: number;
-  referralEarnings: number;
+  depositBalance: number;
+  earningsBalance: number;
+  withdrawableBalance: number;
   onWithdrawClick: () => void;
   onDepositClick: () => void;
 }
@@ -14,8 +15,9 @@ interface BalanceCardsProps {
 export function BalanceCards({
   availableBalance,
   pendingBalance,
-  bonusEarnings,
-  referralEarnings,
+  depositBalance,
+  earningsBalance,
+  withdrawableBalance,
   onWithdrawClick,
   onDepositClick
 }: BalanceCardsProps) {
@@ -29,9 +31,10 @@ export function BalanceCards({
         <div className="relative z-10">
           <div className="flex items-center gap-1.5 mb-1.5">
             <Wallet className="w-4 h-4 text-green-200" />
-            <h3 className="text-green-100 font-medium text-xs">Available Balance</h3>
+            <h3 className="text-green-100 font-medium text-xs">Total Balance</h3>
           </div>
-          <p className="text-xl font-bold mb-3">₦{availableBalance.toLocaleString()}</p>
+          <p className="text-xl font-bold mb-1">₦{availableBalance.toLocaleString()}</p>
+          <p className="text-[10px] text-green-200 mb-3 font-medium">Your overall wallet balance</p>
         </div>
         <div className="relative z-10 flex gap-2 w-full">
           <Button 
@@ -49,38 +52,39 @@ export function BalanceCards({
         </div>
       </Card>
 
+      {/* Deposit Balance */}
+      <Card className="p-3.5 rounded-xl border border-gray-100 shadow-sm hover:border-blue-200 transition-colors flex flex-col justify-center">
+        <div className="flex items-center gap-2 mb-2">
+          <div className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center">
+            <Landmark className="w-4 h-4 text-blue-600" />
+          </div>
+          <h3 className="text-gray-500 font-medium text-xs">Deposit Balance</h3>
+        </div>
+        <p className="text-lg font-bold text-gray-900">₦{depositBalance.toLocaleString()}</p>
+      </Card>
+
+      {/* Earnings Balance */}
+      <Card className="p-3.5 rounded-xl border border-gray-100 shadow-sm hover:border-purple-200 transition-colors flex flex-col justify-center">
+        <div className="flex items-center gap-2 mb-2">
+          <div className="w-8 h-8 rounded-full bg-purple-50 flex items-center justify-center">
+            <Gift className="w-4 h-4 text-purple-600" />
+          </div>
+          <h3 className="text-gray-500 font-medium text-xs">Earnings Balance</h3>
+        </div>
+        <p className="text-lg font-bold text-gray-900">₦{earningsBalance.toLocaleString()}</p>
+      </Card>
+
       {/* Pending Balance */}
       <Card className="p-3.5 rounded-xl border border-gray-100 shadow-sm hover:border-yellow-200 transition-colors flex flex-col justify-center">
         <div className="flex items-center gap-2 mb-2">
           <div className="w-8 h-8 rounded-full bg-yellow-50 flex items-center justify-center">
             <Clock className="w-4 h-4 text-yellow-600" />
           </div>
-          <h3 className="text-gray-500 font-medium text-xs">Pending Balance</h3>
+          <h3 className="text-gray-500 font-medium text-xs">Pending Withdrawals</h3>
         </div>
         <p className="text-lg font-bold text-gray-900">₦{pendingBalance.toLocaleString()}</p>
       </Card>
 
-      {/* Bonus Earnings */}
-      <Card className="p-3.5 rounded-xl border border-gray-100 shadow-sm hover:border-purple-200 transition-colors flex flex-col justify-center">
-        <div className="flex items-center gap-2 mb-2">
-          <div className="w-8 h-8 rounded-full bg-purple-50 flex items-center justify-center">
-            <Gift className="w-4 h-4 text-purple-600" />
-          </div>
-          <h3 className="text-gray-500 font-medium text-xs">Bonus Earnings</h3>
-        </div>
-        <p className="text-lg font-bold text-gray-900">₦{bonusEarnings.toLocaleString()}</p>
-      </Card>
-
-      {/* Referral Earnings */}
-      <Card className="p-3.5 rounded-xl border border-gray-100 shadow-sm hover:border-blue-200 transition-colors flex flex-col justify-center">
-        <div className="flex items-center gap-2 mb-2">
-          <div className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center">
-            <Users className="w-4 h-4 text-blue-600" />
-          </div>
-          <h3 className="text-gray-500 font-medium text-xs">Referral Earnings</h3>
-        </div>
-        <p className="text-lg font-bold text-gray-900">₦{referralEarnings.toLocaleString()}</p>
-      </Card>
     </div>
   );
 }

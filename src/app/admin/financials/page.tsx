@@ -15,7 +15,8 @@ import {
   ChevronDown,
   ChevronLeft,
   ChevronRight,
-  ArrowRight
+  ArrowRight,
+  Copy
 } from "lucide-react";
 import Link from "next/link";
 
@@ -108,7 +109,8 @@ export default function FinancialsPage() {
             method: "BANK TRANSFER",
             amount: `₦${Number(w.amount).toLocaleString()}`,
             bank: w.bank_name,
-            account: w.account_number
+            account: w.account_number,
+            accountName: w.account_name
           };
         }));
       }
@@ -184,6 +186,11 @@ export default function FinancialsPage() {
     } else {
       toast.error(res.error || "Failed to process request", { id: "process_withdrawal" });
     }
+  };
+
+  const handleCopy = (text: string, label: string) => {
+    navigator.clipboard.writeText(text);
+    toast.success(`${label} copied to clipboard!`, { id: "copy", duration: 2000 });
   };
 
   return (
@@ -460,14 +467,34 @@ export default function FinancialsPage() {
                         <p className="text-[9px] font-bold text-slate-400 mt-0.5 tracking-wider">{req.method}</p>
                       </div>
                     </div>
-                    <span className="font-bold text-sm text-rose-500">{req.amount}</span>
+                    <div className="flex items-center gap-1.5 group/amount cursor-pointer" onClick={() => handleCopy(req.amount, "Amount")}>
+                      <span className="font-bold text-sm text-rose-500">{req.amount}</span>
+                      <Copy className="w-3.5 h-3.5 text-slate-300 opacity-0 group-hover/amount:opacity-100 transition-opacity hover:text-rose-500" />
+                    </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-y-2 text-xs mb-4">
                     <span className="text-slate-400">Bank Name:</span>
-                    <span className="text-slate-900 font-medium text-right">{req.bank}</span>
+                    <div className="flex items-center justify-end gap-1.5 group/copy cursor-pointer" onClick={() => handleCopy(req.bank, "Bank Name")}>
+                      <span className="text-slate-900 font-medium text-right truncate">{req.bank}</span>
+                      <Copy className="w-3 h-3 text-slate-300 opacity-0 group-hover/copy:opacity-100 transition-opacity hover:text-primary shrink-0" />
+                    </div>
+                    
                     <span className="text-slate-400">Account No:</span>
-                    <span className="text-slate-900 font-medium text-right">{req.account}</span>
+                    <div className="flex items-center justify-end gap-1.5 group/copy cursor-pointer" onClick={() => handleCopy(req.account, "Account Number")}>
+                      <span className="text-slate-900 font-medium text-right font-mono">{req.account}</span>
+                      <Copy className="w-3 h-3 text-slate-300 opacity-0 group-hover/copy:opacity-100 transition-opacity hover:text-primary shrink-0" />
+                    </div>
+                    
+                    {req.accountName && (
+                      <>
+                        <span className="text-slate-400">Account Name:</span>
+                        <div className="flex items-center justify-end gap-1.5 group/copy cursor-pointer" onClick={() => handleCopy(req.accountName, "Account Name")}>
+                          <span className="text-slate-900 font-medium text-right truncate" title={req.accountName}>{req.accountName}</span>
+                          <Copy className="w-3 h-3 text-slate-300 opacity-0 group-hover/copy:opacity-100 transition-opacity hover:text-primary shrink-0" />
+                        </div>
+                      </>
+                    )}
                   </div>
 
                   <div className="grid grid-cols-2 gap-3">

@@ -7,7 +7,7 @@ import { createClient } from "@/utils/supabase/client";
 
 export function DashboardStats() {
   const [walletBalance, setWalletBalance] = useState(0);
-  const [taskEarnings, setTaskEarnings] = useState(0);
+  const [totalEarnings, setTotalEarnings] = useState(0);
   const [activeReferrals, setActiveReferrals] = useState(0);
   const [totalCompleted, setTotalCompleted] = useState(0);
   const [todayCompleted, setTodayCompleted] = useState(0);
@@ -20,24 +20,13 @@ export function DashboardStats() {
       if (user) {
         const { data: walletData } = await supabase
           .from("wallets")
-          .select("balance")
+          .select("balance, total_earned")
           .eq("user_id", user.id)
           .single();
         
         if (walletData) {
           setWalletBalance(walletData.balance);
-        }
-
-        const { data: taskRewards } = await supabase
-          .from("transactions")
-          .select("amount")
-          .eq("user_id", user.id)
-          .eq("type", "TASK_REWARD")
-          .eq("status", "Completed");
-
-        if (taskRewards) {
-          const totalTaskEarned = taskRewards.reduce((sum: number, tx: any) => sum + Number(tx.amount || 0), 0);
-          setTaskEarnings(totalTaskEarned);
+          setTotalEarnings(walletData.total_earned || 0);
         }
 
         const { count } = await supabase
@@ -111,8 +100,8 @@ export function DashboardStats() {
           </span>
         </div>
         <div>
-          <p className="text-gray-500 text-[11px] font-medium mb-0">Task Earnings</p>
-          <h3 className="text-lg font-bold text-gray-900 leading-tight">₦{taskEarnings.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</h3>
+          <p className="text-gray-500 text-[11px] font-medium mb-0">Total Earnings</p>
+          <h3 className="text-lg font-bold text-gray-900 leading-tight">₦{totalEarnings.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</h3>
           <p className="text-[10px] text-gray-400 mt-0.5">{totalCompleted} tasks completed</p>
         </div>
       </Card>

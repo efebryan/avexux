@@ -190,8 +190,9 @@ export default function WalletPage() {
       <BalanceCards 
         availableBalance={availableBalance}
         pendingBalance={pendingBalance}
-        bonusEarnings={bonusEarnings}
-        referralEarnings={referralEarnings}
+        depositBalance={Math.max(0, availableBalance - withdrawableBalance)}
+        earningsBalance={withdrawableBalance}
+        withdrawableBalance={withdrawableBalance}
         onWithdrawClick={() => setIsModalOpen(true)}
         onDepositClick={() => setIsDepositModalOpen(true)}
       />

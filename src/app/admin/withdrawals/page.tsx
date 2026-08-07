@@ -13,7 +13,8 @@ import {
   CheckCircle2,
   XCircle,
   Building2,
-  Hash
+  Hash,
+  Copy
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 
@@ -90,6 +91,11 @@ export default function AdminWithdrawalsPage() {
     } else {
       toast.error(res.error || "Failed to process request", { id: "process_withdrawal" });
     }
+  };
+
+  const handleCopy = (text: string, label: string) => {
+    navigator.clipboard.writeText(text);
+    toast.success(`${label} copied to clipboard!`, { id: "copy", duration: 2000 });
   };
 
   const renderPagination = () => {
@@ -197,28 +203,34 @@ export default function AdminWithdrawalsPage() {
                         <p className="text-[11px] text-slate-500 font-medium">{req.email}</p>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <span className="font-black text-lg text-rose-600 block leading-tight">{req.amount}</span>
-                      <span className="text-[10px] font-bold text-slate-400 uppercase">{req.date}</span>
+                    <div className="text-right flex flex-col items-end group/amount cursor-pointer" onClick={() => handleCopy(req.amount, "Amount")}>
+                      <div className="flex items-center gap-1.5">
+                        <Copy className="w-4 h-4 text-slate-300 opacity-0 group-hover/amount:opacity-100 transition-opacity hover:text-rose-500" />
+                        <span className="font-black text-lg text-rose-600 block leading-tight">{req.amount}</span>
+                      </div>
+                      <span className="text-[10px] font-bold text-slate-400 uppercase mt-0.5">{req.date}</span>
                     </div>
                   </div>
 
                   <div className="bg-slate-50 rounded-lg p-3.5 mb-5 space-y-2 border border-slate-100 flex-1">
-                    <div className="flex items-center gap-2 text-xs">
+                    <div className="flex items-center gap-2 text-xs group/copy cursor-pointer" onClick={() => handleCopy(req.bank, "Bank Name")}>
                       <Building2 className="w-3.5 h-3.5 text-slate-400" />
-                      <span className="text-slate-500 w-20">Bank:</span>
+                      <span className="text-slate-500 w-16">Bank:</span>
                       <span className="font-bold text-slate-900 flex-1 truncate">{req.bank}</span>
+                      <Copy className="w-3.5 h-3.5 text-slate-300 opacity-0 group-hover/copy:opacity-100 transition-opacity hover:text-primary shrink-0" />
                     </div>
-                    <div className="flex items-center gap-2 text-xs">
+                    <div className="flex items-center gap-2 text-xs group/copy cursor-pointer" onClick={() => handleCopy(req.account, "Account Number")}>
                       <Hash className="w-3.5 h-3.5 text-slate-400" />
-                      <span className="text-slate-500 w-20">Account:</span>
+                      <span className="text-slate-500 w-16">Account:</span>
                       <span className="font-bold text-slate-900 font-mono tracking-wider flex-1 truncate">{req.account}</span>
+                      <Copy className="w-3.5 h-3.5 text-slate-300 opacity-0 group-hover/copy:opacity-100 transition-opacity hover:text-primary shrink-0" />
                     </div>
                     {req.accountName && (
-                      <div className="flex items-center gap-2 text-xs">
+                      <div className="flex items-center gap-2 text-xs group/copy cursor-pointer" onClick={() => handleCopy(req.accountName, "Account Name")}>
                         <div className="w-3.5 h-3.5 text-slate-400 flex items-center justify-center font-bold text-[10px]">A</div>
-                        <span className="text-slate-500 w-20">Name:</span>
-                        <span className="font-bold text-slate-900 flex-1 truncate">{req.accountName}</span>
+                        <span className="text-slate-500 w-16">Name:</span>
+                        <span className="font-bold text-slate-900 flex-1 truncate" title={req.accountName}>{req.accountName}</span>
+                        <Copy className="w-3.5 h-3.5 text-slate-300 opacity-0 group-hover/copy:opacity-100 transition-opacity hover:text-primary shrink-0" />
                       </div>
                     )}
                   </div>
