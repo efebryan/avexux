@@ -166,7 +166,6 @@ export function RankAchievements() {
         {ranksConfig.map((rank, index) => {
           let status: "unlocked" | "current" | "locked" = "locked";
           if (hasDeposited) {
-            if (index < currentRankIndex) status = "unlocked";
             if (index === currentRankIndex) status = "current";
           }
 
