@@ -2,7 +2,7 @@ export interface Transaction {
   id: string;
   date: string;
   description: string;
-  type: "Task" | "Bonus" | "Referral";
+  type: string;
   amount: number;
   status: "Completed" | "Pending";
 }
