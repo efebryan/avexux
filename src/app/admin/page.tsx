@@ -23,8 +23,8 @@ import { toast } from "sonner";
 const stats = [
   {
     title: "TOTAL USERS",
-    value: "1,245",
-    subtext: "+24 this week",
+    value: "—",
+    subtext: "",
     icon: Users,
     color: "text-green-600",
     bg: "bg-green-50",
@@ -32,8 +32,8 @@ const stats = [
   },
   {
     title: "ACTIVE USERS",
-    value: "890",
-    subtext: "Logged in last 30 days",
+    value: "—",
+    subtext: "",
     icon: Activity,
     color: "text-green-500",
     bg: "bg-green-50",
@@ -41,8 +41,8 @@ const stats = [
   },
   {
     title: "TOTAL TASKS",
-    value: "45",
-    subtext: "32 active · 13 paused",
+    value: "—",
+    subtext: "",
     icon: ClipboardList,
     color: "text-indigo-500",
     bg: "bg-indigo-50",
@@ -50,17 +50,17 @@ const stats = [
   },
   {
     title: "TOTAL REFERRALS",
-    value: "3,402",
-    subtext: "₦145,000 paid out",
+    value: "—",
+    subtext: "",
     icon: UsersRound,
     color: "text-amber-500",
     bg: "bg-amber-50",
-    subtextColor: "text-slate-900", // Will style specific parts manually in render
+    subtextColor: "text-slate-900",
   },
   {
     title: "DEPOSITS RECEIVED",
-    value: "₦2.4M",
-    subtext: "+ ₦150k today",
+    value: "—",
+    subtext: "",
     icon: ArrowDownToLine,
     color: "text-teal-500",
     bg: "bg-teal-50",
@@ -68,8 +68,8 @@ const stats = [
   },
   {
     title: "WITHDRAWALS PAID",
-    value: "₦1.8M",
-    subtext: "42 pending requests",
+    value: "—",
+    subtext: "",
     icon: Wallet,
     color: "text-rose-500",
     bg: "bg-rose-50",

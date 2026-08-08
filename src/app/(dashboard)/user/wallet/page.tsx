@@ -70,7 +70,7 @@ export default function WalletPage() {
           .from("referrals")
           .select("reward_amount")
           .eq("referrer_id", user.id)
-          .eq("status", "completed");
+          .eq("status", "Active");
           
         if (refData) {
           const refSum = refData.reduce((acc, curr) => acc + Number(curr.reward_amount), 0);

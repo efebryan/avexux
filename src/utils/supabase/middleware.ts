@@ -42,6 +42,25 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
+  // Enforce admin role for /admin routes (except /admin/login)
+  if (
+    user &&
+    request.nextUrl.pathname.startsWith('/admin') &&
+    request.nextUrl.pathname !== '/admin/login'
+  ) {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .single()
+
+    if (!profile || profile.role !== 'admin') {
+      const url = request.nextUrl.clone()
+      url.pathname = '/user'
+      return NextResponse.redirect(url)
+    }
+  }
+
   // Redirect logged in users away from auth pages
   if (
     user &&

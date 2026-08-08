@@ -7,13 +7,9 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { createClient } from "@/utils/supabase/client";
 import { Loader2 } from "lucide-react";
+import { getHighestDeposit, getUserRank } from "@/utils/deposit";
 
-const ranksConfig = [
-  { id: "bronze", threshold: 0 },
-  { id: "silver", threshold: 18000 },
-  { id: "gold", threshold: 42000 },
-  { id: "platinum", threshold: 88000 },
-];
+
 
 export default function TaskCenterPage() {
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -28,9 +24,9 @@ export default function TaskCenterPage() {
   const currentDayName = dayNames[new Date().getDay()];
   const isWeekend = currentDayName === "Saturday" || currentDayName === "Sunday";
 
-  const supabase = createClient();
 
   useEffect(() => {
+    const supabase = createClient();
     async function fetchTasks() {
       const {
         data: { user },
@@ -48,27 +44,12 @@ export default function TaskCenterPage() {
 
       let highestDeposit = 0;
       if (txData) {
-        highestDeposit = txData
-          .filter(
-            (tx: any) =>
-              tx.type?.toLowerCase() === "deposit" ||
-              (tx.metadata?.description || "")
-                .toLowerCase()
-                .includes("deposit"),
-          )
-          .reduce(
-            (max: number, tx: any) => Math.max(max, Number(tx.amount)),
-            0,
-          );
+        highestDeposit = getHighestDeposit(txData);
       }
 
       setHasDeposited(highestDeposit > 0);
 
-      const currentRankIndex = Math.max(
-        0,
-        ranksConfig.findLastIndex((r) => highestDeposit >= r.threshold),
-      );
-      const userRank = ranksConfig[currentRankIndex].id;
+      const userRank = getUserRank(highestDeposit);
 
       // 2. Fetch all active tasks matching their plan
       const { data: allTasks, error: tasksError } = await supabase

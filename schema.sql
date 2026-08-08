@@ -30,7 +30,7 @@ CREATE TABLE IF NOT EXISTS public.wallets (
     user_id UUID UNIQUE NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
     balance NUMERIC(12, 2) NOT NULL DEFAULT 0.00 CHECK (balance >= 0),
     pending_balance NUMERIC(12, 2) NOT NULL DEFAULT 0.00 CHECK (pending_balance >= 0),
-    today_earnings NUMERIC(12, 2) NOT NULL DEFAULT 0.00 CHECK (today_earnings >= 0),
+    today_earnings NUMERIC(12, 2) NOT NULL DEFAULT 0.00 CHECK (today_earnings >= 0), -- NOTE: Requires a pg_cron job to reset to 0.00 daily at midnight
     total_earned NUMERIC(12, 2) NOT NULL DEFAULT 0.00 CHECK (total_earned >= 0),
     free_spins INTEGER NOT NULL DEFAULT 1 CHECK (free_spins >= 0),
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
@@ -53,6 +53,7 @@ CREATE TABLE IF NOT EXISTS public.tasks (
     requirements JSONB NOT NULL DEFAULT '[]'::jsonb,
     max_submissions INTEGER,
     submissions_count INTEGER NOT NULL DEFAULT 0 CHECK (submissions_count >= 0),
+    target_plan TEXT NOT NULL DEFAULT 'All',
     status TEXT NOT NULL DEFAULT 'Active' CHECK (status IN ('Active', 'Paused', 'Completed', 'Draft')),
     day_of_week TEXT NOT NULL DEFAULT 'Friday' CHECK (day_of_week IN ('Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday')),
     created_by UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
@@ -239,8 +240,10 @@ ALTER TABLE public.transactions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.withdrawal_requests ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.referrals ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.rewards_spins ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.spin_overrides ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.notifications ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.support_tickets ENABLE ROW LEVEL SECURITY;
+-- NOTE: app_settings intentionally has RLS disabled — it stores public read-only config.
 
 -- Profiles Policies
 CREATE POLICY "Public profiles are viewable by everyone" ON public.profiles FOR SELECT USING (true);
@@ -267,6 +270,11 @@ CREATE POLICY "Users can view own transactions" ON public.transactions FOR SELEC
 CREATE POLICY "Users can view own withdrawal requests" ON public.withdrawal_requests FOR SELECT USING (auth.uid() = user_id);
 CREATE POLICY "Users can create withdrawal request" ON public.withdrawal_requests FOR INSERT WITH CHECK (auth.uid() = user_id);
 
+-- Spin Overrides Policies
+CREATE POLICY "Users can view own spin overrides" ON public.spin_overrides FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Admins can manage spin overrides" ON public.spin_overrides FOR INSERT WITH CHECK (true);
+CREATE POLICY "Admins can update spin overrides" ON public.spin_overrides FOR UPDATE USING (true);
+
 -- Notifications Policies
 CREATE POLICY "Users can view own notifications" ON public.notifications FOR SELECT USING (auth.uid() = user_id OR user_id IS NULL);
 CREATE POLICY "Users can update own notifications" ON public.notifications FOR UPDATE USING (auth.uid() = user_id);
@@ -276,33 +284,15 @@ CREATE POLICY "Users can view own tickets" ON public.support_tickets FOR SELECT 
 CREATE POLICY "Anyone can create support ticket" ON public.support_tickets FOR INSERT WITH CHECK (true);
 
 
-
-CREATE TABLE IF NOT EXISTS public.app_settings (
-    key TEXT PRIMARY KEY,
-    value JSONB NOT NULL,
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
-);
-
--- Insert default spin wheel configuration
-INSERT INTO public.app_settings (key, value)
-VALUES (
-    'spin_wheel_config',
-    '{"cost": 500, "sectors": [{"id": "1", "label": "₦1,000 Cash", "type": "cash", "value": 1000, "color": "#10b981", "isWin": true}, {"id": "2", "label": "Try Again 😢", "type": "none", "value": 0, "color": "#64748b", "isWin": false}, {"id": "3", "label": "Premium Pro", "type": "premium", "value": 0, "color": "#3b82f6", "isWin": true}, {"id": "4", "label": "Better Luck 🍀", "type": "none", "value": 0, "color": "#475569", "isWin": false}]}'::jsonb
-
-CREATE TABLE IF NOT EXISTS public.app_settings (
-    key TEXT PRIMARY KEY,
-    value JSONB NOT NULL,
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
-);
-
--- Insert default spin wheel configuration
+-- ========================================================
+-- DEFAULT APP SETTINGS DATA
+-- ========================================================
 INSERT INTO public.app_settings (key, value)
 VALUES (
     'spin_wheel_config',
     '{"cost": 500, "sectors": [{"id": "1", "label": "₦1,000 Cash", "type": "cash", "value": 1000, "color": "#10b981", "isWin": true}, {"id": "2", "label": "Try Again 😢", "type": "none", "value": 0, "color": "#64748b", "isWin": false}, {"id": "3", "label": "Premium Pro", "type": "premium", "value": 0, "color": "#3b82f6", "isWin": true}, {"id": "4", "label": "Better Luck 🍀", "type": "none", "value": 0, "color": "#475569", "isWin": false}]}'::jsonb
 ) ON CONFLICT (key) DO NOTHING;
 
--- Insert default congratulations modal configuration
 INSERT INTO public.app_settings (key, value)
 VALUES (
     'congrats_modal_config',

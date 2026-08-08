@@ -9,13 +9,9 @@ import { Button } from "@/components/ui/button";
 import { Trophy, Sparkles } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
 import { useRouter } from "next/navigation";
+import { getHighestDeposit, getUserRank, ranksConfig } from "@/utils/deposit";
 
-const ranksConfig = [
-  { id: "bronze", threshold: 0 },
-  { id: "silver", threshold: 18000 },
-  { id: "gold", threshold: 42000 },
-  { id: "platinum", threshold: 88000 },
-];
+
 
 interface CongratulationsModalProps {
   isOpen: boolean;
@@ -73,25 +69,10 @@ export function CongratulationsModal({
 
         let highestDep = 0;
         if (txData) {
-          highestDep = txData
-            .filter(
-              (tx: any) =>
-                tx.type?.toLowerCase() === "deposit" ||
-                (tx.metadata?.description || "")
-                  .toLowerCase()
-                  .includes("deposit"),
-            )
-            .reduce(
-              (max: number, tx: any) => Math.max(max, Number(tx.amount)),
-              0,
-            );
+          highestDep = getHighestDeposit(txData);
         }
 
-        const rankIndex = Math.max(
-          0,
-          ranksConfig.findLastIndex((r) => highestDep >= r.threshold),
-        );
-        const userPlanId = ranksConfig[rankIndex].id;
+        const userPlanId = getUserRank(highestDep);
 
         // 3. Check Spin Days Config
         const { data: planData } = await supabase

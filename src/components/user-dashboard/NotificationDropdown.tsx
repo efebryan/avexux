@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { Bell, CheckCircle2, AlertCircle, Info, Check } from "lucide-react";
 import Link from "next/link";
 import { createClient } from "@/utils/supabase/client";
@@ -48,7 +48,7 @@ export function NotificationDropdown() {
   const [isOpen, setIsOpen] = useState(false);
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const supabase = createClient();
+  const supabase = useMemo(() => createClient(), []);
 
   useEffect(() => {
     async function fetchNotifications() {
@@ -100,7 +100,7 @@ export function NotificationDropdown() {
       const { data: settingsData } = await supabase
         .from("app_settings")
         .select("value")
-        .eq("key", "wheel_config")
+        .eq("key", "spin_wheel_config")
         .single();
 
       let spinDays = [5];

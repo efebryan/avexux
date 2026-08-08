@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { DashboardStats } from "@/components/user-dashboard/DashboardStats";
 import { AvailableOpportunities } from "@/components/user-dashboard/AvailableOpportunities";
 import { ActiveTasksTable } from "@/components/user-dashboard/ActiveTasksTable";
@@ -8,8 +8,23 @@ import { WeeklyGoal } from "@/components/user-dashboard/WeeklyGoal";
 import { RankAchievements } from "@/components/user-dashboard/RankAchievements";
 import { CongratulationsModal } from "@/components/user-dashboard/CongratulationsModal";
 
+const CONGRATS_DISMISSED_KEY = "avexux_congrats_dismissed";
+
 export default function UserDashboard() {
-  const [isCongratsOpen, setIsCongratsOpen] = useState(true);
+  const [isCongratsOpen, setIsCongratsOpen] = useState(() => {
+    // Only show the modal if the user hasn't dismissed it this session
+    if (typeof window !== "undefined") {
+      return sessionStorage.getItem(CONGRATS_DISMISSED_KEY) !== "true";
+    }
+    return true;
+  });
+
+  const handleCloseModal = useCallback(() => {
+    setIsCongratsOpen(false);
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem(CONGRATS_DISMISSED_KEY, "true");
+    }
+  }, []);
 
   return (
     <div className="flex flex-col xl:flex-row gap-4">
@@ -29,7 +44,7 @@ export default function UserDashboard() {
       {/* Global Congratulations Campaign Modal */}
       <CongratulationsModal 
         isOpen={isCongratsOpen}
-        onClose={() => setIsCongratsOpen(false)}
+        onClose={handleCloseModal}
       />
     </div>
   );

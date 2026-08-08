@@ -1,6 +1,32 @@
 'use server'
 
+import { createClient } from '@/utils/supabase/server'
 import { createClient as createSupabaseClient } from '@supabase/supabase-js'
+
+/**
+ * Helper: Verify the current user is an admin.
+ * Returns the admin's user ID on success, or an error response.
+ */
+async function verifyAdmin() {
+  const supabase = await createClient();
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+  if (authError || !user) {
+    return { authorized: false as const, error: 'Unauthorized: Not logged in.' };
+  }
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', user.id)
+    .single();
+
+  if (!profile || profile.role !== 'admin') {
+    return { authorized: false as const, error: 'Forbidden: Admin access required.' };
+  }
+
+  return { authorized: true as const, userId: user.id, supabase };
+}
 
 export async function adminCreateUserAction(data: {
   fullName: string;
@@ -10,9 +36,16 @@ export async function adminCreateUserAction(data: {
   status: string;
   referralCode?: string;
 }) {
+  // Verify admin identity first
+  const auth = await verifyAdmin();
+  if (!auth.authorized) {
+    return { success: false, error: auth.error };
+  }
+
   const { fullName, email, password, role, status, referralCode } = data;
   
-  // Use a vanilla client to avoid modifying the admin's cookies
+  // Use a vanilla client for signUp to avoid modifying the admin's session cookies.
+  // Admin identity was already verified above.
   const supabase = createSupabaseClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -50,9 +83,8 @@ export async function adminCreateUserAction(data: {
     return { success: false, error: "Failed to create user" };
   }
 
-  // 2. Since the client is now temporarily logged in as the new user, 
-  // we can update their profile directly (bypassing the "update own profile" RLS check!)
-  const { error: updateError } = await supabase
+  // 2. Update the new user's profile via the authenticated admin client
+  const { error: updateError } = await auth.supabase
     .from('profiles')
     .update({ 
       role: role.toLowerCase(),
@@ -61,7 +93,6 @@ export async function adminCreateUserAction(data: {
     .eq('id', authData.user.id);
 
   if (updateError) {
-    // Note: User is created but role/status update failed
     return { success: false, error: "User created, but failed to set role/status: " + updateError.message };
   }
 
@@ -79,19 +110,12 @@ export async function adminCreateTaskAction(data: {
   targetPlan: string;
   dayOfWeek: string;
 }) {
-  const supabase = createSupabaseClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      auth: {
-        persistSession: false,
-        autoRefreshToken: false,
-      }
-    }
-  );
+  const auth = await verifyAdmin();
+  if (!auth.authorized) {
+    return { success: false, error: auth.error };
+  }
 
-  // Note: in a real production app, we would enforce admin authentication check here
-  // before inserting, e.g. using a service role key or checking user role
+  const { supabase } = auth;
 
   const { data: task, error } = await supabase
     .from('tasks')
@@ -120,7 +144,7 @@ export async function adminCreateTaskAction(data: {
   // Insert global notification for the new task
   const targetLabel = data.targetPlan === "All" ? "all users" : `${data.targetPlan} users`;
   await supabase.from("notifications").insert([{
-    user_id: null, // null means it's for everyone (or filtered later)
+    user_id: null,
     title: "New Task Available!",
     message: `A new task "${data.title}" is available for ${targetLabel}. Earn ₦${data.rewardAmount}!`,
     type: "info",
@@ -145,16 +169,12 @@ export async function adminEditTaskAction(
     dayOfWeek: string;
   }
 ) {
-  const supabase = createSupabaseClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      auth: {
-        persistSession: false,
-        autoRefreshToken: false,
-      }
-    }
-  );
+  const auth = await verifyAdmin();
+  if (!auth.authorized) {
+    return { success: false, error: auth.error };
+  }
+
+  const { supabase } = auth;
 
   const { data: task, error } = await supabase
     .from('tasks')
@@ -184,16 +204,12 @@ export async function adminEditTaskAction(
 }
 
 export async function adminNotifyUserAction(userId: string, title: string, message: string, type: string = "info", category: string = "System") {
-  const supabase = createSupabaseClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      auth: {
-        persistSession: false,
-        autoRefreshToken: false,
-      }
-    }
-  );
+  const auth = await verifyAdmin();
+  if (!auth.authorized) {
+    return { success: false, error: auth.error };
+  }
+
+  const { supabase } = auth;
 
   const { error } = await supabase.from("notifications").insert([{
     user_id: userId,
@@ -213,24 +229,18 @@ export async function adminNotifyUserAction(userId: string, title: string, messa
 }
 
 export async function adminProcessWithdrawalAction(requestId: string, status: "Approved" | "Rejected", reason?: string) {
-  const supabase = createSupabaseClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      auth: {
-        persistSession: false,
-        autoRefreshToken: false,
-      }
-    }
-  );
+  const auth = await verifyAdmin();
+  if (!auth.authorized) {
+    return { success: false, error: auth.error };
+  }
 
-  const { data: { user } } = await supabase.auth.getUser();
+  const { supabase, userId } = auth;
 
   const { data: rpcResult, error: rpcError } = await supabase.rpc(
     "process_withdrawal",
     {
       p_request_id: requestId,
-      p_admin_id: user?.id || null, // Mock admin id if none 
+      p_admin_id: userId,
       p_status: status,
       p_reason: reason || null,
     }

@@ -1,6 +1,6 @@
 "use client";
 
-import { Wallet, ClipboardList, Zap, CheckCircle2, Users, Star } from "lucide-react";
+import { Wallet, Zap, CheckCircle2, Users } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { useState, useEffect } from "react";
 import { createClient } from "@/utils/supabase/client";
@@ -77,10 +77,6 @@ export function DashboardStats() {
           <div className="w-7 h-7 rounded-md bg-[#ade5bb]/40 flex items-center justify-center text-[#0f8538]">
             <Wallet className="w-3.5 h-3.5" />
           </div>
-          <span className="bg-[#ade5bb]/40 text-[#0f8538] text-[9px] font-bold px-1.5 py-0.5 rounded-full flex items-center gap-0.5">
-            <TrendingUpIcon />
-            +12%
-          </span>
         </div>
         <div>
           <p className="text-gray-500 text-[11px] font-medium mb-0">Wallet Balance</p>
@@ -95,10 +91,6 @@ export function DashboardStats() {
           <div className="w-7 h-7 rounded-md bg-[#ade5bb]/40 flex items-center justify-center text-[#0f8538]">
             <Zap className="w-3.5 h-3.5" />
           </div>
-          <span className="bg-[#ade5bb]/40 text-[#0f8538] text-[9px] font-bold px-1.5 py-0.5 rounded-full flex items-center gap-0.5">
-            <TrendingUpIcon />
-            +45%
-          </span>
         </div>
         <div>
           <p className="text-gray-500 text-[11px] font-medium mb-0">Total Earnings</p>
@@ -131,19 +123,10 @@ export function DashboardStats() {
         <div>
           <p className="text-gray-500 text-[11px] font-medium mb-0">Active Referrals</p>
           <h3 className="text-lg font-bold text-gray-900 leading-tight">{activeReferrals}</h3>
-          <p className="text-[10px] text-gray-400 mt-0.5">Generates ₦8.50/week passively</p>
+          <p className="text-[10px] text-gray-400 mt-0.5">{activeReferrals === 1 ? '1 active referral' : `${activeReferrals} active referrals`}</p>
         </div>
       </Card>
 
     </div>
-  );
-}
-
-function TrendingUpIcon() {
-  return (
-    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-      <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
-      <polyline points="17 6 23 6 23 12" />
-    </svg>
   );
 }

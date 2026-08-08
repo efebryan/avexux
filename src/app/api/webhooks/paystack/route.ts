@@ -18,14 +18,17 @@ export async function POST(req: NextRequest) {
     }
 
     // Verify webhook signature
-    const secret = process.env.PAYSTACK_SECRET_KEY || 'sk_test_mock_for_development';
+    const secret = process.env.PAYSTACK_SECRET_KEY;
+    if (!secret) {
+      console.error('PAYSTACK_SECRET_KEY is not configured. Rejecting webhook.');
+      return NextResponse.json({ message: 'Webhook not configured' }, { status: 500 });
+    }
+
     const hash = crypto.createHmac('sha512', secret).update(rawBody).digest('hex');
     
     if (hash !== signature) {
-      // In development without real keys, we might fail here, but in prod this is critical
-      console.warn('Paystack webhook signature mismatch');
-      // For strict production, uncomment:
-      // return NextResponse.json({ message: 'Invalid signature' }, { status: 400 });
+      console.warn('Paystack webhook signature mismatch — rejecting request.');
+      return NextResponse.json({ message: 'Invalid signature' }, { status: 400 });
     }
 
     const body = JSON.parse(rawBody);

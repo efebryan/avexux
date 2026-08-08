@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { CheckCircle2, AlertCircle, Info, Check } from "lucide-react";
 import { NotificationItem } from "@/components/user-dashboard/NotificationDropdown";
 import { createClient } from "@/utils/supabase/client";
@@ -35,7 +35,7 @@ export default function NotificationsPage() {
   const [activeTab, setActiveTab] = useState<
     "all" | "unread" | "Task" | "Account" | "System"
   >("all");
-  const supabase = createClient();
+  const supabase = useMemo(() => createClient(), []);
 
   useEffect(() => {
     async function fetchNotifications() {
@@ -87,7 +87,7 @@ export default function NotificationsPage() {
       const { data: settingsData } = await supabase
         .from("app_settings")
         .select("value")
-        .eq("key", "wheel_config")
+        .eq("key", "spin_wheel_config")
         .single();
 
       let spinDays = [5];

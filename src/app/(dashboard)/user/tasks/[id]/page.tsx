@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
 import { Loader2, ArrowLeft, Clock, ExternalLink, Star, Info, UploadCloud, X, CheckCircle, AlertCircle } from "lucide-react";
@@ -13,7 +13,7 @@ export default function TaskDetailsPage() {
   const params = useParams();
   const router = useRouter();
   const taskId = params.id as string;
-  const supabase = createClient();
+  const supabase = useMemo(() => createClient(), []);
 
   const [task, setTask] = useState<any>(null);
   const [submission, setSubmission] = useState<any>(null);
@@ -87,6 +87,20 @@ export default function TaskDetailsPage() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
+    // Check for existing submission before inserting to handle gracefully
+    const { data: existingSub } = await supabase
+      .from("task_submissions")
+      .select("id, status")
+      .eq("task_id", taskId)
+      .eq("user_id", user.id)
+      .single();
+
+    if (existingSub) {
+      toast.error("You have already accepted this task.");
+      setSubmission(existingSub);
+      return;
+    }
+
     const { error } = await supabase.from("task_submissions").insert({
       task_id: taskId,
       user_id: user.id,
@@ -94,7 +108,12 @@ export default function TaskDetailsPage() {
     });
 
     if (error) {
-      toast.error("Failed to accept task. You might have already accepted it.");
+      // Parse unique constraint violation (Postgres error code 23505)
+      if (error.code === "23505") {
+        toast.error("You have already accepted this task.");
+      } else {
+        toast.error("Failed to accept task. Please try again.");
+      }
       return;
     }
     

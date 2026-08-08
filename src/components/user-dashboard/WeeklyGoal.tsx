@@ -7,13 +7,9 @@ import dynamic from "next/dynamic";
 import { createClient } from "@/utils/supabase/client";
 import { toast } from "sonner";
 import { Trophy } from "lucide-react";
+import { getHighestDeposit, getUserRank, ranksConfig } from "@/utils/deposit";
 
-const ranksConfig = [
-  { id: "bronze", threshold: 0 },
-  { id: "silver", threshold: 18000 },
-  { id: "gold", threshold: 42000 },
-  { id: "platinum", threshold: 88000 },
-];
+
 
 const DepositModal = dynamic(
   () =>
@@ -46,27 +42,11 @@ export function WeeklyGoal() {
 
         let maxDeposit = 0;
         if (txData) {
-          maxDeposit = txData
-            .filter(
-              (tx: any) =>
-                tx.type?.toLowerCase() === "deposit" ||
-                (tx.metadata?.description || "")
-                  .toLowerCase()
-                  .includes("deposit") ||
-                (tx.description || "").toLowerCase().includes("deposit"),
-            )
-            .reduce(
-              (max: number, tx: any) => Math.max(max, Number(tx.amount)),
-              0,
-            );
+          maxDeposit = getHighestDeposit(txData);
           setHighestDeposit(maxDeposit);
         }
 
-        const currentRankIndex = Math.max(
-          0,
-          ranksConfig.findLastIndex((r) => maxDeposit >= r.threshold),
-        );
-        const userRank = ranksConfig[currentRankIndex].id;
+        const userRank = getUserRank(maxDeposit);
 
         // Fetch ALL Active tasks for this user's plan
         const { data: activeTasks } = await supabase

@@ -7,6 +7,7 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 import { createClient } from "@/utils/supabase/client";
 import { useRouter } from "next/navigation";
+import { getHighestDeposit } from "@/utils/deposit";
 
 export function AvailableOpportunities() {
   const [opportunities, setOpportunities] = useState<any[]>([]);
@@ -31,18 +32,7 @@ export function AvailableOpportunities() {
 
       let highestDeposit = 0;
       if (txData) {
-        highestDeposit = txData
-          .filter(
-            (tx: any) =>
-              tx.type?.toLowerCase() === "deposit" ||
-              (tx.metadata?.description || "")
-                .toLowerCase()
-                .includes("deposit"),
-          )
-          .reduce(
-            (max: number, tx: any) => Math.max(max, Number(tx.amount)),
-            0,
-          );
+        highestDeposit = getHighestDeposit(txData);
       }
       setHasDeposited(highestDeposit > 0);
 

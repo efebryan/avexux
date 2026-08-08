@@ -26,20 +26,31 @@ export async function verifyDepositAction(
       return { success: false, error: "User not authenticated" };
     }
 
-    // 2. We don't have the secret key in env right now, so we'll gracefully mock the Paystack validation
-    // In a real production setup, you MUST ping Paystack here:
-    /*
+    // 2. Verify the transaction with Paystack
+    const paystackSecretKey = process.env.PAYSTACK_SECRET_KEY;
+
+    if (!paystackSecretKey) {
+      console.error("PAYSTACK_SECRET_KEY is not configured. Rejecting deposit verification.");
+      return { success: false, error: "Payment verification is not available. Please contact support." };
+    }
+
     const response = await fetch(`https://api.paystack.co/transaction/verify/${reference}`, {
       headers: {
-        Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`
+        Authorization: `Bearer ${paystackSecretKey}`
       }
     });
-    const data = await response.json();
-    if (!data.status || data.data.status !== 'success') {
-      return { success: false, error: 'Transaction verification failed at Paystack' };
+    const verifyData = await response.json();
+
+    if (!verifyData.status || verifyData.data?.status !== 'success') {
+      return { success: false, error: 'Transaction verification failed at Paystack.' };
     }
-    // Also verify data.data.amount (in kobo) matches expectedAmount * 100
-    */
+
+    // Verify amount matches (Paystack returns amount in kobo)
+    const paystackAmountNaira = verifyData.data.amount / 100;
+    if (paystackAmountNaira !== expectedAmount) {
+      console.error(`Paystack amount mismatch: expected ₦${expectedAmount}, got ₦${paystackAmountNaira}`);
+      return { success: false, error: 'Transaction amount mismatch.' };
+    }
 
     // 3. Since the payment was "successful", process it in the database
     // We call the SECURITY DEFINER function to bypass RLS and insert securely
